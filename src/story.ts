@@ -1,31 +1,32 @@
 /**
- * "FIVE MINUTES BEFORE" — prologue, two endings, notebook entries, ambient lines.
+ * "YESTERDAY ECHOES" — prologue, two endings, notebook entries, quiet lines.
  *
- * The protagonist (Alex) lives in a quiet community where every night at 11:55
- * the Cleaners take the last five minutes of his memory. He slowly starts to
- * realise — through small inconsistencies in conversations with the neighbours.
+ * Every night, the Cleaners take the last five minutes of memory and pour the
+ * rest of you into a new body. Today's Alex is the latest in a sequence. He
+ * doesn't know how long the sequence is. He's starting to.
  */
 
 export const PROLOGUE: string[] = [
-  "You live in the Diona Community. Everything is fine. Helena loves you. Your neighbour Costas greets you every morning.",
-  "You don't remember what day it is, but that doesn't worry you. No one remembers. That's how it is here.",
-  "Today, though, your mother called you Andrew. She laughed and corrected herself. And something inside you — like a small candle someone forgot to blow out — caught.",
+  "You wake up. Your name is Alex. You know this the way you know which side of the bed is yours: by the shape of the wear.",
+  "Helena is humming in the kitchen. Outside, the sky is the colour it always is. You don't remember yesterday. Nobody does. That's the way it is here.",
+  "Today though — your mother, in the kitchen, looking right at you — said Andrew. She laughed. She said sorry. She said she didn't know why.",
+  "And something inside you, in the small dark place under the place a person usually thinks from, opened an eye.",
 ];
 
-/** If you choose "burn it down". */
+/** If you choose to burn it down — to give them back their losses. */
 export const EPILOGUE_BURN: string[] = [
-  "You climbed the hill. You went underneath. You saw the bodies in the tubes — one hundred and twenty-four. All of them yours. Different ages. None of them older than forty.",
-  "The Custodian smiled at you. He said: \"You don't remember any pain. You don't remember anyone dead. That is happiness. Why do you want to break it?\"",
-  "You answered him something small, almost in a whisper. You don't remember what. It doesn't matter. The next morning you saw Helena in the little park. She looked at you for a second as if she didn't know you. Then she did.",
-  "You're growing old together now. All the old things live inside us. Sometimes they hurt. That's alright.",
+  "You light the lights. One hundred and twenty-four tubes go dark, one after another, like a hand passing over a row of candles.",
+  "Out there in the morning, Mom looks at you a moment too long. She knows nothing of the last several weeks; the body she remembers is younger by a year. She accepts you anyway, the way a mother does.",
+  "Helena holds your hand in the park bench you can both newly remember carving names into. \"I think someone died,\" she says. \"I think I loved him. I think you were him.\" You don't correct her. You don't think it matters.",
+  "The lamps no longer go out at 11:55. You grow older together, all of you, slowly. It hurts. It is real. Old age is a slow language and you are all learning it again.",
 ];
 
-/** If you choose "go back". */
+/** If you choose to go back — to stay inside the kindness. */
 export const EPILOGUE_RETURN: string[] = [
-  "The Custodian smiled at you. He stroked your head. He said nothing.",
-  "You wake up. It's Monday. Helena whispers \"good morning\". The sun comes softly through the window.",
-  "You don't remember anything. Everything is fine.",
-  "...until today your mother calls you Andrew.",
+  "You take the Custodian's hand. He says: \"this isn't a worse choice. It's a different one.\" You believe him.",
+  "Tomorrow you wake up. It's Monday. Helena hums in the kitchen. The sky is the colour it always is. Your mother is downstairs.",
+  "She turns when you come in. She smiles. She says good morning, Andrew. — Oh. Sorry, sorry. Alex.",
+  "And, somewhere small and dark and almost too far down to hear, an eye that was just learning to open closes again.",
 ];
 
 /** Auto-notebook entries — added when you spot specific inconsistencies. */

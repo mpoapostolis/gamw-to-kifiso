@@ -196,7 +196,7 @@ export class GameScene extends Phaser.Scene {
   /** Called by UIScene once its HUD exists, to run the opening crawl. */
   startPrologue() {
     this.pendingPrologue = false;
-    this.ui.showStory("FIVE MINUTES BEFORE", PROLOGUE, () => {
+    this.ui.showStory("YESTERDAY ECHOES", PROLOGUE, () => {
       this.inStory = false;
       this.player.controlsLocked = false;
       this.ui.showAreaBanner("Diona Community · Day 1");

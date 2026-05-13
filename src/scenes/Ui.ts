@@ -554,7 +554,7 @@ export class UIScene extends Phaser.Scene {
     const dim = this.add.rectangle(VIEW_W / 2, VIEW_H / 2, VIEW_W, VIEW_H, PAL.void, 0.78);
     const panel = this.add.graphics();
     drawPanel(panel, VIEW_W / 2 - 280, VIEW_H / 2 - 180, 560, 360, PAL.panelEdgeHi);
-    const title = this.add.text(VIEW_W / 2, VIEW_H / 2 - 150, "FIVE MINUTES BEFORE", { fontFamily: CINZEL, fontSize: "26px", color: hex(PAL.ink), fontStyle: "800" }).setOrigin(0.5).setLetterSpacing(8);
+    const title = this.add.text(VIEW_W / 2, VIEW_H / 2 - 150, "YESTERDAY ECHOES", { fontFamily: CINZEL, fontSize: "30px", color: hex(PAL.ink), fontStyle: "800" }).setOrigin(0.5).setLetterSpacing(10);
     const lines = [
       "walk           W A S D   ·   ↑ ↓ ← →",
       "talk            E   (next to a neighbour)",

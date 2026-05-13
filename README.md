@@ -1,16 +1,24 @@
-# Five Minutes Before
+# Yesterday Echoes
 
-A small melancholic top-down RPG about the memory they take from you. Phaser 3 + TypeScript. No image assets — everything is drawn in code.
+A small existential top-down RPG about who you are after the night takes the rest. Phaser 3 + TypeScript. No image assets — everything is drawn in code.
 
-> _You live in the Diona Community. Everything is fine. Helena loves you. You don't remember what day it is, but that doesn't worry you. No one remembers._
+> _You wake up. Your name is Alex. You know this the way you know which side of the bed is yours: by the shape of the wear._
 >
-> _Today, though, your mother called you Andrew. She laughed and corrected herself. And something inside you — like a small candle someone forgot to blow out — caught._
+> _Helena is humming in the kitchen. Outside, the sky is the colour it always is. You don't remember yesterday. Nobody does. That's the way it is here._
+>
+> _Today, though — your mother, in the kitchen, looking right at you — said Andrew. She laughed. She said sorry. She said she didn't know why._
+>
+> _And something inside you, in the small dark place under the place a person usually thinks from, opened an eye._
 
-## Premise
+## What it's about
 
-Every night, at **11:55**, the Cleaners come and erase the last five minutes of your memory. They kill you in your sleep. The next morning you wake up in a new body, one day older, with the same identity — or so you think. Everyone has this happen. No one knows.
+Every night at **11:55**, the Cleaners come. They take the last five minutes of memory and pour the rest of you into a new body — one day older. Nobody knows this happens. Everybody thinks they just sleep.
 
-Except you, who slowly starts to remember through inconsistencies in conversations.
+You are Alex this morning. You were Alex yesterday too. But the body that kissed Helena yesterday is dead and you are wearing its name. Your mother slipped and called you Andrew once. There are one hundred and twenty-four of you in glass tubes under the hill.
+
+The game's question is not "what is happening?" It is: *if you don't remember being yesterday, are you the same person? whose love is Helena receiving? what is one extra body? would you trade pain for continuity if you could?*
+
+There are two endings. Neither is wrong.
 
 ## Run
 
@@ -30,44 +38,51 @@ bun run dev      # → http://localhost:5173
 | ESC                | pause                                                   |
 | M                  | mute (music + sfx)                                      |
 
-## Cast
+## The cast
 
-- **Helena** — your partner. She loves you. From day 2 onwards she starts referring to things you don't remember doing.
-- **Costas** — neighbour. He's been painting his front door for three weeks without ever finishing. On day 4 he tells you he knows.
-- **Mrs. Despoina** — the old woman at the corner. She tells truths nobody believes. She doesn't age.
-- **The Custodian** — at the end of the hill, beyond the community. He isn't cruel. He believes this is mercy.
+- **Mom** — in the kitchen. She loves you. She doesn't see herself slipping. She is the most loved character.
+- **Helena** — your partner. She suspects something even before she has the words. By Day 4 she names the discontinuity.
+- **Costas** — neighbour, awake. He has twenty-two days. He has been painting his front door for three weeks.
+- **Mrs. Despoina** — the old woman at the corner who has been awake sixty years and does not grow old. She speaks in aphorisms because she has had time to.
+- **The Mailman** — fading. Days 2-3 confused. By Day 4 he can't finish a sentence.
+- **Eli the kid** — innocent prophet, six years old, the most clear-eyed character in the game.
+- **The Custodian** — beneath the hill, beside the tubes. He is not the villain. His argument is almost convincing.
 
 ## Two endings
 
-- **BURN IT DOWN** — everyone wakes up and starts to age normally. Helena looks at you for a second like a stranger, then she knows you. You grow old together.
-- **GO BACK** — the Custodian strokes your head. You wake up tomorrow. You don't remember anything. Everything is fine. Until your mother calls you Andrew.
+- **BURN IT DOWN** — you light the lights. One hundred and twenty-four tubes go dark. Everyone wakes up to the lives they had lost track of. They grow old, slowly. It hurts. It is real.
+- **GO BACK** — you take the Custodian's hand. He says it isn't a worse choice, just a different one. Tomorrow you wake up. It's Monday. The sky is the colour it always is. Mom calls you Andrew. And, somewhere small and dark and almost too far down to hear, an eye that was just learning to open closes again.
 
 ## Features
 
-- **Portraits** — every named character has a detailed, hand-drawn-in-code portrait (120 × 140) that shows in the dialog panel.
-- **Notebook** (TAB) — inconsistencies you notice in dialog auto-add themselves to your notebook. Open it any time.
-- **Pocket** (I) — items you find or are given. House key and wallet to start. Helena's book, Despoina's candle, Costas's map etc. arrive through dialog.
-- **Multi-scene** — walk to your front door, press E, fade out, fade in inside your house. Bed, mirror, table, sink. Press E by the mirror — your face is slightly different every day. Step back through the door to return outside.
-- **Soft ambient bed** — a low Web-Audio drone, a hint of wind. No music — just air.
+- **Portraits** — every named character has a detailed, hand-drawn-in-code portrait (120 × 140) that shows during dialog.
+- **Notebook** (TAB) — inconsistencies you notice in conversation auto-add themselves. *Today my mother called me Andrew. She laughed and corrected herself. My name is Alex.*
+- **Pocket** (I) — items you find or are given. Helena's book, Mrs Despoina's candle, Costas's map, a wallet, a ring you don't remember owning, a song someone says you wrote.
+- **Sleep loop** — Press E on your bed to sleep. A black-out cinematic with text beats. From Day 3 onwards, a Cleaner sprite drifts through your bedroom while you "sleep". On Day 4 something inside you stays awake during it.
+- **Multi-scene** — Outside (the community + hill), inside your home (kitchen + bedroom + mirror + sink), and underneath (the Facility — six glass tubes, a Custodian, a console with green-lit screens).
+- **Ambient procedural music** — a pure Web Audio piece. A-minor / F / C / G at 78 BPM, three voices: a detuned sine pad with a 0.15Hz LFO on the filter (the "breathing"), sparse triangle+sine piano plucks with timing jitter, and a rare high bell every 4-8 bars.
 
 ## Stack
 
 ```
 src/
-├── main.ts           Phaser config, 5 scenes
+├── main.ts           Phaser config, 6 scenes
 ├── consts.ts         viewport + depth bands
 ├── palette.ts        soft melancholic dawn palette
-├── textures.ts       all sprites + the big character portraits, drawn at boot
-├── sfx.ts            tiny Web-Audio synth + ambient drone
+├── textures.ts       all sprites + character portraits, drawn at boot
+├── sfx.ts            tiny Web-Audio synth + ambient drone bed
+├── music.ts          procedural ambient piano/pad/bell
 ├── story.ts          prologue + endings + notebook entries + items
-├── map.ts            world: terrain, props, NPCs with per-day conditional dialog
+├── dialogues.ts      ~115 dialog pages across 7 NPCs and 5 days
+├── map.ts            world: terrain, props, NPCs with per-day branching
 ├── types.ts          shared interfaces (GameCtx with day, notes, inventory)
-├── objects/          Player / NPC / etc.
+├── objects/          Player / Npc / Pickup / Gloom (kept for the 11:55 hook)
 └── scenes/
     ├── Boot.ts       textures + anims + fonts
     ├── Title.ts      title screen
-    ├── Game.ts       the outdoor world + dialog + endings + Fx
-    ├── Home.ts       interior of Alex's house — multi-scene demo
+    ├── Game.ts       outdoor world + dialog + endings + Fx
+    ├── Home.ts       interior of Alex's house + Mom + bed sleep loop
+    ├── Facility.ts   underground room with the tubes + the Custodian
     └── Ui.ts         HUD + dialog + story cards + notebook + pocket + pause
 ```
 
@@ -75,4 +90,4 @@ Fonts: **Cinzel** (display) + **Spectral** (body), from Google Fonts.
 
 ---
 
-*"Candles know they were lit, even if you don't tell them."*
+*"The hardest thing isn't forgetting, child. It's knowing your love is being delivered by a stranger every morning, in your name."* — Mrs. Despoina
