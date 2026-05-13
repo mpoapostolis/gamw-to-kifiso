@@ -421,7 +421,15 @@ export class UIScene extends Phaser.Scene {
     this.storyLines = lines;
     this.storyIdx = 0;
     this.storyOnDone = onDone;
+    // reset to the default title size, then shrink to fit if it overflows
+    this.storyTitle.setFontSize("44px").setLetterSpacing(10);
     this.storyTitle.setText(title.toUpperCase());
+    const maxW = VIEW_W - 120;
+    if (this.storyTitle.width > maxW) {
+      const ratio = maxW / this.storyTitle.width;
+      const newSize = Math.max(18, Math.floor(44 * ratio));
+      this.storyTitle.setFontSize(`${newSize}px`).setLetterSpacing(Math.max(2, Math.floor(10 * ratio)));
+    }
     this.storyRoot.setVisible(true).setAlpha(0);
     this.tweens.add({ targets: this.storyRoot, alpha: 1, duration: 600 });
     this.showStoryLine(true);

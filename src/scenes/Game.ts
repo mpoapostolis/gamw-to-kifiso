@@ -274,7 +274,7 @@ export class GameScene extends Phaser.Scene {
         if (this.player.dead) return;
         this.player.controlsLocked = true;
         this.inStory = true;
-        this.ui.showStory("ο Κηφισός ψυχραιμίζεται. ξεκινάει να βρέχει.", EPILOGUE, () => {
+        this.ui.showStory("Ο ΧΟΥΛΙΓΚΑΝ ΕΣΠΑΣΕ", EPILOGUE, () => {
           this.inStory = false;
           this.player.controlsLocked = false;
           this.lightenWorld();
