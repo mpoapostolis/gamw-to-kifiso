@@ -9,7 +9,7 @@ import { hex, mix, PAL } from "../palette";
 import { SFX } from "../sfx";
 import { BGM } from "../bgm";
 import { buildWorld, WORLD_H, WORLD_W } from "../map";
-import { EPILOGUE, PROLOGUE } from "../story";
+import { EPILOGUE_BURN, EPILOGUE_RETURN, PROLOGUE } from "../story";
 import type { Fx, GameCtx, World } from "../types";
 import { Player } from "../objects/Player";
 import { Gloom } from "../objects/Gloom";
@@ -73,6 +73,8 @@ export class GameScene extends Phaser.Scene {
       wardenDown: false,
       attackBonus: false,
       flags: {},
+      day: 1,
+      notes: {},
       giveGold: (n) => {
         this.ctx.gold += n;
         this.ui?.setGold(this.ctx.gold);
@@ -95,6 +97,11 @@ export class GameScene extends Phaser.Scene {
         this.ui?.setHearts(this.ctx.hp, this.ctx.maxHp);
       },
       toast: (t, tint) => this.ui?.toast(t, tint),
+      addNote: (id) => {
+        if (this.ctx.notes[id]) return;
+        this.ctx.notes[id] = true;
+        this.ui?.addNote(id);
+      },
     };
 
     this.scene.launch("UI");
@@ -170,11 +177,11 @@ export class GameScene extends Phaser.Scene {
   /** Called by UIScene once its HUD exists, to run the opening crawl. */
   startPrologue() {
     this.pendingPrologue = false;
-    this.ui.showStory("ΓΑΜΩ ΤΟΝ ΚΗΦΙΣΟ ΜΟΥ", PROLOGUE, () => {
+    this.ui.showStory("5 ΛΕΠΤΑ ΠΡΙΝ", PROLOGUE, () => {
       this.inStory = false;
       this.player.controlsLocked = false;
-      this.ui.showAreaBanner("Η Γειτονιά");
-      this.ui.toast("κράτα τον καφέ ζεστό · πάτα E σε γείτονα για κουβέντα", PAL.inkDim);
+      this.ui.showAreaBanner("Η Κοινότητα του Δίου · Ημέρα 1");
+      this.ui.toast("πάτα E δίπλα σε κάποιον για να μιλήσεις · TAB για το σημειωματάριο", PAL.inkDim);
     });
   }
 
@@ -243,7 +250,34 @@ export class GameScene extends Phaser.Scene {
       this.ui.setHearts(this.ctx.hp, this.ctx.maxHp);
       this.ui.setGold(this.ctx.gold);
       this.ui.setKills(this.ctx.gloomKilled);
+      // post-dialog hook: if the Επιστάτης has just made the offer, present
+      // the binary ending choice
+      if (npc.spawn.id === "epistatis" && this.ctx.flags.endingAvailable && !this.ctx.flags.endingChosen) {
+        this.offerEnding();
+      }
     });
+  }
+
+  /** Final choice — pressing 1 burns the facility (EPILOGUE_BURN), 2 returns. */
+  private offerEnding() {
+    this.player.controlsLocked = true;
+    this.inStory = true;
+    this.ui.toast("πάτα  1  να ΚΑΨΕΙΣ   ·   2  να ΓΥΡΝΑΣ ΠΙΣΩ", PAL.gloomGlow);
+    const kb = this.input.keyboard!;
+    const choose = (burn: boolean) => {
+      if (this.ctx.flags.endingChosen) return;
+      this.ctx.flags.endingChosen = true;
+      kb.off("keydown-ONE", onOne);
+      kb.off("keydown-TWO", onTwo);
+      this.ui.showStory(burn ? "Ο ΛΟΦΟΣ" : "ΑΛΛΗ ΜΙΑ ΜΕΡΑ", burn ? EPILOGUE_BURN : EPILOGUE_RETURN, () => {
+        this.inStory = false;
+        this.player.controlsLocked = false;
+      });
+    };
+    const onOne = () => choose(true);
+    const onTwo = () => choose(false);
+    kb.once("keydown-ONE", onOne);
+    kb.once("keydown-TWO", onTwo);
   }
 
   /* ===================================================================== *
@@ -274,7 +308,7 @@ export class GameScene extends Phaser.Scene {
         if (this.player.dead) return;
         this.player.controlsLocked = true;
         this.inStory = true;
-        this.ui.showStory("Ο ΧΟΥΛΙΓΚΑΝ ΕΣΠΑΣΕ", EPILOGUE, () => {
+        this.ui.showStory("ΕΠΙΛΟΓΟΣ", EPILOGUE_BURN, () => {
           this.inStory = false;
           this.player.controlsLocked = false;
           this.lightenWorld();
@@ -340,14 +374,18 @@ export class GameScene extends Phaser.Scene {
       this.areaName = found.name;
       if (!first && !this.player.dead) {
         this.ui?.showAreaBanner(found.name);
-        if (found.name === "Τα Διόδια") this.ui?.toast("πέρα απ' τα διόδια δε σώζεσαι · κράτα καφέ", PAL.emberSoft);
-        if (found.name === "Λεωφ. Κηφισού" && !this.ctx.flags.enteredWood) {
-          this.ctx.flags.enteredWood = true;
-          SFX.thunderHint();
+        if (found.name === "Ο Δρόμος Έξω" && !this.ctx.flags.metEdge) {
+          this.ctx.flags.metEdge = true;
+          this.ui?.toast("η κοινότητα τελειώνει εδώ. ο λόφος δεν είναι μακριά.", PAL.inkDim);
         }
-        if (found.name === "Ύψος Μεταμόρφωσης" && !this.ctx.flags.enteredShrine) {
-          this.ctx.flags.enteredShrine = true;
-          this.ui?.toast("εδώ μέσα κάθεται κάποιος ΑΛΛΟΣ τύπος", PAL.gloomGlow);
+        if (found.name === "Το Παρκάκι" && !this.ctx.flags.enteredPark) {
+          this.ctx.flags.enteredPark = true;
+          this.ctx.addNote("parkBench");
+        }
+        if (found.name === "Πέρα από την Κοινότητα" && !this.ctx.flags.enteredOutside) {
+          this.ctx.flags.enteredOutside = true;
+          SFX.thunderHint();
+          this.ui?.toast("κάτι αλλιώτικο εδώ. ο αέρας έχει κάτι αλμυρό.", PAL.gloomGlow);
         }
       }
     }

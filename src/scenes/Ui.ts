@@ -7,6 +7,7 @@ import Phaser from "phaser";
 import { VIEW_H, VIEW_W } from "../consts";
 import { hex, PAL } from "../palette";
 import { SFX } from "../sfx";
+import { NOTES } from "../story";
 import type { DialogPage, GameCtx } from "../types";
 import type { GameScene } from "./Game";
 
@@ -80,6 +81,12 @@ export class UIScene extends Phaser.Scene {
   private pauseRoot!: Phaser.GameObjects.Container;
   paused = false;
 
+  // notebook
+  private notebookRoot!: Phaser.GameObjects.Container;
+  private notebookList!: Phaser.GameObjects.Text;
+  notebookOpen = false;
+  private noteCount = 0;
+
   constructor() {
     super("UI");
   }
@@ -104,7 +111,7 @@ export class UIScene extends Phaser.Scene {
     drawPanel(killBg, 16, 70, 196, 38, PAL.panelEdge);
     this.hudKillIcon = this.add.image(16 + 22, 70 + 19, "ui_sigil").setDepth(21).setScale(0.8);
     this.hudKills = this.add
-      .text(16 + 40, 70 + 19, "Κορνάρες: 0", { fontFamily: SPECTRAL, fontSize: "15px", color: hex(PAL.inkDim), fontStyle: "500" })
+      .text(16 + 40, 70 + 19, "TAB  ·  0 σημειώσεις", { fontFamily: SPECTRAL, fontSize: "14px", color: hex(PAL.inkDim), fontStyle: "500" })
       .setOrigin(0, 0.5)
       .setDepth(21);
 
@@ -135,6 +142,8 @@ export class UIScene extends Phaser.Scene {
     this.buildDeath();
     // ----- pause --------------------------------------------------------
     this.buildPause();
+    // ----- notebook -----------------------------------------------------
+    this.buildNotebook();
 
     // advance handlers (shared by dialog & story & death) + pause toggle
     const advance = () => this.onAdvance();
@@ -142,13 +151,17 @@ export class UIScene extends Phaser.Scene {
     this.input.keyboard?.on("keydown-ENTER", advance);
     this.input.keyboard?.on("keydown-E", advance);
     this.input.on(Phaser.Input.Events.POINTER_DOWN, advance);
-    // ESC: pause toggle. Bound on the raw event so it survives the GameScene
-    // being paused (which would stop GameScene's input plugin from firing).
+    // ESC: pause · TAB: notebook · raw event survives GameScene being paused.
     this.input.keyboard?.on("keydown", (ev: KeyboardEvent) => {
       SFX.unlock();
-      if (ev.key === "Escape" || ev.code === "Escape" || ev.keyCode === 27) {
-        if (!this.deathRoot.visible && !this.storyRoot.visible && !this.dlgRoot.visible) {
+      if (ev.key === "Escape" || ev.code === "Escape") {
+        if (!this.deathRoot.visible && !this.storyRoot.visible && !this.dlgRoot.visible && !this.notebookOpen) {
           this.togglePause();
+          ev.preventDefault?.();
+        }
+      } else if (ev.key === "Tab" || ev.code === "Tab") {
+        if (!this.deathRoot.visible && !this.storyRoot.visible && !this.dlgRoot.visible && !this.paused) {
+          this.toggleNotebook();
           ev.preventDefault?.();
         }
       }
@@ -203,16 +216,23 @@ export class UIScene extends Phaser.Scene {
     this.tweens.add({ targets: this.hudGold, scale: { from: 1.3, to: 1 }, duration: 220, ease: "Back.easeOut" });
   }
 
-  setKills(n: number) {
+  setKills(_n: number) {
+    // legacy (kept for engine compat) — note count handled by addNote() instead
     if (!this.hudKills) return;
-    const q = this.ctx?.questState ?? 0;
-    let msg: string;
-    if (this.ctx?.wardenDown) msg = `Κηφισός: ησυχία  ·  ${n} κορνάρες`;
-    else if (q >= 2) msg = `Κορνάρες: ${n}  ·  ένας ΑΛΛΟΣ μένει στη Μεταμόρφωση`;
-    else if (q === 1) msg = `Κορνάρες: ${Math.min(n, 5)} / 5`;
-    else msg = `Κορνάρες: ${n}`;
-    this.hudKills.setText(msg);
-    this.hudKillIcon.setTint(this.ctx?.wardenDown ? PAL.emberSoft : 0xffffff);
+    this.hudKills.setText(`TAB  ·  ${this.noteCount} σημει${this.noteCount === 1 ? "ωση" : "ώσεις"}`);
+  }
+
+  addNote(id: string) {
+    if (!this.notebookList) return;
+    const line = NOTES[id] ?? id;
+    this.noteCount++;
+    this.hudKills?.setText(`TAB  ·  ${this.noteCount} σημει${this.noteCount === 1 ? "ωση" : "ώσεις"}`);
+    this.notebookList.setText(this.notebookList.text + (this.notebookList.text ? "\n\n" : "") + "•  " + line);
+    this.toast("+ σημείωση", PAL.heartHi);
+    // little pulse on the icon
+    if (this.hudKillIcon) {
+      this.tweens.add({ targets: this.hudKillIcon, scale: 1.3, yoyo: true, duration: 240, ease: "Back.easeOut" });
+    }
   }
 
   /* ------------------------------------------------------------------ *
@@ -488,15 +508,15 @@ export class UIScene extends Phaser.Scene {
   private buildDeath() {
     const dim = this.add.rectangle(VIEW_W / 2, VIEW_H / 2, VIEW_W, VIEW_H, 0x0a0612, 0.86);
     const big = this.add
-      .text(VIEW_W / 2, VIEW_H / 2 - 36, "ΣΕ ΠΗΡΕ Η ΜΠΑΛΑ", { fontFamily: CINZEL, fontSize: "54px", color: hex(PAL.gloomGlow), fontStyle: "800" })
+      .text(VIEW_W / 2, VIEW_H / 2 - 36, "ΣΕ ΠΗΡΑΝ", { fontFamily: CINZEL, fontSize: "62px", color: hex(PAL.gloomGlow), fontStyle: "800" })
       .setOrigin(0.5)
-      .setLetterSpacing(10)
+      .setLetterSpacing(14)
       .setShadow(0, 4, "rgba(0,0,0,0.7)", 8);
     const sub = this.add
-      .text(VIEW_W / 2, VIEW_H / 2 + 26, "σου χύθηκε ο καφές. αλλά δεν τέλειωσε.", { fontFamily: SPECTRAL, fontSize: "20px", color: hex(PAL.inkDim), fontStyle: "italic 400" })
+      .text(VIEW_W / 2, VIEW_H / 2 + 32, "ξύπνα.  μια ακόμα μέρα.", { fontFamily: SPECTRAL, fontSize: "22px", color: hex(PAL.inkDim), fontStyle: "italic 400" })
       .setOrigin(0.5);
     const hint = this.add
-      .text(VIEW_W / 2, VIEW_H / 2 + 84, "πάτα οτιδήποτε  ▸  ξύπνα δίπλα στη φωτιά", { fontFamily: SPECTRAL, fontSize: "16px", color: hex(PAL.inkFaint), fontStyle: "400" })
+      .text(VIEW_W / 2, VIEW_H / 2 + 86, "πάτα οτιδήποτε  ▸  το επόμενο πρωί", { fontFamily: SPECTRAL, fontSize: "16px", color: hex(PAL.inkFaint), fontStyle: "400" })
       .setOrigin(0.5);
     this.tweens.add({ targets: hint, alpha: { from: 1, to: 0.35 }, yoyo: true, repeat: -1, duration: 950, ease: "Sine.easeInOut" });
     this.deathRoot = this.add.container(0, 0, [dim, big, sub, hint]).setDepth(85).setVisible(false);
@@ -515,17 +535,16 @@ export class UIScene extends Phaser.Scene {
     const dim = this.add.rectangle(VIEW_W / 2, VIEW_H / 2, VIEW_W, VIEW_H, PAL.void, 0.78);
     const panel = this.add.graphics();
     drawPanel(panel, VIEW_W / 2 - 280, VIEW_H / 2 - 180, 560, 360, PAL.panelEdgeHi);
-    const title = this.add.text(VIEW_W / 2, VIEW_H / 2 - 150, "ΓΑΜΩ ΤΟΝ ΚΗΦΙΣΟ ΜΟΥ", { fontFamily: CINZEL, fontSize: "30px", color: hex(PAL.ink), fontStyle: "800" }).setOrigin(0.5).setLetterSpacing(8);
+    const title = this.add.text(VIEW_W / 2, VIEW_H / 2 - 150, "5 ΛΕΠΤΑ ΠΡΙΝ", { fontFamily: CINZEL, fontSize: "34px", color: hex(PAL.ink), fontStyle: "800" }).setOrigin(0.5).setLetterSpacing(10);
     const lines = [
-      "κίνηση         W A S D   ·   ↑ ↓ ← →",
-      "κόρνα         SPACE   ·   αριστερό κλικ",
-      "φτέρνισμα    SHIFT   (στιγμιαία ασφάλεια)",
-      "κουβέντα     E   (δίπλα σε γείτονα)",
-      "mute            M             pause           ESC",
+      "κίνηση           W A S D   ·   ↑ ↓ ← →",
+      "κουβέντα       E   (δίπλα σε γείτονα)",
+      "σημειώσεις    TAB",
+      "pause             ESC                mute   M",
       "",
-      "Πάτα κόρνα σε 5 μαλάκες στη Λεωφόρο Κηφισού",
-      "και γύρνα να σ' το πει ο Παππού Γιάννης.",
-      "Μην ξεχνάς να πίνεις καφέ.",
+      "Μίλα με όλους. Πρόσεξε όταν λένε κάτι",
+      "που δεν ταιριάζει με ό,τι θυμάσαι.",
+      "Σιγά σιγά κάτι θα ξυπνήσει μέσα σου.",
     ];
     const body = this.add
       .text(VIEW_W / 2, VIEW_H / 2 - 80, lines.join("\n"), { fontFamily: SPECTRAL, fontSize: "17px", color: hex(PAL.inkDim), fontStyle: "400", align: "center", lineSpacing: 9 })
@@ -576,6 +595,67 @@ export class UIScene extends Phaser.Scene {
         this.nextDialogPage();
       }
       return;
+    }
+  }
+
+  /* ------------------------------------------------------------------ *
+   * NOTEBOOK                                                           *
+   * ------------------------------------------------------------------ */
+  private buildNotebook() {
+    const w = 720;
+    const h = 520;
+    const x = VIEW_W / 2 - w / 2;
+    const y = VIEW_H / 2 - h / 2;
+    const dim = this.add.rectangle(VIEW_W / 2, VIEW_H / 2, VIEW_W, VIEW_H, PAL.void, 0.7);
+    const panel = this.add.graphics();
+    drawPanel(panel, x, y, w, h, PAL.panelEdgeHi);
+    const title = this.add
+      .text(VIEW_W / 2, y + 36, "Σ Η Μ Ε Ι Ω Σ Ε Ι Σ", { fontFamily: CINZEL, fontSize: "26px", color: hex(PAL.ink), fontStyle: "600" })
+      .setOrigin(0.5)
+      .setLetterSpacing(8);
+    const ruleG = this.add.graphics();
+    ruleG.lineStyle(1, PAL.panelEdgeHi, 0.7);
+    ruleG.lineBetween(x + 60, y + 64, x + w - 60, y + 64);
+    this.notebookList = this.add.text(x + 36, y + 86, "", {
+      fontFamily: SPECTRAL,
+      fontSize: "17px",
+      color: hex(PAL.inkDim),
+      fontStyle: "italic 400",
+      wordWrap: { width: w - 72 },
+      lineSpacing: 4,
+    });
+    const empty = this.add
+      .text(VIEW_W / 2, VIEW_H / 2 + 20, "(ακόμα τίποτα)\n\nμίλα στους γείτονες · πρόσεξε τι λένε ξανά και ξανά", { fontFamily: SPECTRAL, fontSize: "16px", color: hex(PAL.inkFaint), fontStyle: "italic 400", align: "center", lineSpacing: 6 })
+      .setOrigin(0.5);
+    const hint = this.add
+      .text(VIEW_W / 2, y + h - 22, "TAB  ▸  πίσω", { fontFamily: SPECTRAL, fontSize: "13px", color: hex(PAL.inkFaint), fontStyle: "italic 400" })
+      .setOrigin(0.5);
+    this.tweens.add({ targets: hint, alpha: { from: 1, to: 0.4 }, yoyo: true, repeat: -1, duration: 1000 });
+    this.notebookRoot = this.add.container(0, 0, [dim, panel, title, ruleG, this.notebookList, empty, hint]).setDepth(70).setVisible(false);
+    // hide the "empty" hint once any note exists
+    this.notebookList.on("destroy", () => empty.destroy());
+    this.tweens.add({
+      targets: empty,
+      alpha: { from: 1, to: 1 },
+      duration: 1,
+      onUpdate: () => {
+        empty.setAlpha(this.notebookList.text.length > 0 ? 0 : 1);
+      },
+      repeat: -1,
+    });
+  }
+
+  toggleNotebook() {
+    this.notebookOpen = !this.notebookOpen;
+    this.notebookRoot.setVisible(this.notebookOpen);
+    if (this.notebookOpen) {
+      this.notebookRoot.setAlpha(0);
+      this.tweens.add({ targets: this.notebookRoot, alpha: 1, duration: 220 });
+      SFX.open();
+      this.scene.get("Game").scene.pause();
+    } else {
+      SFX.close();
+      this.scene.get("Game").scene.resume();
     }
   }
 }

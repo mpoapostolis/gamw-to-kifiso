@@ -16,29 +16,33 @@ export interface Fx {
   floatText(x: number, y: number, text: string, color: number): void;
 }
 
-/** Mutable run-state. Owned by GameScene; passed to dialog/quest callbacks. */
+/** Mutable run-state. Owned by GameScene; passed to dialog/note callbacks. */
 export interface GameCtx {
-  // stats (HP measured in half-hearts: 2 == one full heart)
+  // (kept for engine compatibility; not surfaced anywhere meaningful any more)
   hp: number;
   maxHp: number;
   gold: number;
-
-  // progression
   gloomKilled: number;
-  /** 0 = not met the elder, 1 = quest accepted, 2 = quest turned in */
   questState: number;
   wardenDown: boolean;
   attackBonus: boolean;
   flags: Record<string, boolean>;
 
-  // --- actions the dialog layer is allowed to take (wired up by GameScene) ---
+  /** Current in-game day (1, 2, 3, ...). Survives 11:55 events. */
+  day: number;
+  /** Auto-added notebook entries (note id → true when seen). */
+  notes: Record<string, boolean>;
+
+  // --- actions the dialog layer can take ---
   giveGold(n: number): void;
   takeGold(n: number): void;
   giveHeartContainer(): void;
   healFull(): void;
   heal(halfHearts: number): void;
-  /** brief on-screen toast, e.g. "+12 ⟡" or "Heart Container!" */
+  /** brief on-screen toast */
   toast(text: string, tint?: number): void;
+  /** add an entry to the notebook + small UI toast */
+  addNote(id: string): void;
 }
 
 export interface DialogPage {

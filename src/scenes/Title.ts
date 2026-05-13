@@ -96,42 +96,27 @@ export class TitleScene extends Phaser.Scene {
       .setBlendMode(Phaser.BlendModes.ADD)
       .setScale(4.6, 1.7)
       .setAlpha(0);
-    // Two-line title because "ΓΑΜΩ ΤΟΝ ΚΗΦΙΣΟ ΜΟΥ" doesn't fit one line nicely
+    // Title: "5 ΛΕΠΤΑ ΠΡΙΝ" — fits one line at a comfortable size
     const titleTop = this.add
-      .text(cx, 210, "ΓΑΜΩ ΤΟΝ", { fontFamily: CINZEL, fontSize: "76px", color: hex(PAL.ink), fontStyle: "800" })
+      .text(cx, 252, "5 ΛΕΠΤΑ ΠΡΙΝ", { fontFamily: CINZEL, fontSize: "94px", color: hex(PAL.ink), fontStyle: "800" })
       .setOrigin(0.5)
-      .setLetterSpacing(12)
+      .setLetterSpacing(14)
       .setShadow(0, 4, "rgba(0,0,0,0.55)", 8, true, true)
       .setAlpha(0)
-      .setY(196);
-    const titleBot = this.add
-      .text(cx, 290, "ΚΗΦΙΣΟ ΜΟΥ", { fontFamily: CINZEL, fontSize: "76px", color: hex(PAL.ink), fontStyle: "800" })
-      .setOrigin(0.5)
-      .setLetterSpacing(12)
-      .setShadow(0, 4, "rgba(0,0,0,0.55)", 8, true, true)
-      .setAlpha(0)
-      .setY(276);
-    // warm echo behind
+      .setY(238);
     const titleWarm1 = this.add
-      .text(cx, 210, "ΓΑΜΩ ΤΟΝ", { fontFamily: CINZEL, fontSize: "76px", color: hex(PAL.emberSoft), fontStyle: "800" })
+      .text(cx, 252, "5 ΛΕΠΤΑ ΠΡΙΝ", { fontFamily: CINZEL, fontSize: "94px", color: hex(PAL.emberSoft), fontStyle: "800" })
       .setOrigin(0.5)
-      .setLetterSpacing(12)
+      .setLetterSpacing(14)
       .setAlpha(0)
       .setBlendMode(Phaser.BlendModes.ADD)
       .setScale(1.012)
-      .setY(196);
-    const titleWarm2 = this.add
-      .text(cx, 290, "ΚΗΦΙΣΟ ΜΟΥ", { fontFamily: CINZEL, fontSize: "76px", color: hex(PAL.emberSoft), fontStyle: "800" })
-      .setOrigin(0.5)
-      .setLetterSpacing(12)
-      .setAlpha(0)
-      .setBlendMode(Phaser.BlendModes.ADD)
-      .setScale(1.012)
-      .setY(276);
-    // Bundle as one logical "title" group for the entrance tweens further down.
+      .setY(238);
+    const titleBot = titleTop; // single-line title — keep refs for the tweens
+    const titleWarm2 = titleWarm1;
     const title = titleTop;
     const titleWarm = titleWarm1;
-    const titleGroup = [titleTop, titleBot, titleWarm1, titleWarm2];
+    const titleGroup = [titleTop, titleWarm1];
 
     // rule + diamond under the title
     const rule = this.add.graphics({ x: cx, y: 350 }).setAlpha(0);
@@ -146,9 +131,9 @@ export class TitleScene extends Phaser.Scene {
     rule.strokeTriangle(0, -7, -7, 0, 0, 7);
 
     const subtitle = this.add
-      .text(cx, 388, "κράτα τον καφέ ζεστό · μπες στη Λεωφόρο", {
+      .text(cx, 388, "ένα μικρό παιχνίδι για τη μνήμη που σου παίρνουν", {
         fontFamily: SPECTRAL,
-        fontSize: "23px",
+        fontSize: "22px",
         color: hex(PAL.inkDim),
         fontStyle: "italic 400",
       })
@@ -157,7 +142,7 @@ export class TitleScene extends Phaser.Scene {
       .setAlpha(0);
 
     const prompt = this.add
-      .text(cx, 498, "πάτα  ENTER  —  ή κλικ  —  για να μπεις στο αμάξι", {
+      .text(cx, 498, "πάτα  ENTER  —  ή κλικ  —  για να ξυπνήσεις", {
         fontFamily: SPECTRAL,
         fontSize: "23px",
         color: hex(PAL.ink),
@@ -168,7 +153,7 @@ export class TitleScene extends Phaser.Scene {
       .setAlpha(0);
 
     const controls = this.add
-      .text(cx, 558, "WASD / ↑ ↓ ← →  κίνηση        SPACE  κόρνα        SHIFT  φτέρνισμα        E  κουβέντα", {
+      .text(cx, 558, "WASD / ↑ ↓ ← →  κίνηση        E  κουβέντα        TAB  σημειωματάριο        ESC  pause", {
         fontFamily: SPECTRAL,
         fontSize: "15px",
         color: hex(PAL.inkFaint),
@@ -179,7 +164,7 @@ export class TitleScene extends Phaser.Scene {
       .setAlpha(0);
 
     this.add
-      .text(VIEW_W - 16, VIEW_H - 14, "Phaser 3  ·  κάθε pixel ζωγραφισμένο σε κώδικα", {
+      .text(VIEW_W - 16, VIEW_H - 14, "ένα μικρό παιχνίδι από κώδικα · χωρίς εικόνες", {
         fontFamily: SPECTRAL,
         fontSize: "13px",
         color: "#4f4a3b",
@@ -193,8 +178,9 @@ export class TitleScene extends Phaser.Scene {
 
     // ---- entrance choreography ----------------------------------------
     this.cameras.main.fadeIn(900, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
-    this.tweens.add({ targets: [titleTop, titleWarm1], alpha: 1, y: 210, duration: 850, delay: 350, ease: "Cubic.easeOut" });
-    this.tweens.add({ targets: [titleBot, titleWarm2], alpha: 1, y: 290, duration: 850, delay: 500, ease: "Cubic.easeOut" });
+    this.tweens.add({ targets: titleGroup, alpha: 1, y: 252, duration: 850, delay: 350, ease: "Cubic.easeOut" });
+    void titleBot;
+    void titleWarm2;
     this.tweens.add({ targets: titleGlow, alpha: 0.42, duration: 1200, delay: 500, ease: "Sine.easeOut" });
     this.tweens.add({ targets: titleGlow, alpha: { from: 0.32, to: 0.5 }, scaleX: { from: 4.2, to: 4.9 }, yoyo: true, repeat: -1, duration: 2600, delay: 1700, ease: "Sine.easeInOut" });
     this.tweens.add({ targets: rule, scaleX: { from: 0, to: 1 }, alpha: 1, duration: 600, delay: 1050, ease: "Cubic.easeOut" });

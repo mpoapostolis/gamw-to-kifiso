@@ -799,52 +799,52 @@ function buildActors(scene: Phaser.Scene) {
     drawFigure(g, W, H, { ...playerOpts, facing: "down", step: 0 }),
   );
 
-  // villagers — recoloured for Athens dawn
+  // villagers — soft melancholic suburb dusk
   const villagers: Record<string, FigureOpts> = {
-    // Παππού Γιάννης — the kiosk owner. Working-class blue cardigan, flat cap.
+    // Κυρά Δέσποινα — η γριά που ξέρει. Μαύρο μαντίλι, γκρι παλτό.
     npc_elder: {
-      cloak: 0x2a3a55,
-      cloakHi: 0x4a648c,
-      cloakDark: 0x18233a,
+      cloak: 0x483b54,
+      cloakHi: 0x6a5a78,
+      cloakDark: 0x2b2238,
       skin: PAL.skinDark,
       facing: "down",
       step: 0,
-      hat: "hood", // reads as a flat cap with the new palette
-      staff: true, // a long umbrella propped on the kiosk
-      accent: 0x9c2a2a, // a red scarf clasp
+      hat: "hood",
+      staff: true, // a walking stick
+      accent: 0xc46a4e, // a candle she carries (memory candle)
     },
-    // Κυρά Σούλα — μανάβικο owner. Flowered apron, headscarf.
+    // Ελένη — η σύντροφος. Παστέλ μπλε φόρεμα, ψάθινο καπέλο.
     npc_merchant: {
-      cloak: 0x7a2a2a,
-      cloakHi: 0xbf4a4a,
-      cloakDark: 0x4a1818,
+      cloak: 0x6e8aae,
+      cloakHi: 0x9bb4cf,
+      cloakDark: 0x3a4f6a,
       skin: PAL.skin,
       facing: "down",
       step: 0,
-      hat: "wide", // the headscarf
-      accent: PAL.thatchHi,
+      hat: "wide",
+      accent: 0xfdc890,
     },
-    // Στέλιος ο μηχανικός — greasy mechanic in coveralls.
+    // Κώστας — γείτονας, με μια κουρασμένη παρουσία. Μπεζ καρό πουκάμισο.
     npc_smith: {
-      cloak: 0x4a5660,
-      cloakHi: 0x6a7882,
-      cloakDark: 0x282d33,
+      cloak: 0xa48560,
+      cloakHi: 0xc5a983,
+      cloakDark: 0x5c4630,
+      skin: PAL.skin,
+      facing: "down",
+      step: 0,
+      hat: "none",
+      accent: 0x5a5470,
+    },
+    // Ο Επιστάτης — στο facility. Λευκή ρόμπα ιατρού/τεχνικού.
+    npc_child: {
+      cloak: 0xece6dd,
+      cloakHi: 0xfafaf2,
+      cloakDark: 0xa39c8c,
       skin: PAL.skinDark,
       facing: "down",
       step: 0,
       hat: "none",
-      accent: PAL.ember, // a hi-vis chest stripe
-    },
-    // Νικολάκης — skiving-school kid in a loud sweatshirt.
-    npc_child: {
-      cloak: 0xc2872a,
-      cloakHi: 0xf3b550,
-      cloakDark: 0x6b4818,
-      skin: PAL.skin,
-      facing: "down",
-      step: 0,
-      hat: "none",
-      accent: PAL.gloomGlow, // a red backpack strap
+      accent: 0x6a5a8a, // a clipboard accent
     },
   };
   for (const [key, opt] of Object.entries(villagers)) {

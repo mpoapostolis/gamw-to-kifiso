@@ -1,9 +1,9 @@
 {
-  "name": "gamw-to-kifiso",
-  "version": "0.1.0",
+  "name": "5-lepta-prin",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
-  "description": "ΓΑΜΩ ΤΟΝ ΚΗΦΙΣΟ ΜΟΥ — top-down RPG σατιρικό για την κίνηση στον Κηφισό. Phaser 3 + TypeScript, μηδέν image assets.",
+  "description": "5 ΛΕΠΤΑ ΠΡΙΝ — soft melancholic top-down RPG για τη μνήμη που σου παίρνουν. Phaser 3 + TypeScript, μηδέν image assets.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

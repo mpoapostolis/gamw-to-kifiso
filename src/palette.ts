@@ -1,95 +1,96 @@
 /**
- * "ΓΑΜΩ ΤΟΝ ΚΗΦΙΣΟ ΜΟΥ" colour language — Athens dawn.
+ * "5 ΛΕΠΤΑ ΠΡΙΝ" colour language — Soft melancholy, suburb at slow blue dusk.
  *
- * Asphalt grays, sodium-orange streetlights, terracotta apartment roofs, and
- * the eyes of every driver in the next lane glowing red.
+ * Faded pastels: dusty-rose sky, soft moss greens, washed amber lamp pools,
+ * lavender night fog. Όχι σκληρό horror — μια πόλη που μοιάζει με ξεθωριασμένη
+ * polaroid. The 11:55 Καθαριστές are pale, almost-white, drifting figures —
+ * not threatening, just inevitable.
  *
- * Field names are kept from the previous (dark-fantasy) build so the rendering
- * code reads the same shapes: `grass*` is sidewalk, `dirt` is asphalt, `cloak`
- * is the player's hoodie, `gloom*` is road-rage, `ember*` is sodium-orange
- * streetlight, etc. Only the values change.
+ * Internal names from the original engine are preserved: `grass*` = lawn/path,
+ * `cloak*` = player clothes, `gloom*` = the Καθαριστές, `ember*` = soft amber
+ * interior lights, `heart*` = a kept-warm thing (memory candle).
  */
 export const PAL = {
-  // backdrop / pre-dawn sky
-  void: 0x07070b,
-  night: 0x12121a,
-  nightSky: 0x1d1c2a,
+  // backdrop / dusk-into-night
+  void: 0x100c1a,
+  night: 0x1b1730,
+  nightSky: 0x2a2546,
 
-  // sidewalk / concrete / cracked pavement (was "grass")
-  grassDeep: 0x1b1d22,
-  grassMid: 0x2b2d33,
-  grassHi: 0x3d3f45,
-  grassDry: 0x4a4239, // a strip of dry leaves / dirt by the curb
-  // asphalt (was "dirt") — the road itself
-  dirt: 0x161618,
-  dirtHi: 0x2a2a2c,
-  // cobblestone plaza / πλατεία (was "sand")
-  sand: 0x5b4d3a,
-  // marble tile / kiosk floor (was "stone")
-  stone: 0x36363c,
-  stoneHi: 0x595a62,
-  stoneEdge: 0x1c1c20,
-  // puddle (was "water") — reflects sodium light, sky
-  water: 0x1a232e,
-  waterMid: 0x2e3b48,
-  waterHi: 0x6d5a30,
+  // lawn / soft grass / dewy moss
+  grassDeep: 0x2d3b32,
+  grassMid: 0x435846,
+  grassHi: 0x6b8064,
+  grassDry: 0x7a7642, // last week's grass
+  // suburban paving — light, faded
+  dirt: 0x40363c,
+  dirtHi: 0x6a5a60,
+  // plaza tile (was sand) — pale stone
+  sand: 0xa49680,
+  // marble (was stone) — clock plaza floor
+  stone: 0x59556a,
+  stoneHi: 0x88859a,
+  stoneEdge: 0x363144,
+  // pool / decorative fountain water
+  water: 0x2e3c5e,
+  waterMid: 0x4d6190,
+  waterHi: 0x9aaad6,
 
-  // metal poles / guard rails / lamp posts (was "wood")
-  woodDark: 0x1c1d22,
-  woodMid: 0x32333a,
-  woodHi: 0x55575f,
-  // terracotta tile roofs (Athens apartment buildings)
-  roof: 0x5a2820,
-  roofHi: 0x8a3a2c,
-  roofDark: 0x36160f,
-  // balcony / ochre wall trim (was "thatch")
-  thatch: 0x8a6a3a,
-  thatchHi: 0xb38950,
+  // wood / fences / lamp posts — warm timber
+  woodDark: 0x2e2128,
+  woodMid: 0x4e3a3a,
+  woodHi: 0x86675a,
+  // pastel roof tiles — soft slate-blue / dusty pink
+  roof: 0x6a5586,
+  roofHi: 0x9986b0,
+  roofDark: 0x3a2e4d,
+  // siding / cream walls
+  thatch: 0xcfb89a,
+  thatchHi: 0xefdac0,
 
-  // the commuter (player) — dark hoodie + olive skin
-  cloak: 0x232428,
-  cloakHi: 0x3a3b40,
-  cloakDark: 0x111114,
-  skin: 0xc99b6c,
-  skinDark: 0x9c764e,
-  hair: 0x1a120c,
+  // ο Άλεξ (player) — soft cardigan + warm skin
+  cloak: 0x6a5a8a, // muted lavender cardigan
+  cloakHi: 0x8e7eb0,
+  cloakDark: 0x4a3a6a,
+  skin: 0xe2bc94,
+  skinDark: 0xb8916b,
+  hair: 0x3e2c20,
 
-  // sodium-orange streetlight (was "ember") — peak Athens night
-  ember: 0xff8e1a,
-  emberHot: 0xffd684,
-  emberSoft: 0xffaa4d,
-  emberDeep: 0xc25210,
+  // soft interior amber (kept the "ember*" names) — kitchen window glow
+  ember: 0xffb267,
+  emberHot: 0xfee2b3,
+  emberSoft: 0xffd1a0,
+  emberDeep: 0xc97a3a,
 
-  // road-rage drivers (was "Gloom") — gray car bodies with RED brake-light eyes
-  gloom: 0x2c2c30,
-  gloomMid: 0x46464a,
-  gloomHi: 0x686b70,
-  gloomGlow: 0xff2f3a, // brake-light red
-  gloomEye: 0xff7a82,
+  // οι Καθαριστές — pale, almost translucent, ghosts of porcelain
+  gloom: 0xc8c3d6,
+  gloomMid: 0xddd8e8,
+  gloomHi: 0xf0ecf6,
+  gloomGlow: 0xb8c5e2, // soft moonlight blue (was brake-light red)
+  gloomEye: 0xe6ebf6,
 
-  // pickups
-  gold: 0xf2c038, // 1€ / 2€ coin
-  goldHi: 0xffe8a0,
-  goldDark: 0xa6791b,
-  // espresso (was "heart") — coffee-cup life pickup
-  heart: 0x4a2a16,
-  heartHi: 0xb88458, // crema
-  heartDark: 0x2a160a,
-  // souvlaki / κουλούρι (was "potion") — full heal
-  potion: 0xc8884a,
-  potionHi: 0xf2c280,
+  // pickups (kept for memory-candle / kept-things mechanic)
+  gold: 0xead9a8, // a folded piece of paper
+  goldHi: 0xfff3cf,
+  goldDark: 0x9c8a55,
+  // a "memory" — a warm-glow kept thing (used in the notebook)
+  heart: 0xc46a4e, // a candle flame
+  heartHi: 0xfdc890,
+  heartDark: 0x5a2e1f,
+  // a found photograph
+  potion: 0xa48fc9,
+  potionHi: 0xdbcaf2,
 
-  // UI ink — warm cream
-  ink: 0xf3ead4,
-  inkDim: 0xb9ad92,
-  inkFaint: 0x7d745f,
-  panel: 0x141318,
-  panelHi: 0x22202a,
-  panelEdge: 0x3a3a44,
-  panelEdgeHi: 0x6b6b78,
-  hpFull: 0x6a3a1c, // coffee-cup brown
-  hpRim: 0xb88458,
-  hpEmpty: 0x201510,
+  // UI ink — warm cream over deep purple panels
+  ink: 0xefe6d2,
+  inkDim: 0xafa590,
+  inkFaint: 0x7b7264,
+  panel: 0x1a1428,
+  panelHi: 0x2a2240,
+  panelEdge: 0x4a3e66,
+  panelEdgeHi: 0x7b6c9a,
+  hpFull: 0xc46a4e,
+  hpRim: 0xeea08a,
+  hpEmpty: 0x251a2f,
   shadow: 0x000000,
 } as const;
 
