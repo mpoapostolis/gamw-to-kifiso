@@ -9,8 +9,10 @@ import { DEPTH, VIEW_H, VIEW_W } from "../consts";
 import { hex, PAL, shade } from "../palette";
 import { SFX } from "../sfx";
 import { TILE } from "../textures";
-import type { GameCtx, Fx } from "../types";
+import type { Fx, GameCtx, NpcSpawn } from "../types";
 import { Player } from "../objects/Player";
+import { Npc } from "../objects/Npc";
+import { DIALOGUES } from "../dialogues";
 import type { GameScene } from "./Game";
 import type { UIScene } from "./Ui";
 
@@ -25,6 +27,8 @@ export class HomeScene extends Phaser.Scene {
   private mirror!: { x: number; y: number; rect: Phaser.Geom.Rectangle };
   private bookOnTable: Phaser.GameObjects.Image | null = null;
   private fx!: Fx;
+  private mom!: Npc;
+  private inDialog = false;
   /** where to drop the player when we go back outside */
   private returnAt!: { x: number; y: number };
 
@@ -225,6 +229,19 @@ export class HomeScene extends Phaser.Scene {
       .setDepth(DEPTH.bloom);
     this.exitDoor = { x: dX + 22, y: dY, rect: new Phaser.Geom.Rectangle(dX - 8, dY - 88, 60, 96) };
 
+    // ---- Mom in the kitchen ----------------------------------------
+    const momSpawn: NpcSpawn = {
+      id: "mom",
+      key: "npc_mom",
+      altKey: "npc_mom_b",
+      name: "Mom",
+      x: sX - TILE * 0.6,
+      y: sY + TILE * 1.6,
+      roam: 0,
+      dialog: DIALOGUES.mom,
+    };
+    this.mom = new Npc(this, momSpawn);
+
     // ---- player -----------------------------------------------------
     const startX = dX + 22;
     const startY = dY + 4;
@@ -263,35 +280,154 @@ export class HomeScene extends Phaser.Scene {
   }
 
   update() {
-    if (this.player.dead) return;
-    // ---- interactables ------------------------------------------------
-    type Target = "door" | "bed" | "mirror" | "book" | null;
+    if (this.player.dead || this.sleeping || this.inDialog) {
+      this.ui.hidePrompt();
+      return;
+    }
+    type Target = "door" | "bed" | "mirror" | "book" | "mom" | null;
     let target: Target = null;
-    const px = this.player.x,
-      py = this.player.y;
+    const px = this.player.x;
+    const py = this.player.y;
+    const dMom = Phaser.Math.Distance.Between(px, py, this.mom.x, this.mom.y);
     if (Phaser.Math.Distance.Between(px, py, this.exitDoor.x, this.exitDoor.y) < 44) target = "door";
     else if (Phaser.Math.Distance.Between(px, py, this.bed.x, this.bed.y) < 60) target = "bed";
     else if (Phaser.Math.Distance.Between(px, py, this.mirror.x, this.mirror.y) < 56) target = "mirror";
     else if (this.bookOnTable && Math.abs(px - this.bookOnTable.x) < 40 && Math.abs(py - this.bookOnTable.y) < 50) target = "book";
+    else if (dMom < 58) target = "mom";
 
     const labels: Record<NonNullable<Target>, string> = {
       door: "E  ·  outside",
-      bed: "E  ·  rest a while",
+      bed: "E  ·  sleep",
       mirror: "E  ·  look",
       book: "E  ·  take the book",
+      mom: "E  ·  Mom",
     };
     if (target) this.ui.showPrompt(labels[target], this.player.x - this.cameras.main.worldView.x, this.player.y - this.cameras.main.worldView.y - 56);
     else this.ui.hidePrompt();
 
     if (target && Phaser.Input.Keyboard.JustDown(this.keyE)) {
       if (target === "door") this.exit();
-      else if (target === "bed") this.ui.toast("you're not tired enough yet", PAL.inkDim);
+      else if (target === "bed") this.sleep();
       else if (target === "mirror") this.lookInMirror();
+      else if (target === "mom") this.startDialog(this.mom);
       else if (target === "book") {
         this.ctx.addItem("helena_book");
         this.bookOnTable?.destroy();
         this.bookOnTable = null;
       }
+    }
+  }
+
+  private startDialog(npc: Npc) {
+    if (this.inDialog) return;
+    this.inDialog = true;
+    this.player.controlsLocked = true;
+    npc.setTalking(true);
+    SFX.open();
+    this.ui.hidePrompt();
+    const pages = npc.spawn.dialog(this.ctx);
+    this.ui.showDialog(pages, () => {
+      this.inDialog = false;
+      npc.setTalking(false);
+      this.player.controlsLocked = false;
+    });
+  }
+
+  /** Lay down, the Cleaners come, wake up the next day. */
+  private sleep() {
+    if (this.sleeping) return;
+    this.sleeping = true;
+    this.player.controlsLocked = true;
+    this.ui.hidePrompt();
+    SFX.close();
+    this.cameras.main.fadeOut(620, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.playSleepCinematic();
+    });
+  }
+
+  private sleeping = false;
+
+  private playSleepCinematic() {
+    // a full-screen black wash with text beats
+    const beats = [
+      "you close your eyes.",
+      "you don't dream.",
+      "for five minutes, you are not.",
+      this.ctx.day >= 3 ? "something white moves at the foot of the bed." : "outside, a clock stops.",
+      "morning.",
+    ];
+    const layer = this.add.container(0, 0).setDepth(95).setScrollFactor(0);
+    const dim = this.add.rectangle(VIEW_W / 2, VIEW_H / 2, VIEW_W, VIEW_H, 0x000000, 1).setScrollFactor(0);
+    layer.add(dim);
+    const lineText = this.add
+      .text(VIEW_W / 2, VIEW_H / 2, "", {
+        fontFamily: '"Spectral", Georgia, serif',
+        fontSize: "26px",
+        color: hex(PAL.inkDim),
+        fontStyle: "italic 400",
+        align: "center",
+        wordWrap: { width: 800 },
+      })
+      .setOrigin(0.5)
+      .setScrollFactor(0);
+    layer.add(lineText);
+
+    let i = 0;
+    const step = () => {
+      if (i >= beats.length) {
+        this.tweens.add({
+          targets: layer,
+          alpha: 0,
+          duration: 600,
+          onComplete: () => {
+            layer.destroy();
+            this.afterSleep();
+          },
+        });
+        return;
+      }
+      lineText.setText(beats[i]);
+      lineText.setAlpha(0);
+      this.tweens.add({
+        targets: lineText,
+        alpha: 1,
+        duration: 700,
+        ease: "Sine.easeInOut",
+        onComplete: () => {
+          this.time.delayedCall(1100, () => {
+            this.tweens.add({
+              targets: lineText,
+              alpha: 0,
+              duration: 600,
+              ease: "Sine.easeInOut",
+              onComplete: () => {
+                i++;
+                step();
+              },
+            });
+          });
+        },
+      });
+    };
+    step();
+  }
+
+  private afterSleep() {
+    this.ctx.day++;
+    // wake up next to the bed
+    this.player.setPosition(this.bed.x, this.bed.y + 16);
+    (this.player.body as Phaser.Physics.Arcade.Body).reset(this.bed.x, this.bed.y + 16);
+    this.sleeping = false;
+    this.player.controlsLocked = false;
+    this.cameras.main.fadeIn(700, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+    this.ui.showAreaBanner(`Day ${this.ctx.day} · morning`);
+    if (this.ctx.day >= 3 && !this.ctx.flags.bodyMirror) {
+      this.ui.toast("your face — slightly different in the mirror", PAL.gloomGlow);
+    }
+    if (this.ctx.day >= 4 && !this.ctx.flags.awake) {
+      this.ctx.flags.awake = true;
+      this.ui.toast("something inside you is awake", PAL.gloomGlow);
     }
   }
 

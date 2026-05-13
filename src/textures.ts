@@ -658,7 +658,7 @@ type FigureOpts = {
   facing: "down" | "up" | "side";
   step: number; // -1, 0, 1 — leg/arm pose
   accent?: number; // gem / brooch colour
-  hat?: "hood" | "wide" | "none";
+  hat?: "hood" | "wide" | "none" | "tied" | "cap" | "loose";
   staff?: boolean;
 };
 function drawFigure(g: GFX, w: number, h: number, o: FigureOpts) {
@@ -845,6 +845,50 @@ function buildActors(scene: Phaser.Scene) {
       step: 0,
       hat: "none",
       accent: 0x6a5a8a, // a clipboard accent
+    },
+    // Mom — soft yellow cardigan over a grey skirt, hair tied back.
+    npc_mom: {
+      cloak: 0xd2b266,
+      cloakHi: 0xf1d99a,
+      cloakDark: 0x7e6536,
+      skin: 0xe8c79c,
+      facing: "down",
+      step: 0,
+      hat: "tied",
+      accent: 0x9c7f4a,
+    },
+    // Mailman — washed blue uniform, peaked cap. Increasingly hollow.
+    npc_mailman: {
+      cloak: 0x4a6088,
+      cloakHi: 0x7a96c8,
+      cloakDark: 0x29395b,
+      skin: 0xd9b385,
+      facing: "down",
+      step: 0,
+      hat: "cap",
+      accent: 0xb39455,
+    },
+    // Eli the kid — bright red sweater, messy black hair.
+    npc_kid: {
+      cloak: 0xb44a3a,
+      cloakHi: 0xe87a64,
+      cloakDark: 0x6a261d,
+      skin: 0xe2bc94,
+      facing: "down",
+      step: 0,
+      hat: "loose",
+      accent: 0xf2d484,
+    },
+    // The Cleaner — porcelain-pale, drifting, no expression. Used at 11:55.
+    npc_cleaner: {
+      cloak: 0xece9f2,
+      cloakHi: 0xfaf7ff,
+      cloakDark: 0xb3aec0,
+      skin: 0xf4f1f7,
+      facing: "down",
+      step: 0,
+      hat: "hood",
+      accent: 0xc8c3d6,
     },
   };
   for (const [key, opt] of Object.entries(villagers)) {

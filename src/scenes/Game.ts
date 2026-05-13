@@ -7,6 +7,7 @@ import Phaser from "phaser";
 import { DEPTH, VIEW_H, VIEW_W } from "../consts";
 import { hex, mix, PAL } from "../palette";
 import { SFX } from "../sfx";
+import { MUSIC } from "../music";
 import { buildWorld, WORLD_H, WORLD_W } from "../map";
 import { EPILOGUE_BURN, EPILOGUE_RETURN, PROLOGUE } from "../story";
 import type { Fx, GameCtx, World } from "../types";
@@ -157,8 +158,13 @@ export class GameScene extends Phaser.Scene {
 
     // ---- input ---------------------------------------------------------
     this.keyE = this.input.keyboard!.addKey("E");
-    this.input.keyboard!.on("keydown-M", () => this.ui?.toast(SFX.toggleMute() ? "sound off" : "sound on", PAL.inkDim));
+    this.input.keyboard!.on("keydown-M", () => {
+      const m = SFX.toggleMute();
+      MUSIC.setMuted(m);
+      this.ui?.toast(m ? "sound off" : "sound on", PAL.inkDim);
+    });
     SFX.unlock();
+    MUSIC.start();
 
     // ---- events --------------------------------------------------------
     this.events.on("gloom-killed", this.onGloomKilled, this);

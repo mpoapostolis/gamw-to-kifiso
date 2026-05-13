@@ -7,10 +7,9 @@
 import Phaser from "phaser";
 import { TILE } from "./textures";
 import { PAL } from "./palette";
+import { DIALOGUES } from "./dialogues";
 import type {
   AreaDef,
-  DialogPage,
-  GameCtx,
   GloomSpawn,
   LightDef,
   NpcSpawn,
@@ -353,18 +352,11 @@ const GLOOM: GloomSpawn[] = [];
 const PICKUPS: PickupSpawn[] = [];
 
 /* ----------------------------------------------------------------------- *
- * NPCS + DIALOG                                                            *
+ * NPCS + DIALOG (content from src/dialogues.ts)                            *
  * ----------------------------------------------------------------------- */
-const P = (name: string, portrait: string, text: string, tint?: number, effect?: (c: GameCtx) => void): DialogPage => ({
-  name,
-  portrait,
-  text,
-  tint,
-  effect,
-});
 
 const NPCS: NpcSpawn[] = [
-  // ---- Helena — your partner. At the house, at the centre. -----------
+  // ---- Helena — your partner. In the front yard. ---------------------
   {
     id: "eleni",
     key: "npc_merchant",
@@ -373,37 +365,8 @@ const NPCS: NpcSpawn[] = [
     x: tcx(21),
     y: tcy(20.5),
     roam: 0,
-    dialog: (c) => {
-      // Day 1 — love without cracks
-      if (c.day <= 1)
-        return [
-          P("Helena", "portrait_eleni", "Good morning, you. Did you sleep well? You were dreaming about me again. I left coffee for you in the kitchen."),
-          P("Helena", "portrait_eleni", "I was thinking we could take a walk in the park this afternoon. The weather isn't saying anything. It'll be nice.", PAL.gloomGlow),
-        ];
-      // Day 2 — a small inconsistency
-      if (c.day === 2)
-        return [
-          P("Helena", "portrait_eleni", "My love, thank you for yesterday. For the book. You gave it to me before we went to sleep.", undefined, (cc) => cc.addNote("eleniGift")),
-          P("Helena", "portrait_eleni", "Here, it's by the door. Take it back if you want. It was lovely though.", undefined, (cc) => cc.addItem("helena_book")),
-          P("Helena", "portrait_eleni", "Do you remember when you used to sing? No, it's alright. Tell me if you want coffee."),
-        ];
-      // Day 3 — it deepens
-      if (c.day === 3)
-        return [
-          P("Helena", "portrait_eleni", "You're a little quiet today. You haven't said much. Are you okay?"),
-          P("Helena", "portrait_eleni", "You know, sometimes I feel like I've known you for a lifetime. Other times like I met you yesterday. Isn't that strange.", PAL.gloomGlow),
-        ];
-      // Day 4+ — if you've woken up
-      if (c.flags.awake)
-        return [
-          P("Helena", "portrait_eleni", "...I'm looking at you today and something is different. Nothing's happened to you, has it?"),
-          P("Helena", "portrait_eleni", "Alex, always tell me the truth. Even if it's something I won't remember tomorrow.", PAL.heartHi),
-        ];
-      return [P("Helena", "portrait_eleni", "I love you. Always.")];
-    },
+    dialog: DIALOGUES.eleni,
   },
-
-  // ---- Costas — the neighbour. Outside, on the road. -----------------
   {
     id: "kostas",
     key: "npc_smith",
@@ -412,44 +375,8 @@ const NPCS: NpcSpawn[] = [
     x: tcx(15),
     y: tcy(29.5),
     roam: 0,
-    dialog: (c) => {
-      // Day 1 — a simple hello
-      if (c.day <= 1)
-        return [
-          P("Costas", "portrait_kostas", "Hey neighbour. Good start. How was your Monday?"),
-          P("Costas", "portrait_kostas", "Me? Nothing — I've been painting my front door for three weeks. It's never finished. I don't know why."),
-        ];
-      // Day 2 — an uncertain beat
-      if (c.day === 2)
-        return [
-          P("Costas", "portrait_kostas", "Oh hey — you. Alex? Yes, Alex. Sorry, yesterday you looked a little like the... never mind. Did you sleep well?"),
-          P("Costas", "portrait_kostas", "Did you notice yesterday at 11:55 that the clock in the square stopped? No? I thought I saw it. But I can't remember clearly."),
-        ];
-      // Day 3 — a pause that freezes
-      if (c.day === 3)
-        return [
-          P("Costas", "portrait_kostas", "So, I was telling you that the..."),
-          P("Costas", "portrait_kostas", "...", undefined, (cc) => cc.addNote("kostasFreeze")),
-          P("Costas", "portrait_kostas", "...what was I telling you? Oh yeah, about the door. I was telling you I'm done with the paint. Finally."),
-        ];
-      // Day 4+ — if you're awake, he tells you
-      if (c.flags.awake && !c.flags.kostasReveal) {
-        return [
-          P("Costas", "portrait_kostas", "Alex. Look at me. Look at me in the eyes.", undefined, (cc) => (cc.flags.kostasReveal = true)),
-          P("Costas", "portrait_kostas", "You know now. I can see it. How many days do you have? Six? Seven? I have twenty-two. Before me there were others. After me there will be others.", PAL.gloomGlow),
-          P("Costas", "portrait_kostas", "You're the forty-seventh one who's woken up this week. Come by tonight at 11:50. I'll show you the hill.", undefined, (cc) => cc.addNote("kostasReveal")),
-          P("Costas", "portrait_kostas", "Take this. I drew it last week and hid it under my mailbox. I'm only ever sure I drew it when I look at it. Keep it.", undefined, (cc) => cc.addItem("kostas_map")),
-        ];
-      }
-      if (c.flags.kostasReveal)
-        return [
-          P("Costas", "portrait_kostas", "The hill. Beyond the little park. Go. You'll understand."),
-        ];
-      return [P("Costas", "portrait_kostas", "You alright? You look tired.")];
-    },
+    dialog: DIALOGUES.kostas,
   },
-
-  // ---- Mrs. Despoina — the old woman who knows. At the corner. -------
   {
     id: "despoina",
     key: "npc_elder",
@@ -458,62 +385,37 @@ const NPCS: NpcSpawn[] = [
     x: tcx(11),
     y: tcy(18.5),
     roam: 0,
-    dialog: (c) => {
-      if (c.day === 1)
-        return [
-          P("Mrs. Despoina", "portrait_despoina", "Good morning, child. Come closer, let me see your face."),
-          P("Mrs. Despoina", "portrait_despoina", "Nice face. Like my son's. Not exactly. Similar. Do you remember, child?", PAL.gloomGlow),
-          P("Mrs. Despoina", "portrait_despoina", "It's okay if you don't. Slowly. Everyone does, slowly."),
-        ];
-      if (c.day === 2)
-        return [
-          P("Mrs. Despoina", "portrait_despoina", "You again, child. I told you something yesterday. You don't remember, do you."),
-          P("Mrs. Despoina", "portrait_despoina", "I'll tell you again. At 11:55 the clock stops. Every day. Nobody sees it. Except me. And now you.", undefined, (cc) => cc.addNote("clockStop")),
-        ];
-      if (c.day >= 3 && !c.flags.despoinaSmile) {
-        return [
-          P("Mrs. Despoina", "portrait_despoina", "Did you light your candle, child?"),
-          P("Mrs. Despoina", "portrait_despoina", "We all have a candle inside us. The ones of us who wake up — we wake up because someone forgot to blow it out. I've been awake sixty years. I don't grow old.", PAL.heartHi, (cc) => cc.addNote("despoinaSmile")),
-          P("Mrs. Despoina", "portrait_despoina", "Take this. It looks small. It is not small. Keep it on you.", undefined, (cc) => cc.addItem("despoina_candle")),
-          P("Mrs. Despoina", "portrait_despoina", "Listen. When it's eleven fifty-five, you get under your kitchen sink. Stay five minutes. You'll see. I love you, child."),
-        ];
-      }
-      if (c.flags.awake)
-        return [
-          P("Mrs. Despoina", "portrait_despoina", "So you woke up. Good. Now you have two choices, child. Neither is wrong."),
-          P("Mrs. Despoina", "portrait_despoina", "Either you put it all out and we learn again what it means to grow old. Or you go back to your sleep and everything is fine again.", PAL.gloomGlow),
-        ];
-      return [P("Mrs. Despoina", "portrait_despoina", "Good morning, child.")];
-    },
+    dialog: DIALOGUES.despoina,
   },
-
-  // ---- The Custodian — at the facility (far east, act 5). ------------
   {
     id: "epistatis",
-    key: "npc_child", // recolored as the white-robed Custodian
+    key: "npc_child",
     altKey: "npc_child_b",
     name: "The Custodian",
     x: tcx(50.5),
     y: tcy(22),
     roam: 0,
-    dialog: (c) => {
-      if (!c.flags.kostasReveal)
-        return [
-          P("The Custodian", "portrait_epistatis", "You shouldn't be here yet. Go home. Helena is waiting for you."),
-        ];
-      return [
-        P("The Custodian", "portrait_epistatis", "Welcome, Alex. You're not the first to do this. One hundred and twenty-four times. All of them you.", PAL.gloom),
-        P("The Custodian", "portrait_epistatis", "You don't remember any pain. You don't remember anyone dead. You don't remember when your mother grew old. You don't remember ever losing her. That is happiness."),
-        P("The Custodian", "portrait_epistatis", "Why do you want to break it, child?", PAL.heartHi),
-        P(
-          "The Custodian",
-          "npc_child",
-          "You have two choices. I'll let you pick. I won't stop you. — Light the lights, and everyone wakes up. They'll grow old. They'll hurt. They'll live. — Or take my hand, and you'll go back to sleep. Everything will be fine. Again.",
-          undefined,
-          (cc) => (cc.flags.endingAvailable = true),
-        ),
-      ];
-    },
+    dialog: DIALOGUES.epistatis,
+  },
+  {
+    id: "mailman",
+    key: "npc_mailman",
+    altKey: "npc_mailman_b",
+    name: "Mailman",
+    x: tcx(18),
+    y: tcy(23.5),
+    roam: 0,
+    dialog: DIALOGUES.mailman,
+  },
+  {
+    id: "kid",
+    key: "npc_kid",
+    altKey: "npc_kid_b",
+    name: "Eli",
+    x: tcx(26),
+    y: tcy(25),
+    roam: 0,
+    dialog: DIALOGUES.kid,
   },
 ];
 
