@@ -1,7 +1,7 @@
 /**
- * The Wanderer — top-down, four-facing, lantern-bearing. Moves, swings a blade
- * in a short arc, and rolls (with i-frames). Owns its lantern glow + the light
- * radius the darkness mask reads each frame.
+ * Ο Αθηναίος — top-down, four-facing, κρατάει καφέ + κόρνα. Κινείται, πατάει
+ * κόρνα σε short arc, κάνει roll (με i-frames). Έχει το lantern glow + το
+ * light radius που διαβάζει η darkness mask κάθε frame.
  */
 import Phaser from "phaser";
 import { PAL } from "../palette";

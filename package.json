@@ -1,9 +1,9 @@
 {
-  "name": "emberwilds",
+  "name": "gamw-to-kifiso",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Emberwilds — a moody top-down action RPG built with Phaser 3.",
+  "description": "ΓΑΜΩ ΤΟΝ ΚΗΦΙΣΟ ΜΟΥ — top-down RPG σατιρικό για την κίνηση στον Κηφισό. Phaser 3 + TypeScript, μηδέν image assets.",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

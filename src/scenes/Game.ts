@@ -1,7 +1,7 @@
 /**
- * Game — the world of Emberwilds in motion: terrain, the Wanderer, the Gloom,
- * the villagers, the lantern-vs-dark lighting model, and all the wiring between
- * them (combat, pickups, conversations, the quest line, death & waking again).
+ * Game — ο κόσμος σε κίνηση: terrain, ο Αθηναίος, οι οδηγοί-Gloom, οι γείτονες,
+ * το lighting model του δρόμου, και όλο το wiring (κόρνα-vs-κίνηση, καφέδες,
+ * διάλογοι, η quest με τις 5 κορνάρες, θάνατος & ξύπνημα δίπλα στο βαρέλι).
  */
 import Phaser from "phaser";
 import { DEPTH, VIEW_H, VIEW_W } from "../consts";

@@ -1,7 +1,7 @@
 /**
- * Gloom — drifting wisps of the dark wood. They wander near home until the
- * Wanderer's lantern strays close, then list toward it, hungry for warmth. The
- * Warden is a bigger, meaner one that holds the Sunken Shrine.
+ * Gloom — οδηγοί στη Λεωφόρο. Wander-άρουν στη "γκαζελάδικη" τους ώρες αιχμής
+ * μέχρι να σε δουν, μετά σου ρίχνονται με κόκκινα μάτια. Ο ΧΟΥΛΙΓΚΑΝ είναι ένας
+ * πιο μεγάλος, πιο τρελός που κάθεται μόνιμα στο ύψος Μεταμόρφωσης.
  */
 import Phaser from "phaser";
 import { PAL } from "../palette";

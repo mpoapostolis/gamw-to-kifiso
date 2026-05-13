@@ -1,6 +1,6 @@
 /**
- * Emberwilds — entry point. Wires the Phaser game: smooth illustrative render,
- * 16:9 letterboxed, Arcade physics, four scenes (Boot → Title → Game + UI).
+ * ΓΑΜΩ ΤΟΝ ΚΗΦΙΣΟ ΜΟΥ — entry point. Wires the Phaser game: smooth illustrative
+ * render, 16:9 letterboxed, Arcade physics, four scenes (Boot → Title → Game + UI).
  */
 import Phaser from "phaser";
 import { VIEW_H, VIEW_W } from "./consts";

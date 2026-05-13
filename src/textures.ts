@@ -1,10 +1,9 @@
 /**
  * Procedural texture forge.
  *
- * Emberwilds ships zero image assets — every tile, creature, prop, particle and
- * UI chrome is drawn here at boot with Phaser's Graphics + Canvas APIs and baked
- * into the texture manager. Keeping it all in one place makes the art language
- * easy to tune.
+ * Το game στέλνει μηδέν image assets — όλα τα tiles, props, actors, particles
+ * και τα UI chrome ζωγραφίζονται εδώ σε boot με Phaser Graphics + Canvas APIs
+ * και πάνε στο texture manager.
  */
 import Phaser from "phaser";
 import { PAL, shade } from "./palette";

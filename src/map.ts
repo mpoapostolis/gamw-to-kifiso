@@ -1,8 +1,8 @@
 /**
- * The world of Emberwilds — Lumin Village to the west, the Gloomwood to the
- * east, the Sunken Shrine beyond. Terrain is computed per-tile and baked into a
- * single image; props, colliders, lights, NPCs, enemies and pickups are placed
- * here as data and instantiated by GameScene.
+ * Ο κόσμος — Η Γειτονιά στα δυτικά, Τα Διόδια, η Λεωφ. Κηφισού πιο ανατολικά,
+ * το Ύψος Μεταμόρφωσης στο τέλος. Το terrain υπολογίζεται per-tile και bake-άρεται
+ * σε μία RenderTexture· props, colliders, lights, NPCs, εχθροί και pickups μένουν
+ * εδώ ως data και ανεβαίνουν στη σκηνή από το GameScene.
  */
 import Phaser from "phaser";
 import { TILE } from "./textures";
