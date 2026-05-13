@@ -1,25 +1,24 @@
-/** The thread of Emberwilds — told in cards before the wood, and after the Warden. */
+/** Το νήμα της ιστορίας — πρόλογος πριν τον Κηφισό, επίλογος μετά τη Λεωφόρο. */
 
-/** Full-screen story cards: each is a paragraph shown over black. */
 export const PROLOGUE: string[] = [
-  "Long before the maps, the world had an edge — and past the edge, an old dark, patient as stone.",
-  "Lumin held the line with lanterns. A hundred of them once, ringing the village, ringing the wood. While they burned, the dark stayed dark and stayed away.",
-  "The lanterns are dying now. One a season, then one a month. Nobody remembers how they were made.",
-  "You came up the road at dusk, a stranger, with a lantern of the old craft still bright on your belt — and Lumin let you in.",
+  "Είναι Δευτέρα. Είναι 7:42 το πρωί. Είναι ο Κηφισός. Αυτά τα τρία πράγματα μαζί δεν είναι σύμπτωση — είναι κατάρα.",
+  "Κάποτε ο Κηφισός ήταν ποτάμι. Τώρα είναι μια μαύρη γραμμή που τραβάει ψυχές προς τη Λαμία και τις φτύνει στον Πειραιά. Πέθαναν ποιήματα εκεί μέσα.",
+  "Έχεις σύσκεψη στις εννιά. Έχεις καφέ. Έχεις κι αυτή την κόρνα που δούλευε καλά μέχρι το 2017.",
+  "Πάμε.",
 ];
 
 export const EPILOGUE: string[] = [
-  "Deep in the Sunken Shrine, the dark had a face. It had been a lantern-bearer once, the elders say — one who walked too far in, looking for where the dark began, and found that it began with looking.",
-  "You did not kill it. You can't kill a dark. But you broke what it had become, and what was left of the bearer let go — and somewhere, faintly, a lamp that had been out for years caught again.",
-  "Lumin will not be fully lit in your lifetime. But it is lit enough. The road south is open. The wood is only a wood, for now.",
-  "Carry the flame. That was always the whole of it.",
+  "Πέρασες τα διόδια. Πέρασες τη Μεταμόρφωση. Πέρασες κι αυτόν τον τύπο με τη Μερσεντές που πήγαινε ανάποδα στη ΛΕΑ και σε κοίταγε σαν να ΣΟΥ έφταιγες εσύ.",
+  "Στο τέρμα της λεωφόρου, εκεί που η σήμανση γίνεται απλά «προσοχή», ο ΧΟΥΛΙΓΚΑΝ έσπασε. Δεν τον σκότωσες — δεν σκοτώνεις την κίνηση. Αλλά τον ντρόπιασες.",
+  "Φτάνεις στη δουλειά. Είναι 10:14. Ο διευθυντής σου σε κοιτάει και σου λέει «α, η σύσκεψη ακυρώθηκε χθες βράδυ, δεν στο είπε κανείς;»",
+  "Πίνεις τον καφέ. Είναι κρύος. Μέσα σου ένα ποτάμι ξανακινείται.",
 ];
 
-/** Lore lines shown when the player examines a signpost (cycled). */
+/** Lore lines κρυμμένα σε πινακίδες στον δρόμο. */
 export const SIGN_LINES: string[] = [
-  "— WEST ROAD — to the lowlands, the river towns, the places the dark hasn't reached. Safe travels. Travel by day.",
-  "— LUMIN VILLAGE — kindled when the world was younger. Mind the lamps. Tend the lamps. The lamps are the village.",
-  "Scratched below the older words, newer and shakier: 'it isn't hungry. it's cold. that's worse.'",
+  "— ΕΞΟΔΟΣ 5 — Λεωφ. Δημοκρατίας. Πάει στα Λιόσια. Πάει σε άλλη ζωή. Δεν την έχεις.",
+  "— ΛΕΩΦ. ΚΗΦΙΣΟΥ — μήκος 11.3χλμ. Μέσος χρόνος διέλευσης: 47 λεπτά. Παγκόσμιο ρεκόρ: 3 ώρες, 18 λεπτά. Κατάχθηκε από ταξί ΤΑΧ-3814 το 2009.",
+  "Γραμμένο με μαρκαδόρο κάτω από την πινακίδα, με τρεμάμενο γράμμα: «ΔΕΝ ΦΤΑΙΣ ΕΣΥ. ΦΤΑΙΕΙ Ο ΚΗΦΙΣΟΣ.»",
 ];
 
-export const GATE_SIGN = "⚠  THE GLOOMWOOD  ⚠   Beyond here the lamps run out. Do not enter without a flame. Do not stay after the flame burns low. — by order of Elder Maro";
+export const GATE_SIGN = "⚠  ΕΙΣΟΔΟΣ ΛΕΩΦ. ΚΗΦΙΣΟΥ  ⚠   Μη μπεις χωρίς καφέ. Μη μένεις αν αρχίσει να βρέχει. Πατάς κόρνα μόνο όταν το ΕΧΕΙΣ ανάγκη — αλλιώς πληρώνεις ψυχικό χρέος. — Δήμος Αθηναίων";

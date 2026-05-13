@@ -1,83 +1,95 @@
 /**
- * Emberwilds colour language.
+ * "ΓΑΜΩ ΤΟΝ ΚΗΦΙΣΟ ΜΟΥ" colour language — Athens dawn.
  *
- * A twilight dark-fantasy palette: cool indigo terrain, warm ember light,
- * bruised-violet "Gloom" enemies. Everything elsewhere references these so the
- * world stays cohesive.
+ * Asphalt grays, sodium-orange streetlights, terracotta apartment roofs, and
+ * the eyes of every driver in the next lane glowing red.
+ *
+ * Field names are kept from the previous (dark-fantasy) build so the rendering
+ * code reads the same shapes: `grass*` is sidewalk, `dirt` is asphalt, `cloak`
+ * is the player's hoodie, `gloom*` is road-rage, `ember*` is sodium-orange
+ * streetlight, etc. Only the values change.
  */
 export const PAL = {
-  // backdrop / void
-  void: 0x07060d,
-  night: 0x0d0b16,
-  nightSky: 0x161126,
+  // backdrop / pre-dawn sky
+  void: 0x07070b,
+  night: 0x12121a,
+  nightSky: 0x1d1c2a,
 
-  // terrain
-  grassDeep: 0x152619,
-  grassMid: 0x1e3727,
-  grassHi: 0x2c5236,
-  grassDry: 0x394a2a,
-  dirt: 0x3a2f24,
-  dirtHi: 0x55452f,
-  sand: 0x6b5a3c,
-  stone: 0x29263a,
-  stoneHi: 0x403c54,
-  stoneEdge: 0x1a1826,
-  water: 0x122a3e,
-  waterMid: 0x1b3e58,
-  waterHi: 0x2f6f8f,
+  // sidewalk / concrete / cracked pavement (was "grass")
+  grassDeep: 0x1b1d22,
+  grassMid: 0x2b2d33,
+  grassHi: 0x3d3f45,
+  grassDry: 0x4a4239, // a strip of dry leaves / dirt by the curb
+  // asphalt (was "dirt") — the road itself
+  dirt: 0x161618,
+  dirtHi: 0x2a2a2c,
+  // cobblestone plaza / πλατεία (was "sand")
+  sand: 0x5b4d3a,
+  // marble tile / kiosk floor (was "stone")
+  stone: 0x36363c,
+  stoneHi: 0x595a62,
+  stoneEdge: 0x1c1c20,
+  // puddle (was "water") — reflects sodium light, sky
+  water: 0x1a232e,
+  waterMid: 0x2e3b48,
+  waterHi: 0x6d5a30,
 
-  // structures
-  woodDark: 0x271b13,
-  woodMid: 0x3c2b1d,
-  woodHi: 0x5a3f29,
-  roof: 0x4a2026,
-  roofHi: 0x732f37,
-  roofDark: 0x301519,
-  thatch: 0x6e5328,
-  thatchHi: 0x8f6d35,
+  // metal poles / guard rails / lamp posts (was "wood")
+  woodDark: 0x1c1d22,
+  woodMid: 0x32333a,
+  woodHi: 0x55575f,
+  // terracotta tile roofs (Athens apartment buildings)
+  roof: 0x5a2820,
+  roofHi: 0x8a3a2c,
+  roofDark: 0x36160f,
+  // balcony / ochre wall trim (was "thatch")
+  thatch: 0x8a6a3a,
+  thatchHi: 0xb38950,
 
-  // the wanderer (player)
-  cloak: 0x7c3528,
-  cloakHi: 0xa0473a,
-  cloakDark: 0x4f2018,
-  skin: 0xdcae7e,
-  skinDark: 0xb38758,
-  hair: 0x2a1c12,
+  // the commuter (player) — dark hoodie + olive skin
+  cloak: 0x232428,
+  cloakHi: 0x3a3b40,
+  cloakDark: 0x111114,
+  skin: 0xc99b6c,
+  skinDark: 0x9c764e,
+  hair: 0x1a120c,
 
-  // light
-  ember: 0xff8a2a,
-  emberHot: 0xffe08a,
-  emberSoft: 0xffb455,
-  emberDeep: 0xc85a18,
+  // sodium-orange streetlight (was "ember") — peak Athens night
+  ember: 0xff8e1a,
+  emberHot: 0xffd684,
+  emberSoft: 0xffaa4d,
+  emberDeep: 0xc25210,
 
-  // Gloom (enemies)
-  gloom: 0x39204f,
-  gloomMid: 0x55307a,
-  gloomHi: 0x7c46ad,
-  gloomGlow: 0xb866e0,
-  gloomEye: 0xe9c6ff,
+  // road-rage drivers (was "Gloom") — gray car bodies with RED brake-light eyes
+  gloom: 0x2c2c30,
+  gloomMid: 0x46464a,
+  gloomHi: 0x686b70,
+  gloomGlow: 0xff2f3a, // brake-light red
+  gloomEye: 0xff7a82,
 
   // pickups
-  gold: 0xffce3d,
-  goldHi: 0xfff0a6,
-  goldDark: 0xc6921a,
-  heart: 0xe25a4a,
-  heartHi: 0xff8f7e,
-  heartDark: 0x7a2a28,
-  potion: 0x3fd6a8,
-  potionHi: 0x8ff0d4,
+  gold: 0xf2c038, // 1€ / 2€ coin
+  goldHi: 0xffe8a0,
+  goldDark: 0xa6791b,
+  // espresso (was "heart") — coffee-cup life pickup
+  heart: 0x4a2a16,
+  heartHi: 0xb88458, // crema
+  heartDark: 0x2a160a,
+  // souvlaki / κουλούρι (was "potion") — full heal
+  potion: 0xc8884a,
+  potionHi: 0xf2c280,
 
-  // UI
+  // UI ink — warm cream
   ink: 0xf3ead4,
   inkDim: 0xb9ad92,
   inkFaint: 0x7d745f,
-  panel: 0x140f1c,
-  panelHi: 0x221a30,
-  panelEdge: 0x4d3b62,
-  panelEdgeHi: 0x7d5fa0,
-  hpFull: 0xe05a4a,
-  hpRim: 0xff9384,
-  hpEmpty: 0x2e1b20,
+  panel: 0x141318,
+  panelHi: 0x22202a,
+  panelEdge: 0x3a3a44,
+  panelEdgeHi: 0x6b6b78,
+  hpFull: 0x6a3a1c, // coffee-cup brown
+  hpRim: 0xb88458,
+  hpEmpty: 0x201510,
   shadow: 0x000000,
 } as const;
 

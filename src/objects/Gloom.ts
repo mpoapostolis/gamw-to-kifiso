@@ -149,7 +149,7 @@ export class Gloom extends Phaser.Physics.Arcade.Sprite {
           this.roared = true;
           SFX.warden();
           this.fx.shake(0.012, 360);
-          this.fx.floatText(this.x, this.y - 36, "the dark wakes", PAL.gloomGlow);
+          this.fx.floatText(this.x, this.y - 36, "Ο ΧΟΥΛΙΓΚΑΝ ΣΗΚΩΘΗΚΕ", PAL.gloomGlow);
         }
       }
 

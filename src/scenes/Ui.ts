@@ -104,7 +104,7 @@ export class UIScene extends Phaser.Scene {
     drawPanel(killBg, 16, 70, 196, 38, PAL.panelEdge);
     this.hudKillIcon = this.add.image(16 + 22, 70 + 19, "ui_sigil").setDepth(21).setScale(0.8);
     this.hudKills = this.add
-      .text(16 + 40, 70 + 19, "the Gloom: 0", { fontFamily: SPECTRAL, fontSize: "15px", color: hex(PAL.inkDim), fontStyle: "500" })
+      .text(16 + 40, 70 + 19, "Κορνάρες: 0", { fontFamily: SPECTRAL, fontSize: "15px", color: hex(PAL.inkDim), fontStyle: "500" })
       .setOrigin(0, 0.5)
       .setDepth(21);
 
@@ -207,10 +207,10 @@ export class UIScene extends Phaser.Scene {
     if (!this.hudKills) return;
     const q = this.ctx?.questState ?? 0;
     let msg: string;
-    if (this.ctx?.wardenDown) msg = `the wood is quiet  ·  ${n} unmade`;
-    else if (q >= 2) msg = `the Gloom: ${n}  ·  a ruin stirs east`;
-    else if (q === 1) msg = `Gloom unmade: ${Math.min(n, 5)} / 5`;
-    else msg = `the Gloom: ${n}`;
+    if (this.ctx?.wardenDown) msg = `Κηφισός: ησυχία  ·  ${n} κορνάρες`;
+    else if (q >= 2) msg = `Κορνάρες: ${n}  ·  ένας ΑΛΛΟΣ μένει στη Μεταμόρφωση`;
+    else if (q === 1) msg = `Κορνάρες: ${Math.min(n, 5)} / 5`;
+    else msg = `Κορνάρες: ${n}`;
     this.hudKills.setText(msg);
     this.hudKillIcon.setTint(this.ctx?.wardenDown ? PAL.emberSoft : 0xffffff);
   }
@@ -314,7 +314,7 @@ export class UIScene extends Phaser.Scene {
       wordWrap: { width: boxW - 132 - 32 },
     });
     this.dlgHint = this.add
-      .text(x + boxW - 18, y + boxH - 14, "SPACE  ▸", { fontFamily: SPECTRAL, fontSize: "13px", color: hex(PAL.inkFaint), fontStyle: "italic 400" })
+      .text(x + boxW - 18, y + boxH - 14, "SPACE  ▸  παρακάτω", { fontFamily: SPECTRAL, fontSize: "13px", color: hex(PAL.inkFaint), fontStyle: "italic 400" })
       .setOrigin(1, 1);
     this.tweens.add({ targets: this.dlgHint, alpha: { from: 1, to: 0.3 }, yoyo: true, repeat: -1, duration: 900, ease: "Sine.easeInOut" });
     this.dlgRoot = this.add
@@ -411,7 +411,7 @@ export class UIScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
     this.storyHint = this.add
-      .text(VIEW_W / 2, VIEW_H - 64, "SPACE / click  ▸  continue", { fontFamily: SPECTRAL, fontSize: "15px", color: hex(PAL.inkFaint), fontStyle: "italic 400" })
+      .text(VIEW_W / 2, VIEW_H - 64, "SPACE / κλικ  ▸  συνέχεια", { fontFamily: SPECTRAL, fontSize: "15px", color: hex(PAL.inkFaint), fontStyle: "italic 400" })
       .setOrigin(0.5);
     this.tweens.add({ targets: this.storyHint, alpha: { from: 1, to: 0.3 }, yoyo: true, repeat: -1, duration: 1000, ease: "Sine.easeInOut" });
     this.storyRoot = this.add.container(0, 0, [this.storyDim, this.storyTitle, this.storyBody, this.storyHint]).setDepth(80).setVisible(false);
@@ -480,15 +480,15 @@ export class UIScene extends Phaser.Scene {
   private buildDeath() {
     const dim = this.add.rectangle(VIEW_W / 2, VIEW_H / 2, VIEW_W, VIEW_H, 0x0a0612, 0.86);
     const big = this.add
-      .text(VIEW_W / 2, VIEW_H / 2 - 36, "YOU FELL", { fontFamily: CINZEL, fontSize: "62px", color: hex(PAL.hpRim), fontStyle: "800" })
+      .text(VIEW_W / 2, VIEW_H / 2 - 36, "ΣΕ ΠΗΡΕ Η ΜΠΑΛΑ", { fontFamily: CINZEL, fontSize: "54px", color: hex(PAL.gloomGlow), fontStyle: "800" })
       .setOrigin(0.5)
-      .setLetterSpacing(12)
+      .setLetterSpacing(10)
       .setShadow(0, 4, "rgba(0,0,0,0.7)", 8);
     const sub = this.add
-      .text(VIEW_W / 2, VIEW_H / 2 + 26, "the dark took your lantern — but not you, not yet", { fontFamily: SPECTRAL, fontSize: "20px", color: hex(PAL.inkDim), fontStyle: "italic 400" })
+      .text(VIEW_W / 2, VIEW_H / 2 + 26, "σου χύθηκε ο καφές. αλλά δεν τέλειωσε.", { fontFamily: SPECTRAL, fontSize: "20px", color: hex(PAL.inkDim), fontStyle: "italic 400" })
       .setOrigin(0.5);
     const hint = this.add
-      .text(VIEW_W / 2, VIEW_H / 2 + 84, "press anything  ▸  wake by the village hearth", { fontFamily: SPECTRAL, fontSize: "16px", color: hex(PAL.inkFaint), fontStyle: "400" })
+      .text(VIEW_W / 2, VIEW_H / 2 + 84, "πάτα οτιδήποτε  ▸  ξύπνα δίπλα στη φωτιά", { fontFamily: SPECTRAL, fontSize: "16px", color: hex(PAL.inkFaint), fontStyle: "400" })
       .setOrigin(0.5);
     this.tweens.add({ targets: hint, alpha: { from: 1, to: 0.35 }, yoyo: true, repeat: -1, duration: 950, ease: "Sine.easeInOut" });
     this.deathRoot = this.add.container(0, 0, [dim, big, sub, hint]).setDepth(85).setVisible(false);
@@ -507,21 +507,22 @@ export class UIScene extends Phaser.Scene {
     const dim = this.add.rectangle(VIEW_W / 2, VIEW_H / 2, VIEW_W, VIEW_H, PAL.void, 0.78);
     const panel = this.add.graphics();
     drawPanel(panel, VIEW_W / 2 - 280, VIEW_H / 2 - 180, 560, 360, PAL.panelEdgeHi);
-    const title = this.add.text(VIEW_W / 2, VIEW_H / 2 - 140, "EMBERWILDS", { fontFamily: CINZEL, fontSize: "40px", color: hex(PAL.ink), fontStyle: "800" }).setOrigin(0.5).setLetterSpacing(10);
+    const title = this.add.text(VIEW_W / 2, VIEW_H / 2 - 150, "ΓΑΜΩ ΤΟΝ ΚΗΦΙΣΟ ΜΟΥ", { fontFamily: CINZEL, fontSize: "30px", color: hex(PAL.ink), fontStyle: "800" }).setOrigin(0.5).setLetterSpacing(8);
     const lines = [
-      "move        W A S D   ·   ↑ ↓ ← →",
-      "strike       SPACE   ·   left-click",
-      "roll          SHIFT   (brief invulnerability)",
-      "talk         E   (near a villager)",
-      "mute        M          pause        ESC",
+      "κίνηση         W A S D   ·   ↑ ↓ ← →",
+      "κόρνα         SPACE   ·   αριστερό κλικ",
+      "φτέρνισμα    SHIFT   (στιγμιαία ασφάλεια)",
+      "κουβέντα     E   (δίπλα σε γείτονα)",
+      "mute            M             pause           ESC",
       "",
-      "Carry a flame into the wood. Unmake five Gloom",
-      "and bring word to Elder Maro. Mind the lamps.",
+      "Πάτα κόρνα σε 5 μαλάκες στη Λεωφόρο Κηφισού",
+      "και γύρνα να σ' το πει ο Παππού Γιάννης.",
+      "Μην ξεχνάς να πίνεις καφέ.",
     ];
     const body = this.add
-      .text(VIEW_W / 2, VIEW_H / 2 - 70, lines.join("\n"), { fontFamily: SPECTRAL, fontSize: "18px", color: hex(PAL.inkDim), fontStyle: "400", align: "center", lineSpacing: 9 })
+      .text(VIEW_W / 2, VIEW_H / 2 - 80, lines.join("\n"), { fontFamily: SPECTRAL, fontSize: "17px", color: hex(PAL.inkDim), fontStyle: "400", align: "center", lineSpacing: 9 })
       .setOrigin(0.5, 0);
-    const hint = this.add.text(VIEW_W / 2, VIEW_H / 2 + 152, "ESC  ▸  return to the wood", { fontFamily: SPECTRAL, fontSize: "14px", color: hex(PAL.inkFaint), fontStyle: "italic 400" }).setOrigin(0.5);
+    const hint = this.add.text(VIEW_W / 2, VIEW_H / 2 + 152, "ESC  ▸  πίσω στον δρόμο", { fontFamily: SPECTRAL, fontSize: "14px", color: hex(PAL.inkFaint), fontStyle: "italic 400" }).setOrigin(0.5);
     this.tweens.add({ targets: hint, alpha: { from: 1, to: 0.4 }, yoyo: true, repeat: -1, duration: 1000 });
     this.pauseRoot = this.add.container(0, 0, [dim, panel, title, body, hint]).setDepth(90).setVisible(false);
   }

@@ -94,32 +94,47 @@ export class TitleScene extends Phaser.Scene {
     const titleGlow = this.add
       .image(cx, 252, "glow_warm")
       .setBlendMode(Phaser.BlendModes.ADD)
-      .setScale(3.6, 1.5)
+      .setScale(4.6, 1.7)
       .setAlpha(0);
-    const title = this.add
-      .text(cx, 252, "EMBERWILDS", {
-        fontFamily: CINZEL,
-        fontSize: "94px",
-        color: hex(PAL.ink),
-        fontStyle: "800",
-      })
+    // Two-line title because "ΓΑΜΩ ΤΟΝ ΚΗΦΙΣΟ ΜΟΥ" doesn't fit one line nicely
+    const titleTop = this.add
+      .text(cx, 210, "ΓΑΜΩ ΤΟΝ", { fontFamily: CINZEL, fontSize: "76px", color: hex(PAL.ink), fontStyle: "800" })
       .setOrigin(0.5)
-      .setLetterSpacing(14)
+      .setLetterSpacing(12)
       .setShadow(0, 4, "rgba(0,0,0,0.55)", 8, true, true)
       .setAlpha(0)
-      .setY(236);
-    // a subtle ember-tinted echo behind for warmth
-    const titleWarm = this.add
-      .text(cx, 252, "EMBERWILDS", { fontFamily: CINZEL, fontSize: "94px", color: hex(PAL.emberSoft), fontStyle: "800" })
+      .setY(196);
+    const titleBot = this.add
+      .text(cx, 290, "ΚΗΦΙΣΟ ΜΟΥ", { fontFamily: CINZEL, fontSize: "76px", color: hex(PAL.ink), fontStyle: "800" })
       .setOrigin(0.5)
-      .setLetterSpacing(14)
+      .setLetterSpacing(12)
+      .setShadow(0, 4, "rgba(0,0,0,0.55)", 8, true, true)
+      .setAlpha(0)
+      .setY(276);
+    // warm echo behind
+    const titleWarm1 = this.add
+      .text(cx, 210, "ΓΑΜΩ ΤΟΝ", { fontFamily: CINZEL, fontSize: "76px", color: hex(PAL.emberSoft), fontStyle: "800" })
+      .setOrigin(0.5)
+      .setLetterSpacing(12)
       .setAlpha(0)
       .setBlendMode(Phaser.BlendModes.ADD)
       .setScale(1.012)
-      .setY(236);
+      .setY(196);
+    const titleWarm2 = this.add
+      .text(cx, 290, "ΚΗΦΙΣΟ ΜΟΥ", { fontFamily: CINZEL, fontSize: "76px", color: hex(PAL.emberSoft), fontStyle: "800" })
+      .setOrigin(0.5)
+      .setLetterSpacing(12)
+      .setAlpha(0)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setScale(1.012)
+      .setY(276);
+    // Bundle as one logical "title" group for the entrance tweens further down.
+    const title = titleTop;
+    const titleWarm = titleWarm1;
+    const titleGroup = [titleTop, titleBot, titleWarm1, titleWarm2];
 
-    // a rule + diamond under the title (positioned at cx so scaleX grows from the centre)
-    const rule = this.add.graphics({ x: cx, y: 320 }).setAlpha(0);
+    // rule + diamond under the title
+    const rule = this.add.graphics({ x: cx, y: 350 }).setAlpha(0);
     rule.lineStyle(2, PAL.panelEdgeHi, 1);
     rule.lineBetween(-200, 0, -16, 0);
     rule.lineBetween(16, 0, 200, 0);
@@ -131,7 +146,7 @@ export class TitleScene extends Phaser.Scene {
     rule.strokeTriangle(0, -7, -7, 0, 0, 7);
 
     const subtitle = this.add
-      .text(cx, 356, "kindle a lantern · walk into the wood", {
+      .text(cx, 388, "κράτα τον καφέ ζεστό · μπες στη Λεωφόρο", {
         fontFamily: SPECTRAL,
         fontSize: "23px",
         color: hex(PAL.inkDim),
@@ -142,29 +157,29 @@ export class TitleScene extends Phaser.Scene {
       .setAlpha(0);
 
     const prompt = this.add
-      .text(cx, 486, "press  ENTER  —  or click  —  to begin", {
+      .text(cx, 498, "πάτα  ENTER  —  ή κλικ  —  για να μπεις στο αμάξι", {
         fontFamily: SPECTRAL,
-        fontSize: "24px",
+        fontSize: "23px",
         color: hex(PAL.ink),
         fontStyle: "500",
       })
       .setOrigin(0.5)
-      .setLetterSpacing(3)
+      .setLetterSpacing(2)
       .setAlpha(0);
 
     const controls = this.add
-      .text(cx, 548, "WASD / ↑ ↓ ← →  move        SPACE  strike        SHIFT  roll        E  talk", {
+      .text(cx, 558, "WASD / ↑ ↓ ← →  κίνηση        SPACE  κόρνα        SHIFT  φτέρνισμα        E  κουβέντα", {
         fontFamily: SPECTRAL,
-        fontSize: "16px",
+        fontSize: "15px",
         color: hex(PAL.inkFaint),
         fontStyle: "400",
       })
       .setOrigin(0.5)
-      .setLetterSpacing(1.5)
+      .setLetterSpacing(1.4)
       .setAlpha(0);
 
     this.add
-      .text(VIEW_W - 16, VIEW_H - 14, "Phaser 3  ·  every pixel drawn in code", {
+      .text(VIEW_W - 16, VIEW_H - 14, "Phaser 3  ·  κάθε pixel ζωγραφισμένο σε κώδικα", {
         fontFamily: SPECTRAL,
         fontSize: "13px",
         color: "#4f4a3b",
@@ -178,32 +193,35 @@ export class TitleScene extends Phaser.Scene {
 
     // ---- entrance choreography ----------------------------------------
     this.cameras.main.fadeIn(900, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
-    this.tweens.add({ targets: [title, titleWarm], alpha: 1, y: 252, duration: 850, delay: 350, ease: "Cubic.easeOut" });
+    this.tweens.add({ targets: [titleTop, titleWarm1], alpha: 1, y: 210, duration: 850, delay: 350, ease: "Cubic.easeOut" });
+    this.tweens.add({ targets: [titleBot, titleWarm2], alpha: 1, y: 290, duration: 850, delay: 500, ease: "Cubic.easeOut" });
     this.tweens.add({ targets: titleGlow, alpha: 0.42, duration: 1200, delay: 500, ease: "Sine.easeOut" });
-    this.tweens.add({ targets: titleGlow, alpha: { from: 0.32, to: 0.5 }, scaleX: { from: 3.4, to: 3.9 }, yoyo: true, repeat: -1, duration: 2600, delay: 1700, ease: "Sine.easeInOut" });
-    this.tweens.add({ targets: rule, scaleX: { from: 0, to: 1 }, alpha: 1, duration: 600, delay: 950, ease: "Cubic.easeOut" });
-    this.tweens.add({ targets: subtitle, alpha: 1, y: { from: 348, to: 356 }, duration: 600, delay: 1250, ease: "Cubic.easeOut" });
+    this.tweens.add({ targets: titleGlow, alpha: { from: 0.32, to: 0.5 }, scaleX: { from: 4.2, to: 4.9 }, yoyo: true, repeat: -1, duration: 2600, delay: 1700, ease: "Sine.easeInOut" });
+    this.tweens.add({ targets: rule, scaleX: { from: 0, to: 1 }, alpha: 1, duration: 600, delay: 1050, ease: "Cubic.easeOut" });
+    this.tweens.add({ targets: subtitle, alpha: 1, y: { from: 380, to: 388 }, duration: 600, delay: 1300, ease: "Cubic.easeOut" });
     this.tweens.add({
       targets: prompt,
       alpha: 1,
       duration: 500,
-      delay: 1650,
+      delay: 1700,
       onComplete: () => this.tweens.add({ targets: prompt, alpha: 0.42, yoyo: true, repeat: -1, duration: 1100, ease: "Sine.easeInOut" }),
     });
-    this.tweens.add({ targets: [controls], alpha: 1, duration: 600, delay: 1850 });
+    this.tweens.add({ targets: [controls], alpha: 1, duration: 600, delay: 1900 });
 
-    // gentle idle float on the title
-    this.tweens.add({ targets: [title, titleWarm], y: "+=5", yoyo: true, repeat: -1, duration: 3600, delay: 1300, ease: "Sine.easeInOut" });
+    // gentle idle float on the title (both lines)
+    this.tweens.add({ targets: titleGroup, y: "+=5", yoyo: true, repeat: -1, duration: 3600, delay: 1400, ease: "Sine.easeInOut" });
 
     // ---- begin ---------------------------------------------------------
+    void title;
+    void titleWarm;
     const begin = () => {
       if (this.started) return;
       this.started = true;
       SFX.unlock();
       BGM.start();
       SFX.select();
-      this.tweens.add({ targets: [title, titleWarm], scale: "+=0.06", duration: 500, ease: "Back.easeIn" });
-      this.tweens.add({ targets: titleGlow, alpha: 0.8, scaleX: 5, duration: 500 });
+      this.tweens.add({ targets: titleGroup, scale: "+=0.06", duration: 500, ease: "Back.easeIn" });
+      this.tweens.add({ targets: titleGlow, alpha: 0.8, scaleX: 6, duration: 500 });
       this.tweens.add({ targets: prompt, alpha: 0, duration: 200 });
       this.cameras.main.fadeOut(620, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
       this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start("Game"));

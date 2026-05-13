@@ -337,12 +337,12 @@ const LIGHTS: LightDef[] = [
 ];
 
 // checked in order; first rect that contains the player wins — so the most
-// specific regions (shrine, gate) must come before the broad ones.
+// specific regions (the shrine, the gate) must come before the broad ones.
 const AREAS: AreaDef[] = [
-  { name: "The Sunken Shrine", rect: new Phaser.Geom.Rectangle(T(46), T(16), T(10), T(13)), darkness: 0.74, gloomwood: true },
-  { name: "The Wood Gate", rect: new Phaser.Geom.Rectangle(T(28), T(14), T(6), T(12)), darkness: 0.62 },
-  { name: "Lumin Village", rect: new Phaser.Geom.Rectangle(0, 0, T(28), WORLD_H), darkness: 0.5 },
-  { name: "The Gloomwood", rect: new Phaser.Geom.Rectangle(T(28), 0, T(28), WORLD_H), darkness: 0.8, gloomwood: true },
+  { name: "Ύψος Μεταμόρφωσης", rect: new Phaser.Geom.Rectangle(T(46), T(16), T(10), T(13)), darkness: 0.74, gloomwood: true },
+  { name: "Τα Διόδια", rect: new Phaser.Geom.Rectangle(T(28), T(14), T(6), T(12)), darkness: 0.62 },
+  { name: "Η Γειτονιά", rect: new Phaser.Geom.Rectangle(0, 0, T(28), WORLD_H), darkness: 0.5 },
+  { name: "Λεωφ. Κηφισού", rect: new Phaser.Geom.Rectangle(T(28), 0, T(28), WORLD_H), darkness: 0.8, gloomwood: true },
 ];
 
 const GLOOM: GloomSpawn[] = [
@@ -383,40 +383,40 @@ const P = (name: string, portrait: string, text: string, tint?: number, effect?:
 });
 
 const NPCS: NpcSpawn[] = [
-  // ---- Elder Maro — the quest line --------------------------------------
+  // ---- Παππού Γιάννης — το κιόσκι, η αρχή και το τέλος της γειτονιάς ----
   {
     id: "maro",
     key: "npc_elder",
     altKey: "npc_elder_b",
-    name: "Elder Maro",
+    name: "Παππού Γιάννης",
     x: tcx(21),
     y: tcy(20.5),
     roam: 0,
     dialog: (c) => {
       if (c.wardenDown)
         return [
-          P("Elder Maro", "npc_elder", "The ruin sleeps. The deep dark in the wood — broken, and you the one who broke it.", undefined, (cc) => {
+          P("Παππού Γιάννης", "npc_elder", "Α ρε παιδί μου. Τον σπάσαμε τον ΧΟΥΛΙΓΚΑΝ. Δεν τον σκότωσες — η κίνηση δε σκοτώνεται. Αλλά τον τσάκισες ψυχικά. Μπράβο.", undefined, (cc) => {
             if (!cc.flags.wardenReward) {
               cc.flags.wardenReward = true;
               cc.giveGold(60);
-              cc.toast("+60  ⟡", PAL.gold);
+              cc.toast("+60 €", PAL.gold);
             }
           }),
-          P("Elder Maro", "npc_elder", "Lumin will sing your name to the lamps for a long while, lantern-bearer. Rest. You have more than earned it.", PAL.emberHot),
+          P("Παππού Γιάννης", "npc_elder", "Πάρε 60 € να βάλεις τσιγάρα. Όχι από εμένα — από το ταμείο της γειτονιάς. Τα 'μάζευα 30 χρόνια για κάποιον σαν εσένα.", PAL.emberHot),
         ];
       if (c.questState >= 2)
         return [
-          P("Elder Maro", "npc_elder", "The lamps burn steadier already. The village owes you a kindness, traveller."),
-          P("Elder Maro", "npc_elder", "Yet... something older has woken in the Sunken Shrine, far to the east. A Gloom that does not wander. Step softly there — or do not step there at all."),
+          P("Παππού Γιάννης", "npc_elder", "Σιγά σιγά αραιώνει η μαλακία στον Κηφισό. Καλά παιδί κάνεις."),
+          P("Παππού Γιάννης", "npc_elder", "Άκου με όμως — υπάρχει ένας πιο μέσα. Στο ύψος Μεταμόρφωσης. Δεν περνάει — στέκεται. Όλοι τον γνωρίζουμε. Τον λένε ΧΟΥΛΙΓΚΑΝ. Αν τον φτάσεις, μην τον κοιτάξεις στα μάτια. Πάτα κόρνα και τράβα μπροστά."),
         ];
       if (c.questState === 1) {
         if (c.gloomKilled >= 5)
           return [
-            P("Elder Maro", "npc_elder", `Five Gloom unmade. I felt each one go out, like a held breath let loose. You have my thanks — and the village's.`),
+            P("Παππού Γιάννης", "npc_elder", "Πέντε κορνάρες σε πέντε μαλάκες. Καλά παιδί κάνεις. Έγινε καλύτερη η γειτονιά μ' αυτό; Όχι. Αλλά κοιμηθήκαμε καλύτερα."),
             P(
-              "Elder Maro",
+              "Παππού Γιάννης",
               "npc_elder",
-              "Take this: an old heart-charm of Lumin. It will let you bear more hurt before the dark takes you. Carry it well.",
+              "Πάρε αυτό — ένα κανατάκι ελληνικό από το ψυγείο. Δουλεύει σαν να πίνεις ζωή. Θα αντέχεις ένα παραπάνω χτύπημα πριν σε πάρει η μπάλα.",
               PAL.heartHi,
               (cc) => {
                 if (!cc.flags.questReward) {
@@ -424,96 +424,99 @@ const NPCS: NpcSpawn[] = [
                   cc.questState = 2;
                   cc.giveHeartContainer();
                   cc.giveGold(25);
-                  cc.toast("Heart Charm!  +25 ⟡", PAL.heartHi);
+                  cc.toast("+1 καφές max  ·  +25 €", PAL.heartHi);
                 }
               },
             ),
           ];
         return [
-          P("Elder Maro", "npc_elder", `The Gloomwood lies east, past the gate where the lamps grow thin. ${5 - c.gloomKilled} of five still drift there. Keep your lantern lit; the dark hates the light.`),
+          P("Παππού Γιάννης", "npc_elder", `Πέρνα τα διόδια και στρίψε ανατολικά — εκεί στη Λεωφόρο. ${5 - c.gloomKilled} ${5 - c.gloomKilled === 1 ? "ακόμα μαλάκας" : "ακόμα μαλάκες"} και ξανάρχεσαι. Κράτα τον καφέ ζεστό.`),
         ];
       }
       // first meeting
       return [
-        P("Elder Maro", "npc_elder", "Ah — a face the road brought us. You wear a lantern. Good. We have need of those who can carry a flame into the wood."),
-        P("Elder Maro", "npc_elder", "The Gloomwood east of here festers. Wisps of it — Gloom, we call them — drift toward the village by night. They are not cruel. They are simply... hungry for warmth."),
+        P("Παππού Γιάννης", "npc_elder", "Ε νεαρέ. Σε ξέρω εσένα; Όχι. Καλώς. Πιο εύκολα μιλάει κανείς σε άγνωστους — έχουν λιγότερα απωθημένα μαζί σου."),
+        P("Παππού Γιάννης", "npc_elder", "Άκου τι γίνεται. Από τα διόδια και κάτω, η Λεωφόρος Κηφισού είναι μια ανοιχτή πληγή. Οδηγάνε ναι μεν αλλά δεν είναι άνθρωποι — είναι κάποιο άλλο πράμα. Κορνάρουν στους πεζούς, στα φανάρια, στον Θεό."),
         P(
-          "Elder Maro",
+          "Παππού Γιάννης",
           "npc_elder",
-          "Thin them for us. Unmake five Gloom in the wood and return. Do that, and Lumin will not forget you. — Will you?",
+          "Πάτα κόρνα σε πέντε από αυτούς. Με νόημα — όχι από νεύρα. Δείξτους ότι κάποιος προσέχει. Θα κάνεις χάρη στη γειτονιά. Θα κάνεις χάρη και σ' εμένα. Πάμε;",
           PAL.emberSoft,
           (cc) => {
             if (cc.questState < 1) cc.questState = 1;
           },
         ),
-        P("Elder Maro", "npc_elder", "Then go with light. Press ↑ / W to walk, hold to run if you must. Strike with SPACE or click. Roll out of harm's way with SHIFT. The wood is patient — be patient back.", PAL.ink),
+        P("Παππού Γιάννης", "npc_elder", "Έλα. WASD ή βελάκια να περπατάς. SPACE ή κλικ να πατάς κόρνα. SHIFT αν θες να το ρίξεις σε φτέρνισμα και να ξεφύγεις. E για να μου ξαναμιλήσεις. Καλή διαδρομή.", PAL.ink),
       ];
     },
   },
 
-  // ---- Smith Garrick — the whetstone (attack upgrade) -------------------
+  // ---- Στέλιος ο μηχανικός — μαστόρης, σου δίνει πιο δυνατή κόρνα ------
   {
     id: "garrick",
     key: "npc_smith",
     altKey: "npc_smith_b",
-    name: "Garrick",
+    name: "Στέλιος",
     x: tcx(15),
     y: tcy(29.5),
     roam: 24,
     dialog: (c) => {
       if (!c.attackBonus && c.gloomKilled >= 3) {
         return [
-          P("Garrick", "npc_smith", "Hold up. You've the gait of someone who's been swinging steel at things that don't bleed right. The Gloom, aye?"),
+          P("Στέλιος ο μηχανικός", "npc_smith", "Έλα δώσε μου το κλειδί. Όχι, το άλλο. Το δεκατριάρι. Ναι. Εσένα σε είδα από μακριά — έχεις περπατησιά ανθρώπου που έχει πατήσει κόρνα σήμερα."),
           P(
-            "Garrick",
+            "Στέλιος ο μηχανικός",
             "npc_smith",
-            "Here — a whetstone off my own bench. Drag your edge across it. Your strikes'll bite a good deal deeper now. Go on, don't thank me, just don't die.",
+            "Πάρε αυτή την κόρνα κορέας που μου περίσσεψε. 130 ντεσιμπέλ καθαρό σήμα. Θα τους κάνει να ονειρευτούν τη μάνα τους. Όχι ευχαριστώ — απλά μην ξανάρθεις χτυπημένος.",
             PAL.ember,
             (cc) => {
               if (!cc.attackBonus) {
                 cc.attackBonus = true;
-                cc.toast("Edge sharpened!", PAL.emberHot);
+                cc.toast("κόρνα Κορέας  ·  διπλή ζημιά", PAL.emberHot);
               }
             },
           ),
         ];
       }
-      if (c.attackBonus) return [P("Garrick", "npc_smith", "That edge holding up? Good. A sharp blade's a kind of lantern too — keeps the dark at arm's length.")];
+      if (c.attackBonus)
+        return [
+          P("Στέλιος ο μηχανικός", "npc_smith", "Πώς πάει η κόρνα; Καλά; Σου το 'πα. Είναι σαν λάμπα — όσο πιο δυνατή, τόσο πιο μακρυά κρατάς το σκοτάδι."),
+        ];
       return [
-        P("Garrick", "npc_smith", "Lost my best blade in the wood last frost. Walked in to fetch firewood, walked out with one boot and a story nobody believes."),
-        P("Garrick", "npc_smith", "Clear a few of those Gloom and come find me. A smith remembers who keeps the road open."),
+        P("Στέλιος ο μηχανικός", "npc_smith", "Ξέρεις τι έχω βαρεθεί; Να βλέπω αυτοκίνητα που μπαίνουν στο συνεργείο και βγαίνουν χωρίς τα ίδια εξαρτήματα. Δεν με νοιάζει ποιανού φταίει. Με νοιάζει που πληρώνω εγώ."),
+        P("Στέλιος ο μηχανικός", "npc_smith", "Καθάρισε δυο-τρεις από αυτούς εκεί στη Λεωφόρο και ξανάρχεσαι. Έχω κάτι για 'σένα. Όχι τώρα — μετά."),
       ];
     },
   },
 
-  // ---- Merchant Bree — flavour + a hint --------------------------------
+  // ---- Κυρά Σούλα στο μανάβικο — flavour + hint -------------------------
   {
     id: "bree",
     key: "npc_merchant",
     altKey: "npc_merchant_b",
-    name: "Bree",
+    name: "Κυρά Σούλα",
     x: tcx(11),
     y: tcy(18.5),
     roam: 20,
     dialog: (c) => {
       if (c.gold >= 40 && !c.flags.breeRich)
         return [
-          P("Bree", "npc_merchant", "Coin! Real coin, jingling about on a person again! You've no idea how that sound mends a merchant's heart.", PAL.gold, (cc) => (cc.flags.breeRich = true)),
-          P("Bree", "npc_merchant", "Stall's bare till the roads are safe, love. But you keep clearing that wood and I'll have wares worth your gold soon enough. Spend it on staying alive in the meantime."),
+          P("Κυρά Σούλα", "npc_merchant", "Α καλέ μου, λεφτά έχουμε! Με τη δολοφονία; Καλά κάνεις, μην ντρέπεσαι. Καλύτερα να βγάλεις λίγα παρά να σου τα φάει η ντίζελ.", PAL.gold, (cc) => (cc.flags.breeRich = true)),
+          P("Κυρά Σούλα", "npc_merchant", "Μάγκα — οι τομάτες σήμερα 3.40 το κιλό. Πέρσι 1.10. Δε σου λέει κάτι αυτό; Κάποιος μας δουλεύει σαν τύπος. Πάντως καλά κάνεις και κορνάρεις. Κόρνα είναι κι αυτό."),
         ];
       return [
-        P("Bree", "npc_merchant", "Shop's shut — what's the point of stock if every cart that brings it gets swallowed by the Gloomwood?"),
-        P("Bree", "npc_merchant", "They say the deep wood pools their gold somewhere. Cut one down, see what it's been hoarding. Coin spends the same whoever drops it."),
+        P("Κυρά Σούλα", "npc_merchant", "Καλά παιδί μου; Πέρασες απ' τη Λεωφόρο πάλι; Πώς τα κατάφερες; Όχι, δε με νοιάζει, ψέματα ρωτάω — απλά χαίρομαι που σε βλέπω."),
+        P("Κυρά Σούλα", "npc_merchant", "Άκου να σου πω. Αυτοί που σε ζαλίζουν εκεί κάτω — έχουν κέρματα στο πορτμπαγκάζ. Δε ρωτάω γιατί. Αν κάποιος σπάσει, βάλε το χέρι σου να μαζέψεις."),
       ];
     },
   },
 
-  // ---- Pip the child — pure charm + the potion hint --------------------
+  // ---- Νικολάκης ο 10χρονος — όλο charm, ξέρει και shortcut -------------
   {
     id: "pip",
     key: "npc_child",
     altKey: "npc_child_b",
-    name: "Pip",
+    name: "Νικολάκης",
     x: tcx(20),
     y: tcy(24.6),
     roam: 56,
@@ -522,13 +525,13 @@ const NPCS: NpcSpawn[] = [
       c.flags.metPip = true;
       if (!seen)
         return [
-          P("Pip", "npc_child", "You're the lantern person! Mama said don't bother you but you LOOK like you don't mind."),
-          P("Pip", "npc_child", "The floaty purple things — are they GHOSTS? They're kind of pretty. Don't tell Mama I said that."),
-          P("Pip", "npc_child", "Oh! Past the gate, behind the big rock with the moss — there's a SHINY BOTTLE. I'm not allowed past the gate. You should get it. For science."),
+          P("Νικολάκης", "npc_child", "Είσαι αυτός με τον καφέ! Η μαμά μου είπε ΜΗ μιλάς σε αγνώστους αλλά εσύ δείχνεις ότι κρατάς γαλλικό. Φιλικός."),
+          P("Νικολάκης", "npc_child", "Αυτοί οι κύριοι που οδηγάνε στη Λεωφόρο — είναι ΖΟΜΠΙ; Έχουν κάτι ΚΟΚΚΙΝΑ ΜΑΤΙΑ. Μην το πεις στη μαμά."),
+          P("Νικολάκης", "npc_child", "Α! Πέρα απ' τα διόδια, ΠΙΣΩ ΑΠΟ ΤΟΝ ΤΣΙΜΕΝΤΕΝΙΟ ΦΡΑΧΤΗ — έχει ένα ΓΥΑΛΙΝΟ ΜΠΟΥΚΑΛΑΚΙ. Πορτοκαλάδα νομίζω. Δε με αφήνουν να πάω. Πας εσύ; Για την επιστήμη."),
         ];
-      if (c.wardenDown) return [P("Pip", "npc_child", "You went to the SCARY RUIN and came BACK?! Okay you're officially the bravest. I'm telling everyone. EVERYONE.")];
-      if (c.questState >= 2) return [P("Pip", "npc_child", "The lamps are brighter tonight! I counted. There's like... a hundred more bright. You did that, right? RIGHT?")];
-      return [P("Pip", "npc_child", "Did you get the shiny bottle yet? Behind the mossy rock past the gate. I keep thinking about it.")];
+      if (c.wardenDown) return [P("Νικολάκης", "npc_child", "ΠΗΓΕΣ ΣΤΟ ΥΨΟΣ ΜΕΤΑΜΟΡΦΩΣΗΣ ΚΑΙ ΓΥΡΙΣΕΣ; ΕΙΣΑΙ ΤΕΡΑΣ. Θα το πω σε όλους. ΣΕ ΟΛΟΥΣ.")];
+      if (c.questState >= 2) return [P("Νικολάκης", "npc_child", "Έχει λιγότερη μαλακία σήμερα στον Κηφισό. Το μέτρησα. Από μυρίστηκα 4. Χτες ήταν 11.")];
+      return [P("Νικολάκης", "npc_child", "Πήρες το μπουκαλάκι; Πορτοκαλάδα, πέρα απ' τα διόδια, πίσω από τσιμεντένιο φράχτη. Έχω σκεφτεί μόνο αυτό όλη μέρα.")];
     },
   },
 ];

@@ -145,8 +145,14 @@ class Synth {
     this.noise({ t: 0.08, gain: 0.12, type: "lowpass", freq: 520, sweepTo: 180, q: 1 });
   }
   swing() {
-    this.noise({ t: 0.18, gain: 0.18, type: "bandpass", freq: 2600, sweepTo: 600, q: 0.7 });
-    this.voice({ wave: "triangle", f0: 540, f1: 230, t: 0.16, gain: 0.08 });
+    this.horn();
+  }
+  /** Car horn — two-pitch square chord + noise blare. */
+  horn() {
+    this.voice({ wave: "square", f0: 420, t: 0.26, gain: 0.18 });
+    this.voice({ wave: "square", f0: 520, t: 0.26, gain: 0.14, detune: 6 });
+    this.voice({ wave: "sawtooth", f0: 210, t: 0.24, gain: 0.07 });
+    this.noise({ t: 0.22, gain: 0.04, type: "bandpass", freq: 1400, q: 1 });
   }
   hit() {
     this.noise({ t: 0.12, gain: 0.3, type: "lowpass", freq: 1400, sweepTo: 220, q: 1 });

@@ -7,7 +7,7 @@
  * easy to tune.
  */
 import Phaser from "phaser";
-import { PAL, mix, shade } from "./palette";
+import { PAL, shade } from "./palette";
 
 export const TILE = 48;
 
@@ -175,103 +175,138 @@ function buildGround(scene: Phaser.Scene) {
 /* ----------------------------------------------------------------------- *
  * PROPS  (trees / rocks / fences / structures / small dressing)           *
  * ----------------------------------------------------------------------- */
-function leafyCanopy(g: GFX, cx: number, cy: number, rad: number, baseSeed: number) {
-  const r = mulberry32(baseSeed);
-  // shadow blob is drawn by the prop itself; here just the leaves
-  const blobs: [number, number, number][] = [];
-  blobs.push([cx, cy, rad]);
-  for (let i = 0; i < 9; i++) {
-    const a = r() * Math.PI * 2;
-    const d = rad * (0.45 + r() * 0.55);
-    blobs.push([cx + Math.cos(a) * d, cy + Math.sin(a) * d * 0.8, rad * (0.4 + r() * 0.35)]);
+/**
+ * Athens shop awning — a striped fabric panel that hangs over the sidewalk.
+ * Repurposes the old "tree canopy" slot, so the y-sort effect ("things drawn
+ * above actors when they walk under") now reads as "walking beneath an awning".
+ */
+function shopAwning(g: GFX, cx: number, cy: number, halfW: number, halfH: number, seed: number) {
+  const r = mulberry32(seed);
+  // hanging bar / pole that the awning attaches to
+  g.fillStyle(PAL.woodDark, 1);
+  g.fillRect(cx - halfW - 4, cy + halfH - 4, halfW * 2 + 8, 3);
+  // fabric back (drop shadow)
+  g.fillStyle(PAL.shadow, 0.3);
+  g.fillRoundedRect(cx - halfW + 4, cy - halfH + 8, halfW * 2, halfH * 2, 6);
+  // fabric body
+  const stripeA = r() > 0.5 ? PAL.roof : PAL.thatch; // red or ochre
+  const stripeB = PAL.ink;
+  g.fillStyle(stripeA, 1);
+  g.fillRoundedRect(cx - halfW, cy - halfH, halfW * 2, halfH * 2, 6);
+  // vertical stripes
+  const stripeW = 14;
+  for (let x = -halfW; x < halfW; x += stripeW * 2) {
+    g.fillStyle(stripeB, 0.92);
+    g.fillRect(cx + x + stripeW, cy - halfH + 2, stripeW, halfH * 2 - 4);
   }
-  // dark underlayer
-  g.fillStyle(PAL.grassDeep, 1);
-  for (const [x, y, rr] of blobs) g.fillCircle(x, y + 3, rr);
-  // mid
-  g.fillStyle(mix(PAL.grassMid, PAL.grassHi, 0.3), 1);
-  for (const [x, y, rr] of blobs) g.fillCircle(x, y, rr * 0.92);
-  // top-left light
-  g.fillStyle(PAL.grassHi, 1);
-  for (const [x, y, rr] of blobs) g.fillCircle(x - rr * 0.28, y - rr * 0.3, rr * 0.55);
-  // speckle highlights
-  g.fillStyle(shade(PAL.grassHi, 0.2), 0.8);
-  for (let i = 0; i < 28; i++) {
-    const a = r() * Math.PI * 2;
-    const d = r() * rad * 1.3;
-    g.fillRect(cx + Math.cos(a) * d - rad * 0.3, cy + Math.sin(a) * d * 0.85 - rad * 0.35, 2, 2);
+  // scalloped lower edge
+  g.fillStyle(stripeA, 1);
+  for (let i = 0; i < halfW * 2 / 12; i++) {
+    g.fillTriangle(cx - halfW + i * 12, cy + halfH - 1, cx - halfW + i * 12 + 12, cy + halfH - 1, cx - halfW + i * 12 + 6, cy + halfH + 6);
   }
+  // a faded shop name — three blocky "letters" we don't care about
+  g.fillStyle(PAL.panel, 0.55);
+  for (let i = 0; i < 3; i++) g.fillRect(cx - 18 + i * 12, cy - 4, 8, 8);
+  // top highlight
+  g.fillStyle(PAL.ink, 0.18);
+  g.fillRect(cx - halfW + 2, cy - halfH + 2, halfW * 2 - 4, 3);
 }
 
 function buildProps(scene: Phaser.Scene) {
-  // ---- broadleaf tree: trunk + (separate) canopy so player can walk behind it
+  // ---- STREET LAMP POST (was: broadleaf tree). Pole + arm + lamp head.
+  // The y-sort companion ("canopy") is now a shop awning hung high.
   tex(scene, "tree_trunk", 40, 56, (g) => {
-    // ground shadow
     g.fillStyle(PAL.shadow, 0.28);
-    g.fillEllipse(20, 50, 34, 12);
-    // trunk
+    g.fillEllipse(20, 52, 22, 8);
+    // base plate
     g.fillStyle(PAL.woodDark, 1);
-    g.fillRect(13, 16, 14, 36);
+    g.fillRect(15, 47, 10, 6);
+    // pole
     g.fillStyle(PAL.woodMid, 1);
-    g.fillRect(14, 16, 9, 36);
+    g.fillRect(18, 6, 4, 44);
     g.fillStyle(PAL.woodHi, 0.6);
-    g.fillRect(15, 18, 3, 30);
-    // root flare
+    g.fillRect(19, 8, 1, 40);
+    // curved arm holding the lamp head (top-right)
+    g.fillStyle(PAL.woodMid, 1);
+    g.fillRect(22, 6, 8, 3);
+    g.fillTriangle(22, 6, 30, 6, 26, 2);
+    // lamp head (warm box)
     g.fillStyle(PAL.woodDark, 1);
-    g.fillTriangle(8, 52, 13, 38, 13, 52);
-    g.fillTriangle(32, 52, 27, 38, 27, 52);
-    // bark ticks
-    g.lineStyle(1, shade(PAL.woodDark, -0.2), 0.7);
-    g.lineBetween(17, 22, 19, 26);
-    g.lineBetween(20, 30, 22, 35);
+    g.fillRect(26, 1, 12, 9);
+    g.fillStyle(PAL.emberSoft, 1);
+    g.fillRect(27, 2, 10, 7);
+    g.fillStyle(PAL.emberHot, 1);
+    g.fillEllipse(32, 5, 8, 5);
+    // hanger bolts
+    g.fillStyle(PAL.woodDark, 1);
+    g.fillRect(20, 20, 4, 2);
+    g.fillRect(20, 34, 4, 2);
   });
-  tex(scene, "tree_canopy", 112, 96, (g) => leafyCanopy(g, 56, 50, 30, 4242));
-  tex(scene, "tree_canopy_b", 120, 100, (g) => leafyCanopy(g, 60, 52, 33, 9931));
+  // The "canopy" slot becomes an Athens shop awning hung at sign-height.
+  tex(scene, "tree_canopy", 112, 60, (g) => shopAwning(g, 56, 30, 44, 18, 4242));
+  tex(scene, "tree_canopy_b", 120, 64, (g) => shopAwning(g, 60, 32, 50, 20, 9931));
 
-  // ---- pine: a single texture (tall, you stand "below" it, blocks at base)
+  // ---- TRAFFIC LIGHT POLE (was: pine). Tall pole + three-light housing.
   tex(scene, "pine", 56, 88, (g) => {
     g.fillStyle(PAL.shadow, 0.26);
-    g.fillEllipse(28, 82, 30, 11);
+    g.fillEllipse(28, 84, 26, 9);
+    // base plate
     g.fillStyle(PAL.woodDark, 1);
-    g.fillRect(24, 64, 8, 20);
-    const tiers: [number, number][] = [
-      [78, 16],
-      [62, 22],
-      [44, 27],
-      [26, 24],
-    ];
-    for (let i = 0; i < tiers.length; i++) {
-      const [yBase, half] = tiers[i];
-      g.fillStyle(i % 2 ? PAL.grassDeep : mix(PAL.grassDeep, PAL.grassMid, 0.5), 1);
-      g.fillTriangle(28 - half, yBase, 28 + half, yBase, 28, yBase - 26 - (i === tiers.length - 1 ? 4 : 0));
-      g.fillStyle(PAL.grassMid, 0.9);
-      g.fillTriangle(28 - half * 0.8, yBase - 2, 28 + half * 0.2, yBase - 2, 28, yBase - 22);
-      g.fillStyle(PAL.grassHi, 0.5);
-      g.fillTriangle(28 - half * 0.6, yBase - 4, 28 - half * 0.1, yBase - 4, 28 - half * 0.18, yBase - 18);
-    }
+    g.fillRect(22, 78, 12, 6);
+    // pole
+    g.fillStyle(PAL.woodMid, 1);
+    g.fillRect(26, 18, 4, 62);
+    g.fillStyle(PAL.woodHi, 0.5);
+    g.fillRect(27, 22, 1, 56);
+    // horizontal arm
+    g.fillStyle(PAL.woodMid, 1);
+    g.fillRect(28, 22, 14, 3);
+    // light housing (boxy, 3 lights stacked)
+    g.fillStyle(PAL.woodDark, 1);
+    g.fillRect(20, 2, 16, 26);
+    g.fillStyle(PAL.woodMid, 1);
+    g.fillRect(21, 3, 14, 24);
+    // RED (top) — currently lit
+    g.fillStyle(PAL.gloomGlow, 1);
+    g.fillCircle(28, 8, 4);
+    g.fillStyle(PAL.gloomEye, 0.7);
+    g.fillCircle(27, 7, 2);
+    // amber (middle), green (bottom) — dark
+    g.fillStyle(shade(PAL.ember, -0.55), 1);
+    g.fillCircle(28, 15, 4);
+    g.fillStyle(shade(0x3aaa66, -0.55), 1);
+    g.fillCircle(28, 22, 4);
+    // visor over the red
+    g.fillStyle(PAL.shadow, 0.4);
+    g.fillTriangle(22, 8, 34, 8, 28, 4);
   });
 
-  // ---- bush
+  // ---- TRASH BAG PILE (was: bush). Dark blobs with the occasional taillight glint.
   tex(scene, "bush", 56, 40, (g) => {
-    g.fillStyle(PAL.shadow, 0.22);
-    g.fillEllipse(28, 34, 40, 10);
-    g.fillStyle(PAL.grassDeep, 1);
-    g.fillCircle(16, 24, 12);
-    g.fillCircle(40, 24, 13);
-    g.fillCircle(28, 18, 14);
-    g.fillStyle(PAL.grassMid, 1);
-    g.fillCircle(16, 22, 9);
-    g.fillCircle(40, 22, 10);
-    g.fillCircle(28, 16, 11);
-    g.fillStyle(PAL.grassHi, 0.8);
-    g.fillCircle(13, 19, 4);
-    g.fillCircle(36, 19, 4);
-    g.fillCircle(25, 12, 4);
-    // little berries sometimes
-    g.fillStyle(PAL.heart, 0.9);
-    g.fillCircle(20, 26, 1.6);
-    g.fillCircle(34, 22, 1.6);
-    g.fillCircle(29, 28, 1.6);
+    g.fillStyle(PAL.shadow, 0.26);
+    g.fillEllipse(28, 34, 42, 10);
+    // bag bodies — squat dark sacks
+    g.fillStyle(PAL.cloakDark, 1);
+    g.fillEllipse(16, 28, 22, 18);
+    g.fillEllipse(40, 28, 24, 20);
+    g.fillEllipse(28, 22, 26, 22);
+    g.fillStyle(PAL.cloak, 1);
+    g.fillEllipse(16, 26, 18, 14);
+    g.fillEllipse(40, 26, 20, 16);
+    g.fillEllipse(28, 20, 22, 18);
+    // bag knot highlights at the top
+    g.fillStyle(PAL.cloakHi, 0.85);
+    g.fillTriangle(13, 15, 19, 15, 16, 9);
+    g.fillTriangle(37, 14, 43, 14, 40, 8);
+    g.fillTriangle(25, 10, 31, 10, 28, 4);
+    // a beer bottle neck poking out
+    g.fillStyle(0x2a4a2a, 1);
+    g.fillRect(35, 14, 2, 6);
+    g.fillStyle(shade(0x2a4a2a, 0.3), 1);
+    g.fillRect(35, 14, 1, 6);
+    // a stray red plastic — a brake-light glint
+    g.fillStyle(PAL.gloomGlow, 0.7);
+    g.fillRect(20, 24, 2, 2);
   });
 
   // ---- rocks
@@ -396,28 +431,33 @@ function buildProps(scene: Phaser.Scene) {
     g.fillTriangle(13, 12, 40, 12, 38, 0);
   });
 
-  // ---- campfire: 3 flicker frames (the glow itself is an additive child)
+  // ---- BARREL FIRE: 3 flicker frames. The "logs" are now a perforated metal
+  // drum (the kind the Athens guys gather around in winter).
   for (let f = 0; f < 3; f++) {
     tex(scene, `fire${f}`, 40, 44, (g) => {
-      g.fillStyle(PAL.shadow, 0.26);
-      g.fillEllipse(20, 38, 30, 10);
-      // stones
-      g.fillStyle(PAL.stone, 1);
-      for (let i = 0; i < 6; i++) {
-        const a = (i / 6) * Math.PI * 2;
-        g.fillCircle(20 + Math.cos(a) * 13, 34 + Math.sin(a) * 5, 4);
-      }
-      g.fillStyle(PAL.stoneHi, 0.6);
-      for (let i = 0; i < 6; i++) {
-        const a = (i / 6) * Math.PI * 2;
-        g.fillCircle(20 + Math.cos(a) * 13 - 1, 34 + Math.sin(a) * 5 - 1, 1.6);
-      }
-      // logs
-      g.fillStyle(PAL.woodDark, 1);
-      g.fillRect(8, 30, 24, 5);
-      g.fillRect(10, 26, 20, 5);
-      g.fillStyle(PAL.woodHi, 0.4);
-      g.fillRect(9, 30, 22, 1);
+      g.fillStyle(PAL.shadow, 0.3);
+      g.fillEllipse(20, 40, 32, 8);
+      // drum body
+      g.fillStyle(shade(PAL.woodDark, -0.15), 1);
+      g.fillRect(8, 24, 24, 16);
+      g.fillStyle(PAL.woodMid, 1);
+      g.fillRect(9, 24, 22, 16);
+      g.fillStyle(PAL.woodHi, 0.45);
+      g.fillRect(9, 26, 22, 2);
+      // drum bands
+      g.fillStyle(shade(PAL.woodDark, -0.2), 1);
+      g.fillRect(8, 27, 24, 2);
+      g.fillRect(8, 35, 24, 2);
+      // perforations glowing from inside
+      g.fillStyle(PAL.emberHot, 1);
+      for (let i = 0; i < 5; i++) g.fillRect(11 + i * 4, 31, 2, 2);
+      g.fillStyle(PAL.emberSoft, 0.7);
+      for (let i = 0; i < 4; i++) g.fillRect(13 + i * 4, 33, 2, 1);
+      // rim at the top
+      g.fillStyle(PAL.void, 1);
+      g.fillRect(8, 22, 24, 3);
+      g.fillStyle(shade(PAL.woodMid, 0.2), 1);
+      g.fillRect(8, 22, 24, 1);
       // flame
       const wob = (f - 1) * 2;
       g.fillStyle(PAL.emberDeep, 1);
@@ -760,48 +800,52 @@ function buildActors(scene: Phaser.Scene) {
     drawFigure(g, W, H, { ...playerOpts, facing: "down", step: 0 }),
   );
 
-  // villagers
+  // villagers — recoloured for Athens dawn
   const villagers: Record<string, FigureOpts> = {
+    // Παππού Γιάννης — the kiosk owner. Working-class blue cardigan, flat cap.
     npc_elder: {
-      cloak: 0x2f5a3d,
-      cloakHi: 0x4f8a5d,
-      cloakDark: 0x1c3a26,
+      cloak: 0x2a3a55,
+      cloakHi: 0x4a648c,
+      cloakDark: 0x18233a,
       skin: PAL.skinDark,
       facing: "down",
       step: 0,
-      hat: "hood",
-      staff: true,
-      accent: PAL.potionHi,
+      hat: "hood", // reads as a flat cap with the new palette
+      staff: true, // a long umbrella propped on the kiosk
+      accent: 0x9c2a2a, // a red scarf clasp
     },
+    // Κυρά Σούλα — μανάβικο owner. Flowered apron, headscarf.
     npc_merchant: {
-      cloak: 0x2a3f6a,
-      cloakHi: 0x466bb0,
-      cloakDark: 0x18243f,
+      cloak: 0x7a2a2a,
+      cloakHi: 0xbf4a4a,
+      cloakDark: 0x4a1818,
       skin: PAL.skin,
       facing: "down",
       step: 0,
-      hat: "wide",
-      accent: PAL.gold,
+      hat: "wide", // the headscarf
+      accent: PAL.thatchHi,
     },
+    // Στέλιος ο μηχανικός — greasy mechanic in coveralls.
     npc_smith: {
-      cloak: 0x3a3340,
-      cloakHi: 0x5a5060,
-      cloakDark: 0x221f28,
+      cloak: 0x4a5660,
+      cloakHi: 0x6a7882,
+      cloakDark: 0x282d33,
       skin: PAL.skinDark,
       facing: "down",
       step: 0,
       hat: "none",
-      accent: PAL.ember,
+      accent: PAL.ember, // a hi-vis chest stripe
     },
+    // Νικολάκης — skiving-school kid in a loud sweatshirt.
     npc_child: {
-      cloak: 0x7a5a2a,
-      cloakHi: 0xb08840,
-      cloakDark: 0x4a3618,
+      cloak: 0xc2872a,
+      cloakHi: 0xf3b550,
+      cloakDark: 0x6b4818,
       skin: PAL.skin,
       facing: "down",
       step: 0,
       hat: "none",
-      accent: PAL.heartHi,
+      accent: PAL.gloomGlow, // a red backpack strap
     },
   };
   for (const [key, opt] of Object.entries(villagers)) {
@@ -902,20 +946,36 @@ function buildPickups(scene: Phaser.Scene) {
     });
   });
 
-  // heart pickup
-  tex(scene, "heart_pickup", 24, 24, (g) => {
-    g.fillStyle(PAL.shadow, 0.2);
-    g.fillEllipse(12, 22, 14, 4);
-    const drawHeart = (col: number, s: number, oy: number) => {
-      g.fillStyle(col, 1);
-      g.fillCircle(12 - 4 * s, 9 + oy, 4.4 * s);
-      g.fillCircle(12 + 4 * s, 9 + oy, 4.4 * s);
-      g.fillTriangle(12 - 7.6 * s, 10.5 + oy, 12 + 7.6 * s, 10.5 + oy, 12, 19 + oy);
-    };
-    drawHeart(PAL.heartDark, 1.08, 1);
-    drawHeart(PAL.heart, 1, 0);
-    g.fillStyle(PAL.heartHi, 0.9);
-    g.fillCircle(9, 7, 1.8);
+  // coffee cup pickup (was: heart). The classic Greek takeaway cup — white body,
+  // brown lid, red "ΚΑΦΕΣ" stripe, steam wisps above.
+  tex(scene, "heart_pickup", 24, 26, (g) => {
+    g.fillStyle(PAL.shadow, 0.22);
+    g.fillEllipse(12, 24, 14, 4);
+    // steam wisps
+    g.fillStyle(PAL.ink, 0.45);
+    g.fillEllipse(9, 4, 2, 5);
+    g.fillEllipse(12, 2, 2, 6);
+    g.fillEllipse(15, 4, 2, 5);
+    // cup body (tapered: narrower at the bottom)
+    g.fillStyle(PAL.heartDark, 1);
+    g.fillTriangle(5, 22, 19, 22, 8, 9);
+    g.fillTriangle(5, 22, 19, 22, 16, 9);
+    g.fillRect(7, 9, 10, 13);
+    g.fillStyle(PAL.ink, 1);
+    g.fillRect(7, 9, 10, 13);
+    g.fillTriangle(6, 22, 18, 22, 8, 9);
+    g.fillTriangle(6, 22, 18, 22, 16, 9);
+    // red brand stripe
+    g.fillStyle(PAL.gloomGlow, 1);
+    g.fillRect(6, 14, 12, 4);
+    g.fillStyle(PAL.ink, 0.9);
+    // little Greek-coffee text glyphs
+    for (let i = 0; i < 4; i++) g.fillRect(7 + i * 3, 15, 2, 2);
+    // brown lid + sip hole
+    g.fillStyle(PAL.heart, 1);
+    g.fillRoundedRect(5, 7, 14, 4, 2);
+    g.fillStyle(PAL.heartDark, 1);
+    g.fillRect(10, 6, 4, 3);
   });
 
   // potion pickup
@@ -1058,47 +1118,55 @@ function buildFx(scene: Phaser.Scene) {
  * UI CHROME (icons rendered as textures; panels are drawn live in UIScene) *
  * ----------------------------------------------------------------------- */
 function buildUi(scene: Phaser.Scene) {
-  const heartIcon = (g: GFX, full: boolean) => {
-    const s = 1;
-    const oy = 1;
+  // coffee-cup life icon. "Full" = steam + dark-coffee fill, "Empty" = greyed
+  // outline only, "Half" = half coffee fill.
+  const cupIcon = (g: GFX, fill: "full" | "half" | "empty") => {
     g.fillStyle(PAL.shadow, 0.3);
-    g.fillCircle(15, 24, 8);
-    const body = full ? PAL.hpFull : PAL.hpEmpty;
-    const rim = full ? PAL.hpRim : shade(PAL.hpEmpty, 0.18);
-    g.fillStyle(shade(body, -0.3), 1);
-    g.fillCircle(15 - 6 * s, 13 + oy, 7 * s);
-    g.fillCircle(15 + 6 * s, 13 + oy, 7 * s);
-    g.fillTriangle(15 - 11.5 * s, 15 + oy, 15 + 11.5 * s, 15 + oy, 15, 28 + oy);
-    g.fillStyle(body, 1);
-    g.fillCircle(15 - 5.4 * s, 12 + oy, 6.2 * s);
-    g.fillCircle(15 + 5.4 * s, 12 + oy, 6.2 * s);
-    g.fillTriangle(15 - 10.4 * s, 14 + oy, 15 + 10.4 * s, 14 + oy, 15, 26 + oy);
-    g.lineStyle(2, rim, 0.9);
-    g.strokeCircle(15 - 5.4 * s, 12 + oy, 6.2 * s);
-    g.strokeCircle(15 + 5.4 * s, 12 + oy, 6.2 * s);
-    if (full) {
-      g.fillStyle(PAL.heartHi, 0.95);
-      g.fillCircle(11, 9, 2.4);
-      g.fillStyle(0xffffff, 0.7);
-      g.fillCircle(10, 8, 1);
+    g.fillEllipse(15, 28, 16, 4);
+    if (fill === "full") {
+      g.fillStyle(PAL.ink, 0.55);
+      g.fillEllipse(10, 5, 2.4, 5);
+      g.fillEllipse(15, 3, 2.6, 6);
+      g.fillEllipse(20, 5, 2.4, 5);
+    }
+    // cup outline (always)
+    const cupCol = fill === "empty" ? PAL.hpEmpty : PAL.ink;
+    g.fillStyle(cupCol, fill === "empty" ? 0.55 : 1);
+    g.fillTriangle(4, 26, 26, 26, 7, 11);
+    g.fillTriangle(4, 26, 26, 26, 23, 11);
+    g.fillRect(7, 11, 16, 15);
+    // brand stripe (red) — visible when there's coffee
+    if (fill !== "empty") {
+      g.fillStyle(PAL.gloomGlow, 1);
+      g.fillRect(7, 17, 16, 5);
+      g.fillStyle(PAL.ink, 0.9);
+      for (let i = 0; i < 5; i++) g.fillRect(8 + i * 3, 18, 2, 3);
+    }
+    // lid
+    g.fillStyle(fill === "empty" ? shade(PAL.heart, -0.4) : PAL.heart, 1);
+    g.fillRoundedRect(4, 8, 22, 5, 2);
+    g.fillStyle(fill === "empty" ? shade(PAL.heartDark, -0.2) : PAL.heartDark, 1);
+    g.fillRect(12, 6, 6, 4);
+    // half: paint a horizontal "fill line" mid-cup, darken bottom half
+    if (fill === "half") {
+      g.fillStyle(PAL.heartDark, 0.55);
+      g.fillTriangle(8, 26, 22, 26, 12, 18);
+      g.fillTriangle(8, 26, 22, 26, 18, 18);
+      g.fillRect(11, 18, 8, 8);
+      g.lineStyle(1, PAL.heartHi, 0.9);
+      g.lineBetween(8, 18, 22, 18);
+    }
+    // empty: hollow + a fade across the body
+    if (fill === "empty") {
+      g.fillStyle(PAL.panel, 0.6);
+      g.fillTriangle(7, 25, 23, 25, 10, 12);
+      g.fillTriangle(7, 25, 23, 25, 20, 12);
+      g.fillRect(9, 12, 12, 13);
     }
   };
-  tex(scene, "ui_heart_full", 30, 30, (g) => heartIcon(g, true));
-  tex(scene, "ui_heart_empty", 30, 30, (g) => heartIcon(g, false));
-  // a "half" heart
-  tex(scene, "ui_heart_half", 30, 30, (g) => {
-    heartIcon(g, false);
-    g.fillStyle(PAL.hpFull, 1);
-    g.beginPath();
-    g.moveTo(15, 4);
-    g.lineTo(15, 28);
-    g.lineTo(2, 14);
-    g.arc(9, 12, 6.6, Phaser.Math.DegToRad(180), Phaser.Math.DegToRad(360), false);
-    g.closePath();
-    g.fillPath();
-    g.fillStyle(PAL.heartHi, 0.9);
-    g.fillCircle(11, 9, 2);
-  });
+  tex(scene, "ui_heart_full", 30, 30, (g) => cupIcon(g, "full"));
+  tex(scene, "ui_heart_empty", 30, 30, (g) => cupIcon(g, "empty"));
+  tex(scene, "ui_heart_half", 30, 30, (g) => cupIcon(g, "half"));
 
   // coin HUD icon (front-facing, with shine)
   tex(scene, "ui_coin", 26, 26, (g) => {

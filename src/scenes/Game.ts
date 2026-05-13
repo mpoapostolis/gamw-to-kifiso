@@ -170,11 +170,11 @@ export class GameScene extends Phaser.Scene {
   /** Called by UIScene once its HUD exists, to run the opening crawl. */
   startPrologue() {
     this.pendingPrologue = false;
-    this.ui.showStory("EMBERWILDS", PROLOGUE, () => {
+    this.ui.showStory("ΓΑΜΩ ΤΟΝ ΚΗΦΙΣΟ ΜΟΥ", PROLOGUE, () => {
       this.inStory = false;
       this.player.controlsLocked = false;
-      this.ui.showAreaBanner("Lumin Village");
-      this.ui.toast("hold a flame · press E by a villager to talk", PAL.inkDim);
+      this.ui.showAreaBanner("Η Γειτονιά");
+      this.ui.toast("κράτα τον καφέ ζεστό · πάτα E σε γείτονα για κουβέντα", PAL.inkDim);
     });
   }
 
@@ -274,15 +274,15 @@ export class GameScene extends Phaser.Scene {
         if (this.player.dead) return;
         this.player.controlsLocked = true;
         this.inStory = true;
-        this.ui.showStory("the wood is only a wood, for now", EPILOGUE, () => {
+        this.ui.showStory("ο Κηφισός ψυχραιμίζεται. ξεκινάει να βρέχει.", EPILOGUE, () => {
           this.inStory = false;
           this.player.controlsLocked = false;
           this.lightenWorld();
-          this.ui.showAreaBanner("Emberwilds — kindled");
+          this.ui.showAreaBanner("Η Γειτονιά · ξανά");
         });
       });
     } else if (this.ctx.gloomKilled === 5 && this.ctx.questState === 1) {
-      this.ui?.toast("five Gloom unmade — return to Elder Maro", PAL.emberSoft);
+      this.ui?.toast("5 κορνάρες · γύρνα στον Παππού Γιάννη", PAL.emberSoft);
     }
   }
 
@@ -311,8 +311,8 @@ export class GameScene extends Phaser.Scene {
           this.deathHandled = false;
           this.inDialog = false;
           this.cameras.main.fadeIn(420, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
-          if (lost > 0) this.ui.toast(`lost ${lost} coin to the dark`, PAL.gloomGlow);
-          this.ui.showAreaBanner("Lumin Village");
+          if (lost > 0) this.ui.toast(`έχασες ${lost} € στον δρόμο`, PAL.gloomGlow);
+          this.ui.showAreaBanner("Η Γειτονιά");
         });
       });
     });
@@ -340,14 +340,14 @@ export class GameScene extends Phaser.Scene {
       this.areaName = found.name;
       if (!first && !this.player.dead) {
         this.ui?.showAreaBanner(found.name);
-        if (found.name === "The Wood Gate") this.ui?.toast("beyond the gate the lamps run out — keep your flame", PAL.emberSoft);
-        if (found.name === "The Gloomwood" && !this.ctx.flags.enteredWood) {
+        if (found.name === "Τα Διόδια") this.ui?.toast("πέρα απ' τα διόδια δε σώζεσαι · κράτα καφέ", PAL.emberSoft);
+        if (found.name === "Λεωφ. Κηφισού" && !this.ctx.flags.enteredWood) {
           this.ctx.flags.enteredWood = true;
           SFX.thunderHint();
         }
-        if (found.name === "The Sunken Shrine" && !this.ctx.flags.enteredShrine) {
+        if (found.name === "Ύψος Μεταμόρφωσης" && !this.ctx.flags.enteredShrine) {
           this.ctx.flags.enteredShrine = true;
-          this.ui?.toast("something older is awake here", PAL.gloomGlow);
+          this.ui?.toast("εδώ μέσα κάθεται κάποιος ΑΛΛΟΣ τύπος", PAL.gloomGlow);
         }
       }
     }
