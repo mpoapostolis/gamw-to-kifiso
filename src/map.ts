@@ -297,29 +297,20 @@ function buildProps(): PropDef[] {
   props.push({ key: "sign", x: tcx(18), y: tcy(23) + 28, solid: [10, 8], solidUp: -3 });
   props.push({ key: "sign", x: tcx(2.6), y: tcy(24) + 28, solid: [10, 8], solidUp: -3, flipX: true });
 
-  // --- the town grows: more houses along main street, a side street and a
-  //     little cul-de-sac in the south-west. Same anchor/solid maths as above. -
+  // --- a few more houses, generously spaced. Three quiet neighbourhoods,
+  //     none of them on top of the original three or on the path/plaza. ----
   const moreHouses: HouseDef[] = [
-    // main street (east-west around y=24) — north side
-    { key: "house_a", tw: 5, th: 4, bx: tcx(6),  by: tcy(21) },
-    { key: "house_b", tw: 4, th: 4, bx: tcx(17), by: tcy(20) },
-    // main street — south side
-    { key: "house_b", tw: 4, th: 4, bx: tcx(9),  by: tcy(28) },
-    { key: "house_a", tw: 5, th: 4, bx: tcx(25), by: tcy(29) },
-    // side street (north-south around x=18)
-    { key: "house_b", tw: 4, th: 4, bx: tcx(19), by: tcy(16) },
-    { key: "house_a", tw: 5, th: 4, bx: tcx(16), by: tcy(12) },
-    // sleepy upper neighbourhood
-    { key: "house_b", tw: 4, th: 4, bx: tcx(8),  by: tcy(16) },
-    { key: "house_c", tw: 6, th: 5, bx: tcx(24), by: tcy(8) },
-    // SW cul-de-sac
-    { key: "house_b", tw: 4, th: 4, bx: tcx(6),  by: tcy(35) },
-    { key: "house_a", tw: 5, th: 4, bx: tcx(10), by: tcy(36) },
-    { key: "house_b", tw: 4, th: 4, bx: tcx(5),  by: tcy(30) },
-    // small shops along the main street (smaller house_b shells)
+    // NW residential — clear of the pond and the original house_a
+    { key: "house_a", tw: 5, th: 4, bx: tcx(8), by: tcy(15) },
+    // NE residential — east of the elder's hall
+    { key: "house_b", tw: 4, th: 4, bx: tcx(27), by: tcy(13) },
+    // South-mid — between the well and Garrick's old place
+    { key: "house_a", tw: 5, th: 4, bx: tcx(18), by: tcy(29) },
+    // SW solo — by itself in the corner
+    { key: "house_b", tw: 4, th: 4, bx: tcx(7), by: tcy(35) },
+    // Two small shops along the main street (no overlap with houses)
     { key: "house_b", tw: 4, th: 4, bx: tcx(10), by: tcy(22) }, // the café exterior
-    { key: "house_b", tw: 4, th: 4, bx: tcx(26), by: tcy(24) }, // east shop
-    { key: "house_b", tw: 4, th: 4, bx: tcx(8),  by: tcy(32) }, // south shop
+    { key: "house_b", tw: 4, th: 4, bx: tcx(27), by: tcy(28) }, // east shop
   ];
   for (const h of moreHouses) {
     const wallH = h.th * TILE * 0.62;
@@ -332,56 +323,38 @@ function buildProps(): PropDef[] {
     });
   }
 
-  // --- public square around the well: fountain + corner lamps + dressing ---
-  // a second well stands in for a small fountain on the sand plaza
-  props.push({ key: "well", x: tcx(20), y: tcy(22) + 4, solid: [40, 22], solidUp: -10 });
-  // four lamps marking the square's corners
+  // --- a couple of extra lamp posts so the new streets glow at dusk ----
   for (const [tx, ty] of [
-    [19, 18],
-    [25, 18],
-    [19, 24],
-    [25, 24],
-  ] as const)
-    props.push({ key: "lamp", x: tcx(tx), y: tcy(ty) + 6, solid: [10, 8], solidUp: -4 });
-  // urban dressing around the square — a couple of bench-like bushes and posts
-  props.push({ key: "bush", x: tcx(21), y: tcy(24) + 2, solid: [22, 8], solidUp: -2, sway: 1.4 });
-  props.push({ key: "bush", x: tcx(24), y: tcy(20) + 2, solid: [22, 8], solidUp: -2, sway: 1.4 });
-  props.push({ key: "sign", x: tcx(20.5), y: tcy(24) + 26, solid: [10, 8], solidUp: -3 });
-  props.push({ key: "sign", x: tcx(23.5), y: tcy(18) + 26, solid: [10, 8], solidUp: -3, flipX: true });
-
-  // --- more lamp posts down the main street + along the side street -----
-  for (const [tx, ty] of [
-    [14, 23],
-    [20, 23],
-    [26, 23],
-    [16, 30],
-    [20, 30],
+    [10, 20],
+    [27, 26],
+    [18, 27],
   ] as const)
     props.push({ key: "lamp", x: tcx(tx), y: tcy(ty) + 6, solid: [10, 8], solidUp: -4 });
 
-  // --- extra ground dressing along the new streets (flat, grass only) ----
-  for (let i = 0; i < 80; i++) {
+  // --- a little ground dressing along the new clusters — grass tiles only,
+  //     well outside any house footprint so nothing stacks visually --------
+  for (let i = 0; i < 36; i++) {
     const pick = hash2(i, 211);
     const a = hash2(i, 223);
     const b = hash2(i, 233);
     let tx: number, ty: number;
-    if (pick < 0.4) {
-      // main street east-west
-      tx = 4 + Math.floor(a * 24);
-      ty = 22 + Math.floor(b * 5);
-    } else if (pick < 0.7) {
-      // side street north-south
-      tx = 16 + Math.floor(a * 5);
-      ty = 11 + Math.floor(b * 13);
+    if (pick < 0.45) {
+      // along the south band, away from house footprints
+      tx = 3 + Math.floor(a * 9);
+      ty = 33 + Math.floor(b * 3);
+    } else if (pick < 0.75) {
+      // along the NW area
+      tx = 4 + Math.floor(a * 5);
+      ty = 13 + Math.floor(b * 4);
     } else {
-      // SW cul-de-sac neighbourhood
-      tx = 4 + Math.floor(a * 8);
-      ty = 30 + Math.floor(b * 7);
+      // near the eastern row
+      tx = 26 + Math.floor(a * 3);
+      ty = 14 + Math.floor(b * 4);
     }
     if (tx < 3 || tx > MAP_W - 3 || ty < 3 || ty > MAP_H - 3) continue;
     if (groundAt(tx, ty) !== "grass") continue;
     const r = hash2(tx, ty + 1);
-    const key = r < 0.3 ? "flower" : r < 0.55 ? "flower_v" : r < 0.85 ? "tuft" : "mushroom";
+    const key = r < 0.45 ? "tuft" : r < 0.75 ? "flower" : "flower_v";
     props.push(
       flat(
         key,

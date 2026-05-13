@@ -242,7 +242,7 @@ export class GameScene extends Phaser.Scene {
       this.inStory = false;
       this.player.controlsLocked = false;
       this.ui.showAreaBanner("Diona Community · Day 1");
-      this.ui.toast("press E next to someone to talk · TAB for your notebook · I for your pocket", PAL.inkDim);
+      this.ui.toast("E talk · TAB notebook · I pocket", PAL.inkDim);
     });
   }
 
@@ -314,14 +314,14 @@ export class GameScene extends Phaser.Scene {
           gatedLabel: "the way isn't ready yet",
           act: () => this.enterFacility({ x: 50.5 * 48, y: 22 * 48 }),
         },
-        // Mrs. Despoina's front door
-        { x: 11 * 48 + 24, y: 18.5 * 48, label: "E  ·  Mrs. Despoina's", act: () => this.enterDespoina({ x: 11 * 48 + 24, y: 18.5 * 48 }) },
-        // the little park — south path
+        // Mrs. Despoina's front door — the NW residential house at tile (8,15)
+        { x: 8 * 48 + 24, y: 16 * 48, label: "E  ·  Mrs. Despoina's", act: () => this.enterDespoina({ x: 8 * 48 + 24, y: 16 * 48 }) },
+        // the little park — south path (clearing south of the village)
         { x: 16 * 48, y: 34 * 48, label: "E  ·  to the park", act: () => this.enterPark({ x: 16 * 48, y: 34 * 48 - 4 }) },
-        // the cafe on the main street (west side, tile 10,22)
-        { x: 10 * 48 + 24, y: 22 * 48 + 12, label: "E  ·  the cafe", act: () => this.enterCafe({ x: 10 * 48 + 24, y: 22 * 48 + 12 }) },
-        // the clinic — NE corner of the village, clear of the new houses
-        { x: 27 * 48, y: 12 * 48 + 24, label: "E  ·  the clinic", act: () => this.enterClinic({ x: 27 * 48, y: 12 * 48 + 24 }) },
+        // the café — the shop at tile (10,22)
+        { x: 10 * 48 + 24, y: 22 * 48 + 14, label: "E  ·  the café", act: () => this.enterCafe({ x: 10 * 48 + 24, y: 22 * 48 + 14 }) },
+        // the clinic — the NE house at tile (27,13)
+        { x: 27 * 48 + 24, y: 14 * 48 - 4, label: "E  ·  the clinic", act: () => this.enterClinic({ x: 27 * 48 + 24, y: 14 * 48 - 4 }) },
       ];
       let bestDoor: typeof doors[number] | null = null;
       let bestDoorD = 64;
