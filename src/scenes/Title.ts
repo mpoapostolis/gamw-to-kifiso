@@ -177,6 +177,48 @@ export class TitleScene extends Phaser.Scene {
     // a thin vignette on top
     this.add.image(cx, VIEW_H / 2, "vignette").setDisplaySize(VIEW_W, VIEW_H).setAlpha(0.9);
 
+    // ---- memory-flash glitches: alternate names that briefly bleed through
+    // (Andrew, Nikos, Yiannis are names Mom/Helena's mum/Anna mistake him for)
+    const flashNames = ["ANDREW", "NIKOS", "YIANNIS", "ALEX — 46", "ALEX — 47", "WHO ARE YOU"];
+    const flashOnce = () => {
+      const name = flashNames[Math.floor(Math.random() * flashNames.length)];
+      const yJitter = 252 + (Math.random() - 0.5) * 24;
+      const sz = name.length > 9 ? 44 : 62;
+      const flash = this.add
+        .text(cx, yJitter, name, { fontFamily: CINZEL, fontSize: `${sz}px`, color: hex(PAL.gloomGlow), fontStyle: "800" })
+        .setOrigin(0.5)
+        .setLetterSpacing(8 + Math.random() * 8)
+        .setAlpha(0)
+        .setBlendMode(Phaser.BlendModes.SCREEN)
+        .setScale(1.02);
+      this.tweens.add({
+        targets: flash,
+        alpha: 0.7,
+        duration: 70,
+        yoyo: true,
+        hold: 100,
+        ease: "Quad.easeOut",
+        onComplete: () => flash.destroy(),
+      });
+    };
+    // schedule the first flash after the title has settled
+    this.time.delayedCall(2600, flashOnce);
+    this.time.delayedCall(4800, flashOnce);
+    this.time.delayedCall(7900, flashOnce);
+    // and a repeating jitter
+    this.time.addEvent({ delay: 9500, loop: true, callback: () => Math.random() < 0.85 && flashOnce() });
+
+    // ---- film-grain overlay: thin noise scrolling across the screen
+    const grain = this.add.tileSprite(VIEW_W / 2, VIEW_H / 2, VIEW_W, VIEW_H, "soft").setBlendMode(Phaser.BlendModes.MULTIPLY).setAlpha(0.04).setTilePosition(0, 0);
+    this.time.addEvent({ delay: 60, loop: true, callback: () => grain.setTilePosition(Math.random() * 1000, Math.random() * 1000) });
+    void grain;
+
+    // ---- iteration badge: "you are version 124" — discovery
+    this.add
+      .text(16, VIEW_H - 14, "iteration 124", { fontFamily: SPECTRAL, fontSize: "13px", color: "#4f4a3b", fontStyle: "italic 400" })
+      .setOrigin(0, 1)
+      .setAlpha(0.85);
+
     // ---- entrance choreography ----------------------------------------
     this.cameras.main.fadeIn(900, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
     this.tweens.add({ targets: titleGroup, alpha: 1, y: 252, duration: 850, delay: 350, ease: "Cubic.easeOut" });
@@ -205,7 +247,7 @@ export class TitleScene extends Phaser.Scene {
       if (this.started) return;
       this.started = true;
       SFX.unlock();
-      Audio.startMusic(this);
+      Audio.playMusic(this, "music_intro");
       MUSIC.start(); // procedural drone underneath, very quiet
       SFX.select();
       this.tweens.add({ targets: titleGroup, scale: "+=0.06", duration: 500, ease: "Back.easeIn" });

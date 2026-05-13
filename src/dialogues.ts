@@ -509,4 +509,57 @@ export const DIALOGUES: Record<string, (c: GameCtx) => DialogPage[]> = {
       ),
     ];
   },
+
+  /* ------------------------------------------------------------------ *
+   * DR. ERIN — the clinic doctor. Thirty years in this room. Not awake *
+   * the way Despoina or Costas are — but a long-tenured woman who has  *
+   * been quietly noticing things for a very long time, in the way of a *
+   * professional who has seen too much to stay surprised at any of it. *
+   * If Costas wakes Alex (kostasReveal), she finally says what she has *
+   * always known.                                                       *
+   * ------------------------------------------------------------------ */
+  doctor: (c) => {
+    if (c.day === 1)
+      return [
+        P("Dr. Erin", "npc_mom", "Alex. Good — you're here. Right on the dot. Sit a moment, the chair's the cold one I'm afraid, they're all the cold one."),
+        P("Dr. Erin", "npc_mom", "Your check-up. — No, I have it down. Page twelve. Alex Korres, oh-nine-hundred. You scheduled it last — — hm. Last week, I think. The handwriting is mine. It's always mine."),
+        P("Dr. Erin", "npc_mom", "Doesn't matter. You're here now. Roll up your sleeve. — A pulse. A blood pressure. Same as last time. Same as the time before. — That's a good thing, dear. It means I'm doing my job.", PAL.gloomGlow),
+        P("Dr. Erin", "npc_mom", "There. All done. Off you go. — Same time next — — same time. Eventually."),
+      ];
+
+    if (c.day === 2)
+      return [
+        P("Dr. Erin", "npc_mom", "Mr. — — sorry, I — sorry. Have we met before?"),
+        P("Dr. Erin", "npc_mom", "...", PAL.gloomGlow, (cc) => cc.addNote("doctorRecognised")),
+        P("Dr. Erin", "npc_mom", "Oh — of course. Of course. Alex. I'm — I had a long night. Thirty years of long nights. They start to run together. — You're not here for the check-up; that's tomorrow. Or was it yesterday."),
+        P("Dr. Erin", "npc_mom", "Never mind. The kettle's on out the back. Help yourself."),
+      ];
+
+    if (c.day === 3)
+      return [
+        P("Dr. Erin", "npc_mom", "Alex. Hello. I'm glad you came — — actually, would you wait one moment? I need to —"),
+        P("Dr. Erin", "npc_mom", "The new arrivals. Three of them came in last night, the porters didn't log them properly, I should — — I'll just be a moment. Please don't touch the clipboard.", PAL.gloomGlow, (cc) => cc.addNote("doctorLeftRoom")),
+        P("Dr. Erin", "npc_mom", "Wait here. — I'll come straight back. I'll come straight back."),
+        // she leaves and does not come back
+      ];
+
+    if (c.day >= 4 && c.flags.kostasReveal)
+      return [
+        P("Dr. Erin", "npc_mom", "Alex. Sit down. — Don't say anything yet. Just sit."),
+        P("Dr. Erin", "npc_mom", "...", PAL.gloomGlow),
+        P("Dr. Erin", "npc_mom", "You're the one. Costas said someone would be the one. I never believed him.", PAL.gloomGlow, (cc) => { cc.addNote("doctorTheOne"); cc.flags.awake = true; }),
+        P("Dr. Erin", "npc_mom", "Thirty years, Alex. Thirty years I've taken your pulse, and yours, and yours, and yours. Different hands. Same name. Same little crease above your eyebrow. — I told myself it was a family resemblance. A long family. I told myself a lot of things."),
+        P("Dr. Erin", "npc_mom", "I am not a brave woman. I will not be brave tonight either. But I will not stop you. — There. That's the most I can manage. — Go on. Whatever you're doing. Go on. The door is open."),
+        P("Dr. Erin", "npc_mom", "And Alex — — if it works. If you light them. — Don't come back here. Don't ask me whether I would have wanted you to. I don't know the answer yet, and I'd like to find out alone.", PAL.heartHi),
+      ];
+
+    if (c.day >= 4)
+      return [
+        P("Dr. Erin", "npc_mom", "Oh — Alex. The check-up. I have it down for ten this morning. Always ten."),
+        P("Dr. Erin", "npc_mom", "Pulse. Blood pressure. Same as last time. — Always same as last time. That's a good thing, dear.", PAL.gloomGlow),
+        P("Dr. Erin", "npc_mom", "Off you go."),
+      ];
+
+    return [P("Dr. Erin", "npc_mom", "Off you go, dear. Same time next.")];
+  },
 };

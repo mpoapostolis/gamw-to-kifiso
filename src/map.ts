@@ -297,6 +297,101 @@ function buildProps(): PropDef[] {
   props.push({ key: "sign", x: tcx(18), y: tcy(23) + 28, solid: [10, 8], solidUp: -3 });
   props.push({ key: "sign", x: tcx(2.6), y: tcy(24) + 28, solid: [10, 8], solidUp: -3, flipX: true });
 
+  // --- the town grows: more houses along main street, a side street and a
+  //     little cul-de-sac in the south-west. Same anchor/solid maths as above. -
+  const moreHouses: HouseDef[] = [
+    // main street (east-west around y=24) — north side
+    { key: "house_a", tw: 5, th: 4, bx: tcx(6),  by: tcy(21) },
+    { key: "house_b", tw: 4, th: 4, bx: tcx(17), by: tcy(20) },
+    // main street — south side
+    { key: "house_b", tw: 4, th: 4, bx: tcx(9),  by: tcy(28) },
+    { key: "house_a", tw: 5, th: 4, bx: tcx(25), by: tcy(29) },
+    // side street (north-south around x=18)
+    { key: "house_b", tw: 4, th: 4, bx: tcx(19), by: tcy(16) },
+    { key: "house_a", tw: 5, th: 4, bx: tcx(16), by: tcy(12) },
+    // sleepy upper neighbourhood
+    { key: "house_b", tw: 4, th: 4, bx: tcx(8),  by: tcy(16) },
+    { key: "house_c", tw: 6, th: 5, bx: tcx(24), by: tcy(8) },
+    // SW cul-de-sac
+    { key: "house_b", tw: 4, th: 4, bx: tcx(6),  by: tcy(35) },
+    { key: "house_a", tw: 5, th: 4, bx: tcx(10), by: tcy(36) },
+    { key: "house_b", tw: 4, th: 4, bx: tcx(5),  by: tcy(30) },
+    // small shops along the main street (smaller house_b shells)
+    { key: "house_b", tw: 4, th: 4, bx: tcx(10), by: tcy(22) }, // the café exterior
+    { key: "house_b", tw: 4, th: 4, bx: tcx(26), by: tcy(24) }, // east shop
+    { key: "house_b", tw: 4, th: 4, bx: tcx(8),  by: tcy(32) }, // south shop
+  ];
+  for (const h of moreHouses) {
+    const wallH = h.th * TILE * 0.62;
+    props.push({
+      key: h.key,
+      x: h.bx,
+      y: h.by,
+      solid: [h.tw * TILE * 0.84, wallH * 0.92],
+      solidUp: -(14 + wallH * 0.5),
+    });
+  }
+
+  // --- public square around the well: fountain + corner lamps + dressing ---
+  // a second well stands in for a small fountain on the sand plaza
+  props.push({ key: "well", x: tcx(20), y: tcy(22) + 4, solid: [40, 22], solidUp: -10 });
+  // four lamps marking the square's corners
+  for (const [tx, ty] of [
+    [19, 18],
+    [25, 18],
+    [19, 24],
+    [25, 24],
+  ] as const)
+    props.push({ key: "lamp", x: tcx(tx), y: tcy(ty) + 6, solid: [10, 8], solidUp: -4 });
+  // urban dressing around the square — a couple of bench-like bushes and posts
+  props.push({ key: "bush", x: tcx(21), y: tcy(24) + 2, solid: [22, 8], solidUp: -2, sway: 1.4 });
+  props.push({ key: "bush", x: tcx(24), y: tcy(20) + 2, solid: [22, 8], solidUp: -2, sway: 1.4 });
+  props.push({ key: "sign", x: tcx(20.5), y: tcy(24) + 26, solid: [10, 8], solidUp: -3 });
+  props.push({ key: "sign", x: tcx(23.5), y: tcy(18) + 26, solid: [10, 8], solidUp: -3, flipX: true });
+
+  // --- more lamp posts down the main street + along the side street -----
+  for (const [tx, ty] of [
+    [14, 23],
+    [20, 23],
+    [26, 23],
+    [16, 30],
+    [20, 30],
+  ] as const)
+    props.push({ key: "lamp", x: tcx(tx), y: tcy(ty) + 6, solid: [10, 8], solidUp: -4 });
+
+  // --- extra ground dressing along the new streets (flat, grass only) ----
+  for (let i = 0; i < 80; i++) {
+    const pick = hash2(i, 211);
+    const a = hash2(i, 223);
+    const b = hash2(i, 233);
+    let tx: number, ty: number;
+    if (pick < 0.4) {
+      // main street east-west
+      tx = 4 + Math.floor(a * 24);
+      ty = 22 + Math.floor(b * 5);
+    } else if (pick < 0.7) {
+      // side street north-south
+      tx = 16 + Math.floor(a * 5);
+      ty = 11 + Math.floor(b * 13);
+    } else {
+      // SW cul-de-sac neighbourhood
+      tx = 4 + Math.floor(a * 8);
+      ty = 30 + Math.floor(b * 7);
+    }
+    if (tx < 3 || tx > MAP_W - 3 || ty < 3 || ty > MAP_H - 3) continue;
+    if (groundAt(tx, ty) !== "grass") continue;
+    const r = hash2(tx, ty + 1);
+    const key = r < 0.3 ? "flower" : r < 0.55 ? "flower_v" : r < 0.85 ? "tuft" : "mushroom";
+    props.push(
+      flat(
+        key,
+        tcx(tx) + (hash2(tx, ty) - 0.5) * 26,
+        tcy(ty) + (hash2(ty, tx) - 0.5) * 22,
+        0.85 + hash2(i, 13) * 0.3,
+      ),
+    );
+  }
+
   // --- ground dressing: flowers / tufts (flat, no collision) ------------
   for (let i = 0; i < 130; i++) {
     const tx = 2 + Math.floor(hash2(i, 11) * (MAP_W - 4));

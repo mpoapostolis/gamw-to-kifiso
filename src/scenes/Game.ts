@@ -210,6 +210,20 @@ export class GameScene extends Phaser.Scene {
       this.player.controlsLocked = false;
       Audio.playMusic(this, "music_hope");
     });
+    this.events.on("cafe-exit", (pt: { x: number; y: number }) => {
+      this.player.setPosition(pt.x, pt.y);
+      (this.player.body as Phaser.Physics.Arcade.Body).reset(pt.x, pt.y);
+      this.cameras.main.fadeIn(380, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+      this.player.controlsLocked = false;
+      Audio.playMusic(this, "music_hope");
+    });
+    this.events.on("clinic-exit", (pt: { x: number; y: number }) => {
+      this.player.setPosition(pt.x, pt.y);
+      (this.player.body as Phaser.Physics.Arcade.Body).reset(pt.x, pt.y);
+      this.cameras.main.fadeIn(380, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+      this.player.controlsLocked = false;
+      Audio.playMusic(this, "music_hope");
+    });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.events.off("gloom-killed", this.onGloomKilled, this);
       this.events.off("player-died", this.onPlayerDied, this);
@@ -304,6 +318,10 @@ export class GameScene extends Phaser.Scene {
         { x: 11 * 48 + 24, y: 18.5 * 48, label: "E  ·  Mrs. Despoina's", act: () => this.enterDespoina({ x: 11 * 48 + 24, y: 18.5 * 48 }) },
         // the little park — south path
         { x: 16 * 48, y: 34 * 48, label: "E  ·  to the park", act: () => this.enterPark({ x: 16 * 48, y: 34 * 48 - 4 }) },
+        // the cafe on the main street (west side, tile 10,22)
+        { x: 10 * 48 + 24, y: 22 * 48 + 12, label: "E  ·  the cafe", act: () => this.enterCafe({ x: 10 * 48 + 24, y: 22 * 48 + 12 }) },
+        // the clinic — NE corner of the village, clear of the new houses
+        { x: 27 * 48, y: 12 * 48 + 24, label: "E  ·  the clinic", act: () => this.enterClinic({ x: 27 * 48, y: 12 * 48 + 24 }) },
       ];
       let bestDoor: typeof doors[number] | null = null;
       let bestDoorD = 64;
@@ -386,6 +404,28 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.sleep();
       this.scene.launch("Park", { returnAt: at });
+    });
+  }
+
+  private enterCafe(at: { x: number; y: number }) {
+    this.player.controlsLocked = true;
+    this.ui.hidePrompt();
+    SFX.open();
+    this.cameras.main.fadeOut(420, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.sleep();
+      this.scene.launch("Cafe", { returnAt: at });
+    });
+  }
+
+  private enterClinic(at: { x: number; y: number }) {
+    this.player.controlsLocked = true;
+    this.ui.hidePrompt();
+    SFX.open();
+    this.cameras.main.fadeOut(420, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.sleep();
+      this.scene.launch("Clinic", { returnAt: at });
     });
   }
 
