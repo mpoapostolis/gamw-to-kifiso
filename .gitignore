@@ -1,0 +1,32 @@
+# deps & build
+node_modules/
+dist/
+.vite/
+
+# bun
+bun.lock
+bun.lockb
+
+# editor / OS
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# transient test artifacts from the screenshotting we did while developing
+.playwright-mcp/
+title.png
+title2.png
+prologue.png
+world1.png
+world1-full.png
+world2.png
+moved.png
+moved2.png
+final-title.png
+fresh-title.png
+fresh-mid.png
+
+# env
+.env
+.env.local

@@ -1,0 +1,113 @@
+/** Shared shapes used across the world data, the actors, and the scenes. */
+import type Phaser from "phaser";
+
+/** Visual-effect hooks the actors use; GameScene wires these to its emitters/camera. */
+export interface Fx {
+  dust(x: number, y: number, n?: number): void;
+  slashArc(x: number, y: number, angleRad: number, tint: number): void;
+  hitSpark(x: number, y: number, tint: number, n?: number): void;
+  dashTrail(sprite: Phaser.GameObjects.Sprite): void;
+  embers(x: number, y: number, n: number, tint?: number): void;
+  ringPulse(x: number, y: number, color: number, toRadius: number, dur?: number): void;
+  gloomBurst(x: number, y: number): void;
+  pop(x: number, y: number, tint: number): void;
+  shake(intensity: number, durationMs: number): void;
+  hitStop(ms: number): void;
+  floatText(x: number, y: number, text: string, color: number): void;
+}
+
+/** Mutable run-state. Owned by GameScene; passed to dialog/quest callbacks. */
+export interface GameCtx {
+  // stats (HP measured in half-hearts: 2 == one full heart)
+  hp: number;
+  maxHp: number;
+  gold: number;
+
+  // progression
+  gloomKilled: number;
+  /** 0 = not met the elder, 1 = quest accepted, 2 = quest turned in */
+  questState: number;
+  wardenDown: boolean;
+  attackBonus: boolean;
+  flags: Record<string, boolean>;
+
+  // --- actions the dialog layer is allowed to take (wired up by GameScene) ---
+  giveGold(n: number): void;
+  takeGold(n: number): void;
+  giveHeartContainer(): void;
+  healFull(): void;
+  heal(halfHearts: number): void;
+  /** brief on-screen toast, e.g. "+12 ⟡" or "Heart Container!" */
+  toast(text: string, tint?: number): void;
+}
+
+export interface DialogPage {
+  name: string;
+  portrait: string; // texture key
+  tint?: number; // optional portrait tint
+  text: string;
+  /** runs exactly once, the moment this page becomes visible */
+  effect?: (ctx: GameCtx) => void;
+}
+
+export interface NpcSpawn {
+  id: string;
+  key: string; // idle texture
+  altKey?: string; // second frame for a gentle two-pose bob
+  name: string;
+  x: number;
+  y: number;
+  /** villager wanders within this radius of its home (px); 0 = stays put */
+  roam?: number;
+  /** pages to show right now, given current run-state */
+  dialog: (ctx: GameCtx) => DialogPage[];
+}
+
+export interface GloomSpawn {
+  x: number;
+  y: number;
+  warden?: boolean;
+  /** wander radius around home (px) */
+  range?: number;
+}
+
+export type PickupKind = "coin" | "heart" | "potion";
+export interface PickupSpawn {
+  kind: PickupKind;
+  x: number;
+  y: number;
+  value?: number; // for coins
+}
+
+export interface LightDef {
+  x: number;
+  y: number;
+  radius: number;
+  warm: boolean; // warm ember vs cool violet
+  /** 0..1 flicker amount */
+  flicker: number;
+  /** true => also throws a few drifting embers */
+  campfire?: boolean;
+}
+
+export interface AreaDef {
+  name: string;
+  rect: Phaser.Geom.Rectangle;
+  /** 0..1 darkness-overlay opacity while inside */
+  darkness: number;
+  gloomwood?: boolean;
+}
+
+export interface World {
+  ground: Phaser.GameObjects.RenderTexture; // baked terrain + border tree-line
+  waterTiles: Phaser.GameObjects.Sprite[];
+  solids: Phaser.Physics.Arcade.StaticGroup;
+  canopies: Phaser.GameObjects.Image[]; // drawn above actors
+  swayers: Phaser.GameObjects.GameObject[]; // props that get a wind tween
+  lights: LightDef[];
+  areas: AreaDef[];
+  playerStart: { x: number; y: number };
+  npcs: NpcSpawn[];
+  gloom: GloomSpawn[];
+  pickups: PickupSpawn[];
+}

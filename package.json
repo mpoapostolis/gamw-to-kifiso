@@ -1,0 +1,19 @@
+{
+  "name": "emberwilds",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Emberwilds — a moody top-down action RPG built with Phaser 3.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0"
+  }
+}
