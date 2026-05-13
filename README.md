@@ -48,7 +48,7 @@ bun run dev      # → http://localhost:5173
 - **Notebook** (TAB) — inconsistencies you notice in dialog auto-add themselves to your notebook. Open it any time.
 - **Pocket** (I) — items you find or are given. House key and wallet to start. Helena's book, Despoina's candle, Costas's map etc. arrive through dialog.
 - **Multi-scene** — walk to your front door, press E, fade out, fade in inside your house. Bed, mirror, table, sink. Press E by the mirror — your face is slightly different every day. Step back through the door to return outside.
-- **Soft ambient bed** — a low Web-Audio drone, a hint of wind. Plus a music loop on top.
+- **Soft ambient bed** — a low Web-Audio drone, a hint of wind. No music — just air.
 
 ## Stack
 
@@ -59,7 +59,6 @@ src/
 ├── palette.ts        soft melancholic dawn palette
 ├── textures.ts       all sprites + the big character portraits, drawn at boot
 ├── sfx.ts            tiny Web-Audio synth + ambient drone
-├── bgm.ts            background music loader
 ├── story.ts          prologue + endings + notebook entries + items
 ├── map.ts            world: terrain, props, NPCs with per-day conditional dialog
 ├── types.ts          shared interfaces (GameCtx with day, notes, inventory)
