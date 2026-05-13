@@ -6,6 +6,9 @@ under permissive licenses (CC0 or CC-BY).
 | File | Source | Author | License |
 |---|---|---|---|
 | `music_hope.mp3` | [At the End of Hope](https://opengameart.org/content/at-the-end-of-hope) | Emma_MA | CC0 — Public Domain |
+| `music_facility.ogg` | [Drifting Through the Nebula (Ambient)](https://opengameart.org/content/drifting-through-the-nebula-ambient) | HitCtrl | CC-BY 3.0 |
+| `music_park.mp3` | [Calm](https://opengameart.org/content/calm) | elerya (Audibert jd) | CC-BY 3.0 |
+| `music_lullaby.mp3` | [Forgotten Lullaby — Music Box Loop](https://opengameart.org/content/forgotten-lullaby) | Mega Pixel Music Lab | CC-BY 4.0 |
 | `sfx_footstep_wood_a.ogg` / `sfx_footstep_wood_b.ogg` | [Footsteps on different surfaces](https://opengameart.org/content/footsteps-on-different-surfaces) | congusbongus (mastered from freesound contributors, esp. swuing) | CC-BY 3.0 |
 | `sfx_footstep_grass_a.ogg` / `sfx_footstep_grass_b.ogg` | [Footsteps on different surfaces](https://opengameart.org/content/footsteps-on-different-surfaces) | congusbongus | CC-BY 3.0 |
 | `sfx_heartbeat_slow.wav` / `sfx_heartbeat_fast.wav` | [Heartbeat sounds](https://opengameart.org/content/heartbeat-sounds) | bart | CC0 — Public Domain |
@@ -21,6 +24,19 @@ credits section:
 > [opengameart.org/content/footsteps-on-different-surfaces](https://opengameart.org/content/footsteps-on-different-surfaces),
 > licensed under [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/).
 > Sources include audio mastered from freesound.org contributors.
+
+> Facility/lab music: *Drifting Through the Nebula (Ambient)* by HitCtrl,
+> [opengameart.org/content/drifting-through-the-nebula-ambient](https://opengameart.org/content/drifting-through-the-nebula-ambient),
+> licensed under [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/).
+
+> Park music: *Calm* by elerya (Audibert jd),
+> [opengameart.org/content/calm](https://opengameart.org/content/calm),
+> licensed under [CC-BY 3.0](https://creativecommons.org/licenses/by/3.0/).
+
+> Lullaby music: *Forgotten Lullaby — Music Box Loop* by Mega Pixel Music Lab
+> ([megapixelmusiclab.com](https://megapixelmusiclab.com)),
+> [opengameart.org/content/forgotten-lullaby](https://opengameart.org/content/forgotten-lullaby),
+> licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
 ## Procedurally-generated audio
 

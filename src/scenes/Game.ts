@@ -193,8 +193,23 @@ export class GameScene extends Phaser.Scene {
       (this.player.body as Phaser.Physics.Arcade.Body).reset(pt.x, pt.y);
       this.cameras.main.fadeIn(380, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
       this.player.controlsLocked = false;
+      Audio.playMusic(this, "music_hope");
     });
     this.events.on("facility-offer-ending", () => this.offerEnding());
+    this.events.on("park-exit", (pt: { x: number; y: number }) => {
+      this.player.setPosition(pt.x, pt.y);
+      (this.player.body as Phaser.Physics.Arcade.Body).reset(pt.x, pt.y);
+      this.cameras.main.fadeIn(380, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+      this.player.controlsLocked = false;
+      Audio.playMusic(this, "music_hope");
+    });
+    this.events.on("despoina-exit", (pt: { x: number; y: number }) => {
+      this.player.setPosition(pt.x, pt.y);
+      (this.player.body as Phaser.Physics.Arcade.Body).reset(pt.x, pt.y);
+      this.cameras.main.fadeIn(380, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+      this.player.controlsLocked = false;
+      Audio.playMusic(this, "music_hope");
+    });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.events.off("gloom-killed", this.onGloomKilled, this);
       this.events.off("player-died", this.onPlayerDied, this);
@@ -274,23 +289,41 @@ export class GameScene extends Phaser.Scene {
           best = npc;
         }
       }
-      // your front door — Helena's home, just in front of house_a
-      const door = { x: 13 * 48 + 24, y: 18 * 48 + 4 };
-      const doorD = Phaser.Math.Distance.Between(this.player.x, this.player.y, door.x, door.y);
-      // the stairwell — open only after Costas's reveal
-      const hatch = { x: 50.5 * 48, y: 22 * 48 };
-      const hatchD = Phaser.Math.Distance.Between(this.player.x, this.player.y, hatch.x, hatch.y);
-      const hatchOpen = this.ctx.flags.kostasReveal && !this.ctx.flags.endingChosen;
-      if (best) this.ui?.showPrompt(`E  ·  ${best.spawn.name}`, best.x - this.cameras.main.worldView.x, best.y - this.cameras.main.worldView.y - 56);
-      else if (doorD < 56) this.ui?.showPrompt(`E  ·  inside`, door.x - this.cameras.main.worldView.x, door.y - this.cameras.main.worldView.y - 30);
-      else if (hatchD < 64) {
-        const txt = hatchOpen ? `E  ·  descend` : `the way isn't ready yet`;
-        this.ui?.showPrompt(txt, hatch.x - this.cameras.main.worldView.x, hatch.y - this.cameras.main.worldView.y - 30);
+      // doors / gates (E to enter)
+      const doors: Array<{ x: number; y: number; label: string; act: () => void; gated?: () => boolean; gatedLabel?: string }> = [
+        { x: 13 * 48 + 24, y: 18 * 48 + 4, label: "E  ·  inside", act: () => this.enterHome({ x: 13 * 48 + 24, y: 18 * 48 + 4 }) },
+        {
+          x: 50.5 * 48,
+          y: 22 * 48,
+          label: "E  ·  descend",
+          gated: () => !!this.ctx.flags.kostasReveal && !this.ctx.flags.endingChosen,
+          gatedLabel: "the way isn't ready yet",
+          act: () => this.enterFacility({ x: 50.5 * 48, y: 22 * 48 }),
+        },
+        // Mrs. Despoina's front door
+        { x: 11 * 48 + 24, y: 18.5 * 48, label: "E  ·  Mrs. Despoina's", act: () => this.enterDespoina({ x: 11 * 48 + 24, y: 18.5 * 48 }) },
+        // the little park — south path
+        { x: 16 * 48, y: 34 * 48, label: "E  ·  to the park", act: () => this.enterPark({ x: 16 * 48, y: 34 * 48 - 4 }) },
+      ];
+      let bestDoor: typeof doors[number] | null = null;
+      let bestDoorD = 64;
+      for (const d of doors) {
+        const dd = Phaser.Math.Distance.Between(this.player.x, this.player.y, d.x, d.y);
+        if (dd < bestDoorD) {
+          bestDoorD = dd;
+          bestDoor = d;
+        }
+      }
+      if (best) {
+        this.ui?.showPrompt(`E  ·  ${best.spawn.name}`, best.x - this.cameras.main.worldView.x, best.y - this.cameras.main.worldView.y - 56);
+      } else if (bestDoor) {
+        const open = bestDoor.gated ? bestDoor.gated() : true;
+        const text = open ? bestDoor.label : bestDoor.gatedLabel ?? bestDoor.label;
+        this.ui?.showPrompt(text, bestDoor.x - this.cameras.main.worldView.x, bestDoor.y - this.cameras.main.worldView.y - 30);
       } else this.ui?.hidePrompt();
       if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
         if (best) this.startDialog(best);
-        else if (doorD < 56) this.enterHome(door);
-        else if (hatchD < 64 && hatchOpen) this.enterFacility(hatch);
+        else if (bestDoor && (bestDoor.gated ? bestDoor.gated() : true)) bestDoor.act();
       }
     } else this.ui?.hidePrompt();
 
@@ -342,6 +375,28 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.sleep();
       this.scene.launch("Facility", { returnAt: at });
+    });
+  }
+
+  private enterPark(at: { x: number; y: number }) {
+    this.player.controlsLocked = true;
+    this.ui.hidePrompt();
+    SFX.open();
+    this.cameras.main.fadeOut(420, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.sleep();
+      this.scene.launch("Park", { returnAt: at });
+    });
+  }
+
+  private enterDespoina(at: { x: number; y: number }) {
+    this.player.controlsLocked = true;
+    this.ui.hidePrompt();
+    SFX.open();
+    this.cameras.main.fadeOut(420, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.sleep();
+      this.scene.launch("Despoina", { returnAt: at });
     });
   }
 

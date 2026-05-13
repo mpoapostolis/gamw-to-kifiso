@@ -12,6 +12,7 @@ import { DEPTH, VIEW_H, VIEW_W } from "../consts";
 import { mix, PAL, shade } from "../palette";
 import { SFX } from "../sfx";
 import { TILE } from "../textures";
+import { Audio } from "../audio";
 import { DIALOGUES } from "../dialogues";
 import type { Fx, GameCtx, NpcSpawn } from "../types";
 import { Player } from "../objects/Player";
@@ -193,6 +194,7 @@ export class FacilityScene extends Phaser.Scene {
     this.keyE = this.input.keyboard!.addKey("E");
 
     this.cameras.main.fadeIn(700, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+    Audio.playMusic(this, "music_facility");
     this.ui.showAreaBanner("The Facility");
     this.time.delayedCall(900, () => this.ui.toast("you are below. they are above.", PAL.gloomGlow));
 

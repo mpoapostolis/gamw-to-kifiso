@@ -15,6 +15,7 @@ import Phaser from "phaser";
 
 class AudioBus {
   private bgm: Phaser.Sound.BaseSound | null = null;
+  private bgmKey: string | null = null;
   private hbt: Phaser.Sound.BaseSound | null = null;
   private _muted = false;
   private musicVolume = 0.32;
@@ -28,7 +29,12 @@ class AudioBus {
       if (scene.cache.audio.exists(key)) return;
       scene.load.audio(key, files);
     };
+    // background tracks (one per location)
     audio("music_hope", ["audio/music_hope.mp3"]);
+    audio("music_facility", ["audio/music_facility.mp3", "audio/music_facility.ogg"]);
+    audio("music_park", ["audio/music_park.mp3", "audio/music_park.ogg"]);
+    audio("music_lullaby", ["audio/music_lullaby.mp3", "audio/music_lullaby.ogg"]);
+    // sfx
     audio("fs_wood_a", ["audio/sfx_footstep_wood_a.ogg"]);
     audio("fs_wood_b", ["audio/sfx_footstep_wood_b.ogg"]);
     audio("fs_grass_a", ["audio/sfx_footstep_grass_a.ogg"]);
@@ -41,16 +47,41 @@ class AudioBus {
 
   /** Start the looping background music. Idempotent. */
   startMusic(scene: Phaser.Scene) {
-    if (this.bgm || this._muted) return;
-    if (!scene.cache.audio.exists("music_hope")) return;
-    this.bgm = scene.sound.add("music_hope", { loop: true, volume: 0 });
-    (this.bgm as Phaser.Sound.WebAudioSound).play();
-    // gentle fade-in
-    scene.tweens.add({
-      targets: this.bgm,
-      volume: this.musicVolume,
-      duration: 1800,
-    });
+    this.playMusic(scene, "music_hope");
+  }
+
+  /**
+   * Crossfade the background bed to a new track. Each scene calls this in
+   * its create() with whatever fits the location. If the key is already
+   * playing, this is a no-op. If a different key is playing, it fades out
+   * and the new one fades in. If `key` isn't loaded yet (e.g. an optional
+   * track the audio agent never managed to download), it falls back to
+   * `music_hope` so something keeps playing.
+   */
+  playMusic(scene: Phaser.Scene, key: string, fade = 1400) {
+    if (this._muted) return;
+    if (this.bgmKey === key && this.bgm) return;
+    let actualKey = key;
+    if (!scene.cache.audio.exists(actualKey)) {
+      if (!scene.cache.audio.exists("music_hope")) return;
+      actualKey = "music_hope";
+      if (this.bgmKey === actualKey) return;
+    }
+    // fade out anything currently playing
+    if (this.bgm) {
+      const old = this.bgm;
+      scene.tweens.add({
+        targets: old,
+        volume: 0,
+        duration: fade * 0.7,
+        onComplete: () => old.stop(),
+      });
+    }
+    const next = scene.sound.add(actualKey, { loop: true, volume: 0 });
+    (next as Phaser.Sound.WebAudioSound).play();
+    scene.tweens.add({ targets: next, volume: this.musicVolume, duration: fade });
+    this.bgm = next;
+    this.bgmKey = actualKey;
   }
 
   duckMusic(scene: Phaser.Scene, to = 0.08) {

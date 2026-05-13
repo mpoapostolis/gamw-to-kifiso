@@ -9,6 +9,8 @@ import { TitleScene } from "./scenes/Title";
 import { GameScene } from "./scenes/Game";
 import { HomeScene } from "./scenes/Home";
 import { FacilityScene } from "./scenes/Facility";
+import { ParkScene } from "./scenes/Park";
+import { DespoinaScene } from "./scenes/Despoina";
 import { UIScene } from "./scenes/Ui";
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -30,7 +32,7 @@ const config: Phaser.Types.Core.GameConfig = {
   },
   fps: { target: 60, min: 24, smoothStep: true },
   render: { powerPreference: "high-performance" },
-  scene: [BootScene, TitleScene, GameScene, HomeScene, FacilityScene, UIScene],
+  scene: [BootScene, TitleScene, GameScene, HomeScene, FacilityScene, ParkScene, DespoinaScene, UIScene],
 };
 
 // eslint-disable-next-line no-new

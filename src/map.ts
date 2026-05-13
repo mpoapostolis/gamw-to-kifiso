@@ -377,16 +377,7 @@ const NPCS: NpcSpawn[] = [
     roam: 0,
     dialog: DIALOGUES.kostas,
   },
-  {
-    id: "despoina",
-    key: "npc_elder",
-    altKey: "npc_elder_b",
-    name: "Mrs. Despoina",
-    x: tcx(11),
-    y: tcy(18.5),
-    roam: 0,
-    dialog: DIALOGUES.despoina,
-  },
+  // Mrs. Despoina lives INSIDE — meet her by stepping into her house.
   // The Custodian is no longer in the outdoor world — you meet him below.
   {
     id: "mailman",

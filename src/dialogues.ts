@@ -285,6 +285,202 @@ export const DIALOGUES: Record<string, (c: GameCtx) => DialogPage[]> = {
   },
 
   /* ------------------------------------------------------------------ *
+   * HELENA'S MOTHER — visits Days 3 & 5. Old enough to almost notice.   *
+   * 90% in her body, 10% somewhere else. Knitting. Warm.                *
+   * Day 5 she slips and calls Alex by Helena's first husband's name —   *
+   * the horror radiates outward. Helena has been replaced too.          *
+   * ------------------------------------------------------------------ */
+  helena_mother: (c) => {
+    if (c.day <= 2)
+      return [P("Helena's Mother", "npc_mom", "...", PAL.gloomGlow)];
+
+    if (c.day === 3)
+      return [
+        P("Helena's Mother", "npc_mom", "Alex, dear. Sit with me a moment. The light is good by the window. Helena's gone to cut basil."),
+        P("Helena's Mother", "npc_mom", "Hand me the green wool. — No, the darker one. Thank you. You always know which one I mean. That's a useful thing in a husband."),
+        P("Helena's Mother", "npc_mom", "She loves you, you know. She told me last spring. — Or was it the spring before. The springs run together at my age. They run together for everyone, in the end. We just notice it sooner.", PAL.gloomGlow),
+        P("Helena's Mother", "npc_mom", "You're a kind one. I've watched you with her. Kindness shows in the small things — the way you set down a cup. I have known unkind men. You set the cup down softly."),
+        P("Helena's Mother", "npc_mom", "Go on, dear. Don't sit with the old woman all morning. She's outside. She's always outside lately."),
+      ];
+
+    if (c.day === 5 && c.flags.awake)
+      return [
+        P("Helena's Mother", "npc_mom", "Nikos. Come here. Sit. — Oh. Oh, I'm so sorry, dear. Alex. Alex of course. The light made you look like — never mind. Sit anyway.", PAL.gloomGlow, (cc) => { cc.addNote("helenaMotherSlip"); }),
+        P("Helena's Mother", "npc_mom", "Nikos was — was Helena's first. Years ago. Before you. — Funny, I haven't thought his name in — — I don't know. A long time."),
+        P("Helena's Mother", "npc_mom", "She doesn't talk about him. I think she forgot him, the way one forgets a dream. — That isn't possible, is it. To forget a husband. Tell me that isn't possible.", PAL.gloomGlow),
+        P("Helena's Mother", "npc_mom", "...Alex. Look at me. Properly. — Is there a thing you're carrying? You have the face of a man carrying a thing."),
+        P("Helena's Mother", "npc_mom", "...no. Don't. Don't tell me. Let me keep this morning. The wool is green. Helena is outside. You are kind. — Let me keep this morning.", PAL.heartHi, (cc) => { cc.addNote("helenaMotherKnows"); }),
+        P("Helena's Mother", "npc_mom", "Go on, dear. Cut the basil with her. She likes it when you do."),
+      ];
+
+    if (c.day === 5)
+      return [
+        P("Helena's Mother", "npc_mom", "Nikos. — Oh. Sorry, dear. Alex. The light. Sit a minute.", PAL.gloomGlow, (cc) => cc.addNote("helenaMotherSlip")),
+        P("Helena's Mother", "npc_mom", "I had a thought. It's gone. Hand me the green wool. — Thank you, dear. You're a good one. You set the cup down softly."),
+        P("Helena's Mother", "npc_mom", "Go on. She's outside. She's always outside lately."),
+      ];
+
+    return [P("Helena's Mother", "npc_mom", "Mm. Hand me the green wool, dear.")];
+  },
+
+  /* ------------------------------------------------------------------ *
+   * THE CAT — park stray. Narrator voice, no quoted lines.              *
+   * Lowercase descriptive prose. Reuses kid sprite.                     *
+   * ------------------------------------------------------------------ */
+  cat: (c) => {
+    if (c.day === 1)
+      return [
+        P("", "npc_kid", "a small grey cat sits at the edge of the path.", PAL.gloomGlow),
+        P("", "npc_kid", "it does not move. it looks at you the way a thing looks at another thing it has seen before.", PAL.gloomGlow),
+        P("", "npc_kid", "it does not blink for a long time.", PAL.gloomGlow),
+      ];
+
+    if (c.day === 2)
+      return [
+        P("", "npc_kid", "the cat is here again. same place. same patch of dust.", PAL.gloomGlow),
+        P("", "npc_kid", "you crouch. it lets you put a hand on its head. it is warm. it is real.", PAL.gloomGlow),
+        P("", "npc_kid", "its eyes are the colour of yours. you notice this. you do not know if you noticed it yesterday.", PAL.gloomGlow, (cc) => cc.addNote("catEyes")),
+      ];
+
+    if (c.day === 3 && c.notes.parkBench)
+      return [
+        P("", "npc_kid", "the cat is waiting for you.", PAL.gloomGlow),
+        P("", "npc_kid", "it drops a small flat stone at your feet and steps back to watch.", PAL.gloomGlow),
+        P("", "npc_kid", "there is a number carved into one side. the number is older than the stone, somehow.", PAL.gloomGlow, (cc) => cc.addItem("park_stone")),
+        P("", "npc_kid", "it sits down. it watches you put the stone in your pocket. it seems satisfied.", PAL.gloomGlow),
+      ];
+
+    if (c.day === 3)
+      return [
+        P("", "npc_kid", "the cat is here. it stares at the bench behind you, then at you, then at the bench.", PAL.gloomGlow),
+        P("", "npc_kid", "it seems to be waiting. you do not know for what.", PAL.gloomGlow),
+      ];
+
+    if (c.day === 4)
+      return [
+        P("", "npc_kid", "the cat is sitting in exactly the same place as yesterday.", PAL.gloomGlow),
+        P("", "npc_kid", "the same patch of dust. the same tilt of the head. the same paw tucked under.", PAL.gloomGlow),
+        P("", "npc_kid", "you wonder, suddenly, if it is remembering you. or if it is only the kind of remembering bodies do without asking.", PAL.gloomGlow, (cc) => cc.addNote("catPose")),
+      ];
+
+    // day 5+
+    return [
+      P("", "npc_kid", "the patch of dust is empty.", PAL.gloomGlow),
+      P("", "npc_kid", "you stand there a long time. the wind moves through the tree above the bench. nothing else.", PAL.gloomGlow),
+    ];
+  },
+
+  /* ------------------------------------------------------------------ *
+   * SHOPKEEPER — small café/general store. Unaware, like Mom.            *
+   * Just here, doing his thing. The weather is always the same.         *
+   * ------------------------------------------------------------------ */
+  shopkeeper: (c) => {
+    if (c.day === 1)
+      return [
+        P("Shopkeeper", "npc_smith", "Morning, Alex! The usual? Coffee, no sugar, two slices of the brown bread? — Course it is. Course it is."),
+        P("Shopkeeper", "npc_smith", "Lovely day. Sun's just about right. Bit of a breeze. Same as yesterday, come to think of it. Same as the day before."),
+        P("Shopkeeper", "npc_smith", "Not that I'm complaining. Bad weather's bad for business. I'll take the same sky every morning, thank you very much."),
+        P("Shopkeeper", "npc_smith", "There you go. On the house today. — Don't argue. I had a good week. — Did I? I think I did."),
+      ];
+
+    if (c.day === 2)
+      return [
+        P("Shopkeeper", "npc_smith", "Morning. Brown bread, coffee — oh. You take it with sugar today? Sorry. Sorry, I — could've sworn —"),
+        P("Shopkeeper", "npc_smith", "Funny thing. You've been coming in for years and I still get your usual wrong sometimes. Some mornings you're a coffee man. Some mornings a tea man. Hard to keep track.", PAL.gloomGlow, (cc) => cc.addNote("shopkeeperUsual")),
+        P("Shopkeeper", "npc_smith", "Something's different about you today. Can't say what. New shirt? — No, that's the same shirt. Hmm."),
+        P("Shopkeeper", "npc_smith", "Anyway. Sun's lovely. Same as ever. There you go."),
+      ];
+
+    if (c.day === 3)
+      return [
+        P("Shopkeeper", "npc_smith", "Hang on, hang on. Let me find your tab. — Bear with me. Old habit. I keep one for the regulars."),
+        P("Shopkeeper", "npc_smith", "Here we are. — Look at that. Years of you. Brown bread, brown bread, brown bread. Coffee. Coffee. — Sometimes tea. Don't know why I argue about it."),
+        P("Shopkeeper", "npc_smith", "...funny. Look at this Tuesday. Three weeks back. The handwriting changes mid-line. Mid-line. — That's my hand at the top and somebody else's hand at the bottom. Same Tuesday. Same date.", PAL.gloomGlow, (cc) => { cc.addNote("shopkeeperLedger"); cc.addItem("shop_receipt"); }),
+        P("Shopkeeper", "npc_smith", "Here, take the page. I don't want it any more. — Don't know why I don't want it. Just don't."),
+        P("Shopkeeper", "npc_smith", "Anyway. Brown bread. There you go. Sun's lovely."),
+      ];
+
+    if (c.day === 4)
+      return [
+        P("Shopkeeper", "npc_smith", "Morning, Alex. The us— —"),
+        P("Shopkeeper", "npc_smith", "...", PAL.gloomGlow),
+        P("Shopkeeper", "npc_smith", "...sorry. Sorry. What was I — — there was a man behind you. Just for a second. Standing right where you are. Wearing — wearing your shirt.", PAL.gloomGlow, (cc) => cc.addNote("shopkeeperSaw")),
+        P("Shopkeeper", "npc_smith", "Sorry. Tired. Long week. — Was it a long week? Feels like it should have been."),
+        P("Shopkeeper", "npc_smith", "Brown bread. There you go. — On the house. I insist."),
+      ];
+
+    // day 5+
+    return [
+      P("Shopkeeper", "npc_smith", "Morning. Same as ever. There you go.", PAL.gloomGlow),
+    ];
+  },
+
+  /* ------------------------------------------------------------------ *
+   * COSTAS'S WIFE — "Anna". Lives behind the painted door.              *
+   * Unaware but cracking. The small heartbreak: Costas is awake,        *
+   * Anna isn't, and they love each other anyway.                        *
+   * If kostasReveal is set, Day 3+ lines turn quieter — Costas's grief  *
+   * shows through her.                                                  *
+   * ------------------------------------------------------------------ */
+  costas_wife: (c) => {
+    if (c.day === 1)
+      return [
+        P("Anna", "npc_merchant", "Oh — Alex, love. Come in, come in. I've put the kettle on. Costas is out front, swearing at the door again, bless him."),
+        P("Anna", "npc_merchant", "Sit there. Don't sit on the cat. — There's no cat. I just always say it. Habit. We had one. — Years ago."),
+        P("Anna", "npc_merchant", "Look at this wallpaper. We chose it together. Costas wanted the green one. I wanted this. He pretends he doesn't like it but he runs his hand along it sometimes when he thinks I'm not looking."),
+        P("Anna", "npc_merchant", "That's love, isn't it? The pretending. The running of the hand. Drink your tea, love."),
+      ];
+
+    if (c.day === 2)
+      return [
+        P("Anna", "npc_merchant", "Alex! Just the man. Come sit. I was telling Costas a story and he gave me such a look."),
+        P("Anna", "npc_merchant", "When he was young — twenty, maybe — he climbed the bell tower on a dare. Got halfway up and froze. Had to be talked down by the priest. He was furious about it for weeks. Maybe a month."),
+        P("Anna", "npc_merchant", "He says he doesn't remember. Says it wasn't him. — But I was there. I watched him come down. He had a smear of green paint on his elbow.", PAL.gloomGlow, (cc) => cc.addNote("annaTowerStory")),
+        P("Anna", "npc_merchant", "Maybe I'm wrong. Maybe it was someone else's husband. — Maybe I've put his face onto the wrong man. — Don't tell him I said that."),
+      ];
+
+    if (c.day === 3 && c.flags.kostasReveal)
+      return [
+        P("Anna", "npc_merchant", "Alex. Sit. The tea's already poured. I knew you'd come."),
+        P("Anna", "npc_merchant", "He's quiet lately. Costas. He sits by the door and doesn't paint. Just sits. — He looks at me sometimes like he's saying goodbye. Every morning. — Isn't that strange.", PAL.gloomGlow),
+        P("Anna", "npc_merchant", "I —"),
+        P("Anna", "npc_merchant", "I'm sorry. I'm crying. I don't know why. I was about to say something about the wallpaper and then — — oh.", PAL.gloomGlow, (cc) => cc.addNote("costasWifeCried")),
+        P("Anna", "npc_merchant", "Don't tell him I cried. He worries. He worries so much for a man who pretends not to."),
+        P("Anna", "npc_merchant", "Drink your tea, love. Before it goes cold."),
+      ];
+
+    if (c.day === 3)
+      return [
+        P("Anna", "npc_merchant", "Alex, sit down, you look like a ghost. Have some tea. — Honey? Two sugars? I never can remember."),
+        P("Anna", "npc_merchant", "Costas was telling me — — or was it me telling him. We tell each other the same stories now. Saves time."),
+        P("Anna", "npc_merchant", "...sorry. Sorry. I —"),
+        P("Anna", "npc_merchant", "I'm crying. I don't know why. I was about to say something about the wallpaper. Oh, dear. — Oh, sorry, love. I don't know what came over me.", PAL.gloomGlow, (cc) => cc.addNote("costasWifeCried")),
+        P("Anna", "npc_merchant", "Don't tell Costas. He fusses. — Drink your tea."),
+      ];
+
+    if (c.day === 4)
+      return [
+        P("Anna", "npc_merchant", "Hello. Hello, love. Sit."),
+        P("Anna", "npc_merchant", "The tea is warm. — Is it? I think it's warm."),
+        P("Anna", "npc_merchant", "Give me your hand a minute. — Just the one. — There. That's nice. That's nice."),
+        P("Anna", "npc_merchant", "I don't remember what I was saying. — Doesn't matter. Your hand is warm too.", PAL.heartHi, (cc) => cc.addNote("annaQuiet")),
+      ];
+
+    // day 5+
+    if (c.flags.kostasReveal)
+      return [
+        P("Anna", "npc_merchant", "Yiannis! You came. Sit, sit. I knew you'd come for the saint's day. Mama's set a place for you."),
+        P("Anna", "npc_merchant", "She'll be cross if you don't eat. — She's always cross. You remember her cross face. Don't pretend you don't.", PAL.gloomGlow, (cc) => cc.addNote("annaChildhood")),
+        P("Anna", "npc_merchant", "There. Sit. — Costas will be home soon. You haven't met Costas. You'll like him. Everyone does.", PAL.gloomGlow),
+      ];
+
+    return [
+      P("Anna", "npc_merchant", "Yiannis! Come in. I've set a place. Mama said you might."),
+      P("Anna", "npc_merchant", "Sit. Sit. The tea's warm.", PAL.gloomGlow, (cc) => cc.addNote("annaChildhood")),
+    ];
+  },
+
+  /* ------------------------------------------------------------------ *
    * THE CUSTODIAN — Day 5 only, gated on kostasReveal.                  *
    * Not a villain. Almost convincing. Seductive in his reasonableness.  *
    * ------------------------------------------------------------------ */
