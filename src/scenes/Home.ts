@@ -349,7 +349,12 @@ export class HomeScene extends Phaser.Scene {
   private sleeping = false;
 
   private playSleepCinematic() {
-    // a full-screen black wash with text beats
+    // On day 3+: before the text beats, show a Cleaner drift through the room
+    // (the camera is briefly visible above the black wash). The player should
+    // be hiding under the sink to remember any of this. Otherwise the screen
+    // is black and only the text plays.
+    if (this.ctx.day >= 3) this.spawnCleanerVisit();
+
     const beats = [
       "you close your eyes.",
       "you don't dream.",
@@ -411,6 +416,55 @@ export class HomeScene extends Phaser.Scene {
       });
     };
     step();
+  }
+
+  /** A single Cleaner figure drifts from the front door to the bed and back. */
+  private spawnCleanerVisit() {
+    const startX = this.exitDoor.x;
+    const startY = this.exitDoor.y - 12;
+    const cleaner = this.add.image(startX, startY, "npc_cleaner").setOrigin(0.5, 0.9).setDepth(2000).setAlpha(0).setScale(1.05);
+    cleaner.setBlendMode(Phaser.BlendModes.SCREEN);
+    // a soft cold halo
+    const halo = this.add.image(startX, startY - 16, "glow_violet").setBlendMode(Phaser.BlendModes.ADD).setDepth(1999).setScale(0.8).setAlpha(0);
+    const targetX = this.bed.x;
+    const targetY = this.bed.y - 8;
+    this.tweens.add({ targets: [cleaner, halo], alpha: 0.85, duration: 1200, ease: "Sine.easeInOut" });
+    this.tweens.add({
+      targets: cleaner,
+      x: targetX,
+      y: targetY,
+      duration: 2800,
+      delay: 400,
+      ease: "Sine.easeInOut",
+    });
+    this.tweens.add({
+      targets: halo,
+      x: targetX,
+      y: targetY - 16,
+      duration: 2800,
+      delay: 400,
+      ease: "Sine.easeInOut",
+    });
+    // pause, hand over the head, then drift back out and fade
+    this.time.delayedCall(3400, () => {
+      this.tweens.add({
+        targets: [cleaner, halo],
+        x: startX,
+        y: (target: Phaser.GameObjects.Image) => (target === cleaner ? startY : startY - 16),
+        duration: 2200,
+        ease: "Sine.easeInOut",
+      });
+      this.tweens.add({
+        targets: [cleaner, halo],
+        alpha: 0,
+        duration: 1400,
+        delay: 1100,
+        onComplete: () => {
+          cleaner.destroy();
+          halo.destroy();
+        },
+      });
+    });
   }
 
   private afterSleep() {

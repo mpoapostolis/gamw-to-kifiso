@@ -387,16 +387,7 @@ const NPCS: NpcSpawn[] = [
     roam: 0,
     dialog: DIALOGUES.despoina,
   },
-  {
-    id: "epistatis",
-    key: "npc_child",
-    altKey: "npc_child_b",
-    name: "The Custodian",
-    x: tcx(50.5),
-    y: tcy(22),
-    roam: 0,
-    dialog: DIALOGUES.epistatis,
-  },
+  // The Custodian is no longer in the outdoor world — you meet him below.
   {
     id: "mailman",
     key: "npc_mailman",

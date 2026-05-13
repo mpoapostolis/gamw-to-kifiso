@@ -175,6 +175,13 @@ export class GameScene extends Phaser.Scene {
       this.cameras.main.fadeIn(380, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
       this.player.controlsLocked = false;
     });
+    this.events.on("facility-exit", (pt: { x: number; y: number }) => {
+      this.player.setPosition(pt.x, pt.y);
+      (this.player.body as Phaser.Physics.Arcade.Body).reset(pt.x, pt.y);
+      this.cameras.main.fadeIn(380, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+      this.player.controlsLocked = false;
+    });
+    this.events.on("facility-offer-ending", () => this.offerEnding());
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.events.off("gloom-killed", this.onGloomKilled, this);
       this.events.off("player-died", this.onPlayerDied, this);
@@ -233,12 +240,20 @@ export class GameScene extends Phaser.Scene {
       // your front door — Helena's home, just in front of house_a
       const door = { x: 13 * 48 + 24, y: 18 * 48 + 4 };
       const doorD = Phaser.Math.Distance.Between(this.player.x, this.player.y, door.x, door.y);
+      // the stairwell — open only after Costas's reveal
+      const hatch = { x: 50.5 * 48, y: 22 * 48 };
+      const hatchD = Phaser.Math.Distance.Between(this.player.x, this.player.y, hatch.x, hatch.y);
+      const hatchOpen = this.ctx.flags.kostasReveal && !this.ctx.flags.endingChosen;
       if (best) this.ui?.showPrompt(`E  ·  ${best.spawn.name}`, best.x - this.cameras.main.worldView.x, best.y - this.cameras.main.worldView.y - 56);
       else if (doorD < 56) this.ui?.showPrompt(`E  ·  inside`, door.x - this.cameras.main.worldView.x, door.y - this.cameras.main.worldView.y - 30);
-      else this.ui?.hidePrompt();
+      else if (hatchD < 64) {
+        const txt = hatchOpen ? `E  ·  descend` : `the way isn't ready yet`;
+        this.ui?.showPrompt(txt, hatch.x - this.cameras.main.worldView.x, hatch.y - this.cameras.main.worldView.y - 30);
+      } else this.ui?.hidePrompt();
       if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
         if (best) this.startDialog(best);
         else if (doorD < 56) this.enterHome(door);
+        else if (hatchD < 64 && hatchOpen) this.enterFacility(hatch);
       }
     } else this.ui?.hidePrompt();
 
@@ -275,6 +290,18 @@ export class GameScene extends Phaser.Scene {
       if (npc.spawn.id === "epistatis" && this.ctx.flags.endingAvailable && !this.ctx.flags.endingChosen) {
         this.offerEnding();
       }
+    });
+  }
+
+  /** Descend the stairwell into the underground facility. */
+  private enterFacility(at: { x: number; y: number }) {
+    this.player.controlsLocked = true;
+    this.ui.hidePrompt();
+    SFX.open();
+    this.cameras.main.fadeOut(620, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.sleep();
+      this.scene.launch("Facility", { returnAt: at });
     });
   }
 
