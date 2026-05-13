@@ -40,6 +40,10 @@ export class UIScene extends Phaser.Scene {
   private hudKillIcon!: Phaser.GameObjects.Image;
   private hudClock!: Phaser.GameObjects.Text;
   private hudDay!: Phaser.GameObjects.Text;
+  private hudQuestTitle!: Phaser.GameObjects.Text;
+  private hudQuestHint!: Phaser.GameObjects.Text;
+  private hudQuestG!: Phaser.GameObjects.Graphics;
+  private minimapG!: Phaser.GameObjects.Graphics;
 
   // banner / prompt / toasts
   private banner!: Phaser.GameObjects.Text;
@@ -105,14 +109,37 @@ export class UIScene extends Phaser.Scene {
     // ----- HUD ----------------------------------------------------------
     // hearts
     this.rebuildHearts();
-    // coin
+    // memories counter (right side)
     const coinBg = this.add.graphics().setDepth(20);
-    drawPanel(coinBg, VIEW_W - 168, 14, 154, 44, PAL.panelEdge);
-    this.add.image(VIEW_W - 168 + 26, 14 + 22, "ui_coin").setDepth(21);
+    drawPanel(coinBg, VIEW_W - 200, 14, 186, 56, PAL.panelEdgeHi);
+    this.add.image(VIEW_W - 200 + 28, 14 + 22, "ui_coin").setDepth(21).setScale(0.95);
     this.hudGold = this.add
-      .text(VIEW_W - 168 + 46, 14 + 22, "0", { fontFamily: CINZEL, fontSize: "22px", color: hex(PAL.ink), fontStyle: "600" })
+      .text(VIEW_W - 200 + 50, 14 + 22, "0", { fontFamily: CINZEL, fontSize: "22px", color: hex(PAL.ink), fontStyle: "600" })
       .setOrigin(0, 0.5)
       .setDepth(21);
+    this.add
+      .text(VIEW_W - 200 + 50, 14 + 44, "memories", { fontFamily: SPECTRAL, fontSize: "11px", color: hex(PAL.inkDim), fontStyle: "italic 400" })
+      .setOrigin(0, 0.5)
+      .setDepth(21)
+      .setLetterSpacing(1.5);
+
+    // active quest panel (under memories)
+    this.hudQuestG = this.add.graphics().setDepth(20);
+    drawPanel(this.hudQuestG, VIEW_W - 320, 82, 306, 70, PAL.panelEdge);
+    this.add
+      .text(VIEW_W - 320 + 14, 82 + 10, "CURRENT", { fontFamily: CINZEL, fontSize: "11px", color: hex(PAL.emberSoft), fontStyle: "600" })
+      .setLetterSpacing(3)
+      .setDepth(21);
+    this.hudQuestTitle = this.add
+      .text(VIEW_W - 320 + 14, 82 + 26, "—", { fontFamily: SPECTRAL, fontSize: "15px", color: hex(PAL.ink), fontStyle: "600" })
+      .setDepth(21);
+    this.hudQuestHint = this.add
+      .text(VIEW_W - 320 + 14, 82 + 46, "", { fontFamily: SPECTRAL, fontSize: "12px", color: hex(PAL.inkDim), fontStyle: "italic 400", wordWrap: { width: 286 } })
+      .setDepth(21);
+
+    // mini-map (small circular radar in the upper-right corner)
+    this.minimapG = this.add.graphics().setDepth(20);
+    this.minimapG.setPosition(VIEW_W - 86, VIEW_H - 86);
     // quest / kills
     const killBg = this.add.graphics().setDepth(20);
     drawPanel(killBg, 16, 70, 196, 38, PAL.panelEdge);
@@ -255,6 +282,79 @@ export class UIScene extends Phaser.Scene {
       this.hudKills?.setText(`TAB  ·  ${this.noteCount} note${this.noteCount === 1 ? "" : "s"}`);
     }
     this.refreshInventory();
+  }
+
+  /** Update the active-quest HUD panel. Pass empty strings to clear. */
+  setActiveQuest(title: string, hint: string) {
+    if (!this.hudQuestTitle) return;
+    this.hudQuestTitle.setText(title || "—");
+    this.hudQuestHint.setText(hint || "");
+  }
+
+  /**
+   * Repaint the radar in the bottom-right corner. Coords are world-space.
+   * Doors are bright amber dots; NPCs are soft cream dots; the player is the
+   * pulsing central marker.
+   */
+  setMinimap(
+    px: number,
+    py: number,
+    worldW: number,
+    worldH: number,
+    doors: Array<{ x: number; y: number; open?: boolean }>,
+    npcs: Array<{ x: number; y: number }>,
+  ) {
+    if (!this.minimapG) return;
+    const r = 60;
+    const cx = 0;
+    const cy = 0;
+    this.minimapG.clear();
+    // backing disc
+    this.minimapG.fillStyle(PAL.panel, 0.85);
+    this.minimapG.fillCircle(cx, cy, r);
+    this.minimapG.lineStyle(2, PAL.panelEdgeHi, 0.9);
+    this.minimapG.strokeCircle(cx, cy, r);
+    this.minimapG.lineStyle(1, PAL.panelEdge, 0.5);
+    this.minimapG.strokeCircle(cx, cy, r - 6);
+    // crosshair
+    this.minimapG.lineStyle(1, PAL.inkFaint, 0.4);
+    this.minimapG.lineBetween(cx - r + 8, cy, cx + r - 8, cy);
+    this.minimapG.lineBetween(cx, cy - r + 8, cx, cy + r - 8);
+    // scale: show roughly an 800×800 px area around the player
+    const view = 900;
+    const scale = (r - 6) / (view / 2);
+    const project = (x: number, y: number): [number, number] | null => {
+      const dx = (x - px) * scale;
+      const dy = (y - py) * scale;
+      if (Math.hypot(dx, dy) > r - 6) return null;
+      return [cx + dx, cy + dy];
+    };
+    // NPCs first (back layer)
+    this.minimapG.fillStyle(PAL.ink, 0.7);
+    for (const n of npcs) {
+      const p = project(n.x, n.y);
+      if (!p) continue;
+      this.minimapG.fillCircle(p[0], p[1], 2);
+    }
+    // doors
+    for (const d of doors) {
+      const p = project(d.x, d.y);
+      if (!p) continue;
+      const tint = d.open === false ? PAL.inkFaint : PAL.emberHot;
+      this.minimapG.fillStyle(tint, d.open === false ? 0.55 : 1);
+      this.minimapG.fillCircle(p[0], p[1], 3.5);
+      this.minimapG.lineStyle(1, PAL.ember, 0.7);
+      this.minimapG.strokeCircle(p[0], p[1], 5);
+    }
+    // player pulse
+    const pulse = 0.85 + 0.15 * Math.sin(this.time.now * 0.005);
+    this.minimapG.fillStyle(PAL.hpRim, 1);
+    this.minimapG.fillCircle(cx, cy, 3.5 * pulse);
+    this.minimapG.lineStyle(1, PAL.ink, 0.95);
+    this.minimapG.strokeCircle(cx, cy, 4 * pulse);
+    // worldW/H for reference only — could be used to draw a sub-world frame
+    void worldW;
+    void worldH;
   }
 
   setClock(minutes: number, day: number, danger = false) {

@@ -11,12 +11,26 @@ import { MUSIC } from "../music";
 import { Audio } from "../audio";
 import { buildWorld, WORLD_H, WORLD_W } from "../map";
 import { EPILOGUE_BURN, EPILOGUE_RETURN, PROLOGUE } from "../story";
+import { activeQuest, QUESTS } from "../quests";
 import type { Fx, GameCtx, World } from "../types";
 import { Player } from "../objects/Player";
 import { Gloom } from "../objects/Gloom";
 import { Npc } from "../objects/Npc";
 import { Pickup } from "../objects/Pickup";
 import type { UIScene } from "./Ui";
+
+/** A door / portal that the player can interact with to enter another scene. */
+interface Door {
+  x: number;
+  y: number;
+  label: string;
+  gatedLabel?: string;
+  act: () => void;
+  gated?: () => boolean;
+  marker?: Phaser.GameObjects.Image;
+  beacon?: Phaser.GameObjects.Image;
+  glow?: Phaser.GameObjects.Image;
+}
 
 export class GameScene extends Phaser.Scene {
   ctx!: GameCtx;
@@ -58,6 +72,9 @@ export class GameScene extends Phaser.Scene {
   private cleanerOverlap: Phaser.Physics.Arcade.Collider | null = null;
   private cleanerVignette: Phaser.GameObjects.Rectangle | null = null;
   private cleanerEndsAt = 0;
+
+  // doors / portals — built once in create(), iterated in update()
+  private doors: Door[] = [];
 
   constructor() {
     super("Game");
@@ -179,6 +196,9 @@ export class GameScene extends Phaser.Scene {
     MUSIC.start();
     Audio.startMusic(this);
 
+    // ---- doors / portals + their visible beacons -----------------------
+    this.buildDoors();
+
     // ---- events --------------------------------------------------------
     this.events.on("gloom-killed", this.onGloomKilled, this);
     this.events.on("player-died", this.onPlayerDied, this);
@@ -241,7 +261,8 @@ export class GameScene extends Phaser.Scene {
     this.ui.showStory("YESTERDAY ECHOES", PROLOGUE, () => {
       this.inStory = false;
       this.player.controlsLocked = false;
-      this.ui.showAreaBanner("Diona Community · Day 1");
+      this.ui.showAreaBanner("ACT I · Awakening");
+      this.time.delayedCall(3200, () => this.ui.showAreaBanner("Diona Community · Day 1"));
       this.ui.toast("E talk · TAB notebook · I pocket", PAL.inkDim);
     });
   }
@@ -303,29 +324,10 @@ export class GameScene extends Phaser.Scene {
           best = npc;
         }
       }
-      // doors / gates (E to enter)
-      const doors: Array<{ x: number; y: number; label: string; act: () => void; gated?: () => boolean; gatedLabel?: string }> = [
-        { x: 13 * 48 + 24, y: 18 * 48 + 4, label: "E  ·  inside", act: () => this.enterHome({ x: 13 * 48 + 24, y: 18 * 48 + 4 }) },
-        {
-          x: 50.5 * 48,
-          y: 22 * 48,
-          label: "E  ·  descend",
-          gated: () => !!this.ctx.flags.kostasReveal && !this.ctx.flags.endingChosen,
-          gatedLabel: "the way isn't ready yet",
-          act: () => this.enterFacility({ x: 50.5 * 48, y: 22 * 48 }),
-        },
-        // Mrs. Despoina's front door — the NW residential house at tile (8,15)
-        { x: 8 * 48 + 24, y: 16 * 48, label: "E  ·  Mrs. Despoina's", act: () => this.enterDespoina({ x: 8 * 48 + 24, y: 16 * 48 }) },
-        // the little park — south path (clearing south of the village)
-        { x: 16 * 48, y: 34 * 48, label: "E  ·  to the park", act: () => this.enterPark({ x: 16 * 48, y: 34 * 48 - 4 }) },
-        // the café — the shop at tile (10,22)
-        { x: 10 * 48 + 24, y: 22 * 48 + 14, label: "E  ·  the café", act: () => this.enterCafe({ x: 10 * 48 + 24, y: 22 * 48 + 14 }) },
-        // the clinic — the NE house at tile (27,13)
-        { x: 27 * 48 + 24, y: 14 * 48 - 4, label: "E  ·  the clinic", act: () => this.enterClinic({ x: 27 * 48 + 24, y: 14 * 48 - 4 }) },
-      ];
-      let bestDoor: typeof doors[number] | null = null;
+      // closest door from the pre-built list
+      let bestDoor: Door | null = null;
       let bestDoorD = 64;
-      for (const d of doors) {
+      for (const d of this.doors) {
         const dd = Phaser.Math.Distance.Between(this.player.x, this.player.y, d.x, d.y);
         if (dd < bestDoorD) {
           bestDoorD = dd;
@@ -343,6 +345,12 @@ export class GameScene extends Phaser.Scene {
         if (best) this.startDialog(best);
         else if (bestDoor && (bestDoor.gated ? bestDoor.gated() : true)) bestDoor.act();
       }
+      // tone the locked-door beacons down
+      for (const d of this.doors) {
+        if (d.beacon && d.gated) {
+          d.beacon.setAlpha(d.gated() ? 1 : 0.25);
+        }
+      }
     } else this.ui?.hidePrompt();
 
     // ---- area banners --------------------------------------------------
@@ -353,6 +361,32 @@ export class GameScene extends Phaser.Scene {
 
     // ---- ambient emitter follows player --------------------------------
     this.pAmbient.setPosition(this.player.x, this.player.y);
+
+    // ---- HUD: active quest + mini-map ----------------------------------
+    if (this.ui) {
+      const q = activeQuest(this.ctx);
+      this.ui.setActiveQuest(q ? q.title : "—", q ? q.hint : "");
+      const doorsForMap = this.doors.map((d) => ({ x: d.x, y: d.y, open: d.gated ? d.gated() : true }));
+      const npcsForMap = this.npcGroup.getChildren().map((n) => ({ x: (n as Npc).x, y: (n as Npc).y }));
+      this.ui.setMinimap(this.player.x, this.player.y, WORLD_W, WORLD_H, doorsForMap, npcsForMap);
+    }
+
+    // ---- automatic quest reward checks ---------------------------------
+    for (const def of QUESTS) {
+      const flagKey = "_rewarded_" + def.id;
+      if (this.ctx.flags[flagKey]) continue;
+      if (!def.isComplete(this.ctx)) continue;
+      this.ctx.flags[flagKey] = true;
+      if (def.reward?.memories) {
+        this.ctx.giveGold(def.reward.memories);
+        this.ui?.toast(`+${def.reward.memories} memories  ·  ${def.title}`, PAL.emberHot);
+      } else {
+        this.ui?.toast(`✓  ${def.title}`, PAL.emberHot);
+      }
+      if (def.reward?.note) this.ctx.addNote(def.reward.note);
+      if (def.reward?.item) this.ctx.addItem(def.reward.item);
+      if (def.reward?.unlocks) this.ctx.flags[def.reward.unlocks] = true;
+    }
 
     // ---- cleaner phase chase -------------------------------------------
     if (this.cleanerPhase) this.updateCleaners(_delta);
@@ -394,6 +428,48 @@ export class GameScene extends Phaser.Scene {
       this.scene.sleep();
       this.scene.launch("Facility", { returnAt: at });
     });
+  }
+
+  /** Build every interactable portal once + paint its persistent beacon. */
+  private buildDoors() {
+    const defs: Door[] = [
+      { x: 13 * 48 + 24, y: 18 * 48 + 4, label: "E  ·  inside", act: () => this.enterHome({ x: 13 * 48 + 24, y: 18 * 48 + 4 }) },
+      {
+        x: 50.5 * 48,
+        y: 22 * 48,
+        label: "E  ·  descend",
+        gated: () => !!this.ctx.flags.kostasReveal && !this.ctx.flags.endingChosen,
+        gatedLabel: "the way isn't ready yet",
+        act: () => this.enterFacility({ x: 50.5 * 48, y: 22 * 48 }),
+      },
+      { x: 8 * 48 + 24, y: 16 * 48, label: "E  ·  Mrs. Despoina's", act: () => this.enterDespoina({ x: 8 * 48 + 24, y: 16 * 48 }) },
+      { x: 16 * 48, y: 34 * 48, label: "E  ·  to the park", act: () => this.enterPark({ x: 16 * 48, y: 34 * 48 - 4 }) },
+      { x: 10 * 48 + 24, y: 22 * 48 + 14, label: "E  ·  the café", act: () => this.enterCafe({ x: 10 * 48 + 24, y: 22 * 48 + 14 }) },
+      { x: 27 * 48 + 24, y: 14 * 48 - 4, label: "E  ·  the clinic", act: () => this.enterClinic({ x: 27 * 48 + 24, y: 14 * 48 - 4 }) },
+    ];
+    this.doors = defs;
+    for (const d of this.doors) {
+      // a warm ground-glow so the door reads as walkable
+      const glow = this.add
+        .image(d.x, d.y, "glow_warm")
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setScale(1.05)
+        .setAlpha(0.55)
+        .setDepth(d.y - 2);
+      this.tweens.add({ targets: glow, alpha: { from: 0.4, to: 0.7 }, scale: { from: 1.0, to: 1.15 }, yoyo: true, repeat: -1, duration: 1700, ease: "Sine.easeInOut" });
+      d.glow = glow;
+      // a chevron floating above the door — bobs up and down
+      const beacon = this.add
+        .image(d.x, d.y - 60, "chevron")
+        .setOrigin(0.5)
+        .setScale(2.4)
+        .setTint(PAL.emberHot)
+        .setBlendMode(Phaser.BlendModes.ADD)
+        .setDepth(d.y + 200);
+      this.tweens.add({ targets: beacon, y: d.y - 72, yoyo: true, repeat: -1, duration: 1100, ease: "Sine.easeInOut" });
+      this.tweens.add({ targets: beacon, alpha: { from: 0.85, to: 1 }, yoyo: true, repeat: -1, duration: 700, ease: "Sine.easeInOut" });
+      d.beacon = beacon;
+    }
   }
 
   private enterPark(at: { x: number; y: number }) {
@@ -561,6 +637,14 @@ export class GameScene extends Phaser.Scene {
     if (this.ctx.day >= 4 && !this.ctx.flags.awake) {
       this.ctx.flags.awake = true;
       this.ui?.toast("something inside you is awake", PAL.gloomGlow);
+    }
+    // ---- act transitions ---------------------------------------------
+    if (this.ctx.day === 3 && !this.ctx.flags._actII) {
+      this.ctx.flags._actII = true;
+      this.time.delayedCall(900, () => this.ui?.showAreaBanner("ACT II · Investigation"));
+    } else if (this.ctx.day === 5 && !this.ctx.flags._actIII) {
+      this.ctx.flags._actIII = true;
+      this.time.delayedCall(900, () => this.ui?.showAreaBanner("ACT III · Discovery"));
     }
     // teleport player home (front door, the next morning)
     const door = { x: 13 * 48 + 24, y: 18 * 48 + 4 };

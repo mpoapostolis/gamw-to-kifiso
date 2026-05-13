@@ -79,7 +79,7 @@ export const DIALOGUES: Record<string, (c: GameCtx) => DialogPage[]> = {
   eleni: (c) => {
     if (c.day === 1)
       return [
-        P("Helena", "portrait_eleni", "There you are. I left coffee on the counter. — You said my name in your sleep. You always say my name in your sleep."),
+        P("Helena", "portrait_eleni", "There you are. I left coffee on the counter. — You said my name in your sleep. You always say my name in your sleep.", undefined, (cc) => { cc.flags.metHelena = true; }),
         P("Helena", "portrait_eleni", "Funny thing. I have a song stuck in my head that you hummed to me once. I tried to hum it back to you and you looked at me like I'd invented it. Listen — — la, la-la, mm-mm.", undefined, (cc) => cc.addItem("helena_song")),
         P("Helena", "portrait_eleni", "You wrote it. I know you did. I was there. — Stop laughing. Drink your coffee.", PAL.gloomGlow),
         P("Helena", "portrait_eleni", "I love you. That's all. Go on."),
@@ -125,7 +125,7 @@ export const DIALOGUES: Record<string, (c: GameCtx) => DialogPage[]> = {
   kostas: (c) => {
     if (c.day === 1)
       return [
-        P("Costas", "portrait_kostas", "Hey, neighbour. Good Monday to you. Or is it Tuesday. Doesn't really matter, does it."),
+        P("Costas", "portrait_kostas", "Hey, neighbour. Good Monday to you. Or is it Tuesday. Doesn't really matter, does it.", undefined, (cc) => { cc.flags.metCostas = true; }),
         P("Costas", "portrait_kostas", "Three weeks I've been painting this door. Same coat. Never quite gets done."),
         P("Costas", "portrait_kostas", "I keep thinking — the man who started this door wasn't me. But I'm the one who has to finish it. That's a strange kind of inheritance, isn't it.", PAL.gloomGlow),
         P("Costas", "portrait_kostas", "Anyway. Give my love to Helena."),
@@ -173,7 +173,7 @@ export const DIALOGUES: Record<string, (c: GameCtx) => DialogPage[]> = {
   despoina: (c) => {
     if (c.day === 1)
       return [
-        P("Mrs. Despoina", "portrait_despoina", "Come closer, child. Let me look at your face. — Yes. A good face. A familiar face. A face I have looked at before, in a different morning, on a different head."),
+        P("Mrs. Despoina", "portrait_despoina", "Come closer, child. Let me look at your face. — Yes. A good face. A familiar face. A face I have looked at before, in a different morning, on a different head.", undefined, (cc) => { cc.flags.metDespoina = true; }),
         P("Mrs. Despoina", "portrait_despoina", "Do not be alarmed. I am old in a way that does not show. Sixty years I have not aged. Sixty years and I am still the woman who carried my own husband to his bed for the last time. He is buried. I am here. Both are true.", PAL.gloomGlow, (cc) => cc.addNote("despoinaSmile")),
         P("Mrs. Despoina", "portrait_despoina", "The hardest thing, child — it is not the forgetting. It is knowing that your love is being delivered by a stranger every morning, in your name. And the one who receives it does not know."),
         P("Mrs. Despoina", "portrait_despoina", "Slowly, child. Slowly. Come back tomorrow. I shall tell you again. I always do."),
@@ -561,5 +561,221 @@ export const DIALOGUES: Record<string, (c: GameCtx) => DialogPage[]> = {
       ];
 
     return [P("Dr. Erin", "npc_mom", "Off you go, dear. Same time next.")];
+  },
+
+  /* ------------------------------------------------------------------ *
+   * SHOPKEEPER_SHOP — the counter, not the chat. The shopkeeper buying  *
+   * and selling for "memories". A separate branch from the regular     *
+   * morning conversation. He doesn't quite understand what he's        *
+   * selling — they're just things he has. The transactions feel       *
+   * vaguely sacrilegious, which neither of you mentions.                *
+   * ------------------------------------------------------------------ */
+  shopkeeper_shop: (c) => {
+    // If the errand isn't complete, gently nudge once and offer the shop.
+    const pages: ReturnType<typeof P>[] = [
+      P("Shopkeeper", "npc_smith", "Oh — across the counter, is it. Right. Right. Let me put on my counter face."),
+      P("Shopkeeper", "npc_smith", "I've a few things back here I've been meaning to clear. Funny how they accumulate. Half of them I don't remember taking in.", PAL.gloomGlow),
+      P("Shopkeeper", "npc_smith", "I don't take coin for these. — I know. Strange. I've been doing it this way as long as I can remember, which isn't very long, but still."),
+      P("Shopkeeper", "npc_smith", "I take memories. — Don't look at me like that. You've got more than you know. Spend a few. Lighten the load."),
+    ];
+
+    // Sad page: not enough memories for anything. Shown when gold === 0.
+    if (c.gold <= 0) {
+      pages.push(
+        P("Shopkeeper", "npc_smith", "...the shopkeeper looks at you. Soft. Sorry, almost.", PAL.gloomGlow),
+        P("Shopkeeper", "npc_smith", "'come back when you can afford it,' he says. 'don't feel bad. nobody starts with much. you'll have something to spend by tomorrow.'", PAL.gloomGlow),
+      );
+      return pages;
+    }
+
+    // — Old key. 5 memories. Just narrative for now (a flag the player can read later).
+    if (c.gold >= 5 && !c.flags.bought_old_key) {
+      pages.push(
+        P(
+          "Shopkeeper",
+          "npc_smith",
+          "First — an old brass key. Five memories. Fits something in your house, the back compartment under the stairs. — How do I know that? I don't know. I just do.",
+          undefined,
+          (cc) => {
+            cc.takeGold(5);
+            cc.flags.bought_old_key = true;
+            cc.flags.home_compartment_unlocked = true;
+            cc.addNote("boughtOldKey");
+            cc.toast("−5 memories  +old key", PAL.heart);
+          },
+        ),
+      );
+    } else if (c.flags.bought_old_key) {
+      pages.push(
+        P("Shopkeeper", "npc_smith", "(the old key is yours. you remember the shape of the lock now, though you've never seen the lock.)", PAL.gloomGlow),
+      );
+    } else {
+      pages.push(
+        P("Shopkeeper", "npc_smith", "There's an old brass key here — five memories — but you haven't got five today.", PAL.gloomGlow),
+      );
+    }
+
+    // — Tin lantern. 8 memories. Gives `lantern_oil` if not already owned.
+    if (c.gold >= 8 && !c.flags.bought_tin_lantern) {
+      pages.push(
+        P(
+          "Shopkeeper",
+          "npc_smith",
+          "Then — a tin lantern. Eight memories. Throws a small warm circle. Useful after dark, if you've a reason to be out after dark, which I'm sure you don't.",
+          undefined,
+          (cc) => {
+            cc.takeGold(8);
+            cc.flags.bought_tin_lantern = true;
+            if (!cc.inventory.lantern_oil) cc.addItem("lantern_oil");
+            cc.toast("−8 memories  +tin lantern", PAL.heart);
+          },
+        ),
+      );
+    } else if (c.flags.bought_tin_lantern) {
+      pages.push(
+        P("Shopkeeper", "npc_smith", "(you bought the lantern already. there's oil for it in your pocket.)", PAL.gloomGlow),
+      );
+    } else {
+      pages.push(
+        P("Shopkeeper", "npc_smith", "A tin lantern, eight memories. — You're a few short. Come back tomorrow.", PAL.gloomGlow),
+      );
+    }
+
+    // — A photograph. 12 memories. Gives `mom_photograph` if not already owned.
+    if (c.gold >= 12 && !c.flags.bought_photograph) {
+      pages.push(
+        P(
+          "Shopkeeper",
+          "npc_smith",
+          "Twelve memories — a photograph. Black and white. A woman holding a small boy. I keep meaning to put it somewhere but I never do. It belongs with someone. Maybe you. Twelve memories.",
+          PAL.gloomGlow,
+          (cc) => {
+            cc.takeGold(12);
+            cc.flags.bought_photograph = true;
+            if (!cc.inventory.mom_photograph) cc.addItem("mom_photograph");
+            cc.addNote("shopPhotograph");
+            cc.toast("−12 memories  +photograph", PAL.heart);
+          },
+        ),
+      );
+    } else if (c.flags.bought_photograph) {
+      pages.push(
+        P("Shopkeeper", "npc_smith", "(the photograph is in your pocket. it knows your name.)", PAL.gloomGlow),
+      );
+    } else {
+      pages.push(
+        P("Shopkeeper", "npc_smith", "There's a photograph here. Twelve memories. — You haven't quite enough.", PAL.gloomGlow),
+      );
+    }
+
+    // — A name on a folded slip. 15 memories. Gives a new note `boughtName`.
+    if (c.gold >= 15 && !c.flags.bought_name) {
+      pages.push(
+        P(
+          "Shopkeeper",
+          "npc_smith",
+          "Last — and this one I don't like keeping — a folded slip. Fifteen memories. I don't read it. I won't read it. — You can. If you want.",
+          PAL.gloomGlow,
+          (cc) => {
+            cc.takeGold(15);
+            cc.flags.bought_name = true;
+            cc.addNote("boughtName");
+            cc.toast("−15 memories  +folded slip", PAL.heart);
+          },
+        ),
+        P(
+          "Shopkeeper",
+          "npc_smith",
+          "the shopkeeper hands you a folded slip. the name on it is yours. it doesn't say which body it belongs to.",
+          PAL.gloomGlow,
+        ),
+      );
+    } else if (c.flags.bought_name) {
+      pages.push(
+        P("Shopkeeper", "npc_smith", "(the slip is in your pocket. you have not unfolded it again.)", PAL.gloomGlow),
+      );
+    } else {
+      pages.push(
+        P("Shopkeeper", "npc_smith", "A folded slip. Fifteen memories. — Saving up? Come back. I'm not going anywhere.", PAL.gloomGlow),
+      );
+    }
+
+    pages.push(
+      P("Shopkeeper", "npc_smith", "That's the lot for today. — Mind the step on the way out. Sun's lovely. Same as ever."),
+    );
+
+    return pages;
+  },
+
+  /* ------------------------------------------------------------------ *
+   * SHOPKEEPER_ERRAND — the three-item quest branch. Different from    *
+   * the morning chat AND the shop counter. He stops you on the way     *
+   * out with a strange request he can't quite explain.                  *
+   * ------------------------------------------------------------------ */
+  shopkeeper_errand: (c) => {
+    const hasBook = c.inventory.helena_book === true;
+    const hasCandle = c.inventory.despoina_candle === true;
+    const hasMap = c.inventory.kostas_map === true;
+    const hasAll = hasBook && hasCandle && hasMap;
+    const alreadyDone = c.notes.q_shopkeeper_done === true;
+
+    if (alreadyDone) {
+      return [
+        P("Shopkeeper", "npc_smith", "Oh — you again. Thank you for the things. I don't know what I did with them. But thank you.", PAL.gloomGlow),
+        P("Shopkeeper", "npc_smith", "Back room's yours whenever. Mind the boxes."),
+      ];
+    }
+
+    if (hasAll) {
+      return [
+        P("Shopkeeper", "npc_smith", "...Alex. — Hang on. Don't go yet."),
+        P("Shopkeeper", "npc_smith", "The three things. You've got them on you. I can feel it — — that's a funny thing to say. I can feel it. Anyway. Hand them over. Just for a minute. Just so I can see them together.", PAL.gloomGlow),
+        P(
+          "Shopkeeper",
+          "npc_smith",
+          "...there. The book. The candle. The map. — Look at them. Three little things and they tell a whole life, don't they.",
+          PAL.gloomGlow,
+          (cc) => {
+            cc.giveGold(10);
+            cc.addNote("q_shopkeeper_done");
+            cc.flags.cafe_backroom_unlocked = true;
+            cc.toast("+10 memories  back room unlocked", PAL.heart);
+          },
+        ),
+        P("Shopkeeper", "npc_smith", "Take them back. They're yours. — Here. Ten memories for the trouble. And the back room's open to you. Through the curtain, mind the boxes. There's a thing in there I've been meaning to look at and I can't quite bring myself to.", PAL.gloomGlow),
+        P("Shopkeeper", "npc_smith", "Off you go. — Brown bread. Same as ever. Sun's lovely."),
+      ];
+    }
+
+    // Doesn't have all three yet — ask, list, send him off.
+    const pages: ReturnType<typeof P>[] = [
+      P("Shopkeeper", "npc_smith", "Hang on, Alex. Before you go. — Strange request. Don't ask why. I don't know why."),
+      P("Shopkeeper", "npc_smith", "There are three things in this town I'd like to see, all in one place, just for a minute. I don't want to keep them. I just want to look at them together. Then I'll give them back.", PAL.gloomGlow),
+      P("Shopkeeper", "npc_smith", "One — a small clothbound book Helena's been reading. Two — a wax candle Mrs. Despoina keeps. Three — a folded pencil map Costas drew."),
+      P("Shopkeeper", "npc_smith", "Bring them. All three. Together. Don't ask me why. — I'll trade you ten memories and the back room key. That's the deal."),
+    ];
+
+    const missing: string[] = [];
+    if (!hasBook) missing.push("the book");
+    if (!hasCandle) missing.push("the candle");
+    if (!hasMap) missing.push("the map");
+    const got: string[] = [];
+    if (hasBook) got.push("the book");
+    if (hasCandle) got.push("the candle");
+    if (hasMap) got.push("the map");
+    const gotLine = got.length === 0 ? "nothing yet" : got.join(", ");
+    pages.push(
+      P(
+        "Shopkeeper",
+        "npc_smith",
+        `So far you've got: ${gotLine}. Still missing: ${missing.join(", ")}.`,
+        PAL.gloomGlow,
+      ),
+    );
+    pages.push(
+      P("Shopkeeper", "npc_smith", "No rush. Come back when you've got all three. — Brown bread. Same as ever."),
+    );
+
+    return pages;
   },
 };
