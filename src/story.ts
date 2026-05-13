@@ -1,49 +1,81 @@
 /**
- * "5 ΛΕΠΤΑ ΠΡΙΝ" — pro­logue + two endings.
+ * "FIVE MINUTES BEFORE" — prologue, two endings, notebook entries, ambient lines.
  *
- * Ο πρωταγωνιστής (Άλεξ) ζει σε μια ήσυχη κοινότητα όπου κάθε νύχτα στις 11:55
- * οι Καθαριστές παίρνουν τα τελευταία 5 λεπτά της μνήμης του. Σιγά σιγά αρχίζει
- * να καταλάβει — μέσα από inconsistencies στις συνομιλίες.
+ * The protagonist (Alex) lives in a quiet community where every night at 11:55
+ * the Cleaners take the last five minutes of his memory. He slowly starts to
+ * realise — through small inconsistencies in conversations with the neighbours.
  */
 
 export const PROLOGUE: string[] = [
-  "Ζεις στην Κοινότητα του Δίου. Όλα είναι ωραία. Η Ελένη σε αγαπάει. Ο γείτονας ο Κώστας σε χαιρετάει κάθε πρωί.",
-  "Δεν θυμάσαι ποια μέρα είναι, αλλά αυτό δεν σε ανησυχεί. Κανείς δεν θυμάται. Έτσι είναι εδώ.",
-  "Σήμερα όμως η μάνα σου σε φώναξε Αντρέα. Διορθώθηκε γελώντας. Και κάτι μέσα σου, σαν μικρό κερί που κάποιος ξέχασε να σβήσει, άναψε.",
+  "You live in the Diona Community. Everything is fine. Helena loves you. Your neighbour Costas greets you every morning.",
+  "You don't remember what day it is, but that doesn't worry you. No one remembers. That's how it is here.",
+  "Today, though, your mother called you Andrew. She laughed and corrected herself. And something inside you — like a small candle someone forgot to blow out — caught.",
 ];
 
-/** Καλείται αν επιλέξεις «κάψε το facility». */
+/** If you choose "burn it down". */
 export const EPILOGUE_BURN: string[] = [
-  "Ανέβηκες τον λόφο. Κατέβηκες κάτω. Είδες τα σώματα στα tubes — εκατόν εικοσιτέσσερα. Δικά σου. Διαφορετικών ηλικιών. Κανένα μεγαλύτερο από σαράντα χρόνια.",
-  "Ο Επιστάτης σου χαμογέλασε. Σου είπε: «Δεν θυμάσαι κανέναν πόνο. Δεν θυμάσαι κανέναν νεκρό. Αυτό είναι ευτυχία. Γιατί θέλεις να τη σπάσεις;»",
-  "Του απάντησες κάτι μικρό, σχεδόν σιωπηλά. Δεν θυμάσαι τι. Δεν χρειάζεται. Είδες την Ελένη το πρωί στο παρκάκι. Σε κοίταξε για μία στιγμή σαν να μην σε ήξερε. Μετά σε γνώρισε.",
-  "Γερνάτε μαζί τώρα. Όλα τα παλιά μας πράγματα ζουν μέσα μας. Καμιά φορά μας πονάνε. Καλά είναι.",
+  "You climbed the hill. You went underneath. You saw the bodies in the tubes — one hundred and twenty-four. All of them yours. Different ages. None of them older than forty.",
+  "The Custodian smiled at you. He said: \"You don't remember any pain. You don't remember anyone dead. That is happiness. Why do you want to break it?\"",
+  "You answered him something small, almost in a whisper. You don't remember what. It doesn't matter. The next morning you saw Helena in the little park. She looked at you for a second as if she didn't know you. Then she did.",
+  "You're growing old together now. All the old things live inside us. Sometimes they hurt. That's alright.",
 ];
 
-/** Καλείται αν επιλέξεις «γύρνα πίσω». */
+/** If you choose "go back". */
 export const EPILOGUE_RETURN: string[] = [
-  "Ο Επιστάτης σου χαμογέλασε. Σου χάιδεψε το κεφάλι. Δεν σου είπε τίποτα.",
-  "Ξυπνάς. Είναι Δευτέρα. Η Ελένη σου ψιθυρίζει «καλημέρα». Ο ήλιος μπαίνει απαλά απ' το παράθυρο.",
-  "Δεν θυμάσαι τίποτα. Όλα είναι ωραία.",
-  "...μέχρι σήμερα η μάνα σου να σε φωνάξει Αντρέα.",
+  "The Custodian smiled at you. He stroked your head. He said nothing.",
+  "You wake up. It's Monday. Helena whispers \"good morning\". The sun comes softly through the window.",
+  "You don't remember anything. Everything is fine.",
+  "...until today your mother calls you Andrew.",
 ];
 
-/** Auto-notebook entries — added όταν παρατηρείς συγκεκριμένα inconsistencies. */
+/** Auto-notebook entries — added when you spot specific inconsistencies. */
 export const NOTES: Record<string, string> = {
-  motherName: "Σήμερα η μάνα μου με φώναξε Αντρέα. Διορθώθηκε γελώντας. Με λένε Άλεξ.",
-  eleniGift: "Η Ελένη μου είπε «ευχαριστώ για χθες, για το βιβλίο». Δεν θυμάμαι να της έδωσα βιβλίο.",
-  kostasFreeze: "Στις 11:55 ο Κώστας σταμάτησε να μιλάει για 30 δευτερόλεπτα. Με τα μάτια ανοιχτά. Συνέχισε σαν τίποτα.",
-  despoinaSmile: "Η Κυρά Δέσποινα με ρώτησε αν θυμάμαι. Δεν είπα τίποτα. Μου χαμογέλασε σαν να ήξερε.",
-  parkBench: "Σήμερα στο παγκάκι του πάρκου υπάρχει χαραγμένο «ΑΛΕΞ — 47». Δεν θυμάμαι να το έγραψα.",
-  clockStop: "Στις 11:55 το μεγάλο ρολόι της πλατείας σταματάει για 5 λεπτά. Κανείς άλλος δεν το παρατηρεί.",
-  bodyMirror: "Στον καθρέφτη το πρόσωπό μου είναι λίγο διαφορετικό σήμερα. Όχι πολύ. Αρκετά.",
-  kostasReveal: "Ο Κώστας μου είπε: «Είσαι ο 47ος που ξυπνάει αυτή την εβδομάδα.»",
+  motherName: "Today my mother called me Andrew. She laughed and corrected herself. My name is Alex.",
+  eleniGift: "Helena said \"thank you for yesterday, for the book.\" I don't remember giving her a book.",
+  kostasFreeze: "At 11:55 Costas stopped talking for thirty seconds. Eyes open. Then he went on as if nothing had happened.",
+  despoinaSmile: "Mrs. Despoina asked me if I remember. I didn't say anything. She smiled at me as if she knew.",
+  parkBench: "The bench in the little park has \"ALEX — 47\" carved into it. I don't remember carving that.",
+  clockStop: "At 11:55 the big clock in the square stops for five minutes. Nobody else notices.",
+  bodyMirror: "My face in the mirror today is a little different. Not by much. Enough.",
+  kostasReveal: "Costas told me: \"You're the forty-seventh one who's woken up this week.\"",
 };
 
-/** Quotes εμφανίζονται στο menu / pause / Κυρά Δέσποινα flavour. */
+/** Flavour lines used in the pause / Mrs. Despoina. */
 export const QUIET_LINES: string[] = [
-  "Τα κεριά ξέρουν ότι έσβησαν, ακόμα κι αν δεν τους το πεις.",
-  "Μερικά πρωινά ξυπνάς και η μάνα σου σε φωνάζει με λάθος όνομα.",
-  "Η ευτυχία και η λήθη μοιάζουν περισσότερο απ' όσο νομίζαμε.",
-  "Δεν θυμάμαι το χθες. Θυμάμαι όμως ότι έπρεπε να το θυμάμαι.",
+  "Candles know they were lit, even if you don't tell them.",
+  "Some mornings you wake up and your mother calls you the wrong name.",
+  "Happiness and forgetting look more alike than we thought.",
+  "I don't remember yesterday. But I remember I was supposed to remember it.",
 ];
+
+/** Items you can carry in your pocket. */
+export interface ItemDef {
+  name: string;
+  description: string;
+}
+export const ITEMS: Record<string, ItemDef> = {
+  house_key: {
+    name: "House Key",
+    description: "A worn brass key. You've had it as long as you remember, which isn't very long.",
+  },
+  wallet: {
+    name: "Wallet",
+    description: "Faded leather. A photograph inside — yourself, younger, smiling. You don't remember the day.",
+  },
+  helena_book: {
+    name: "Helena's Book",
+    description: "A small clothbound book. She says you gave it to her, but you've never seen it before.",
+  },
+  faded_letter: {
+    name: "Faded Letter",
+    description: "Half a sentence in your own handwriting: \"if you find this, remember\". The rest is missing.",
+  },
+  despoina_candle: {
+    name: "Despoina's Candle",
+    description: "A short wax candle the old woman pressed into your palm. It is, against everything, still warm.",
+  },
+  kostas_map: {
+    name: "Costas's Map",
+    description: "A pencil sketch of a hill, beyond the little park. An X. Two words: \"down here\".",
+  },
+};

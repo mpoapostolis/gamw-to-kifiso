@@ -98,14 +98,14 @@ export class TitleScene extends Phaser.Scene {
       .setAlpha(0);
     // Title: "5 ΛΕΠΤΑ ΠΡΙΝ" — fits one line at a comfortable size
     const titleTop = this.add
-      .text(cx, 252, "5 ΛΕΠΤΑ ΠΡΙΝ", { fontFamily: CINZEL, fontSize: "94px", color: hex(PAL.ink), fontStyle: "800" })
+      .text(cx, 252, "FIVE MINUTES BEFORE", { fontFamily: CINZEL, fontSize: "62px", color: hex(PAL.ink), fontStyle: "800" })
       .setOrigin(0.5)
       .setLetterSpacing(14)
       .setShadow(0, 4, "rgba(0,0,0,0.55)", 8, true, true)
       .setAlpha(0)
       .setY(238);
     const titleWarm1 = this.add
-      .text(cx, 252, "5 ΛΕΠΤΑ ΠΡΙΝ", { fontFamily: CINZEL, fontSize: "94px", color: hex(PAL.emberSoft), fontStyle: "800" })
+      .text(cx, 252, "FIVE MINUTES BEFORE", { fontFamily: CINZEL, fontSize: "62px", color: hex(PAL.emberSoft), fontStyle: "800" })
       .setOrigin(0.5)
       .setLetterSpacing(14)
       .setAlpha(0)
@@ -131,7 +131,7 @@ export class TitleScene extends Phaser.Scene {
     rule.strokeTriangle(0, -7, -7, 0, 0, 7);
 
     const subtitle = this.add
-      .text(cx, 388, "ένα μικρό παιχνίδι για τη μνήμη που σου παίρνουν", {
+      .text(cx, 388, "a small game about the memory they take from you", {
         fontFamily: SPECTRAL,
         fontSize: "22px",
         color: hex(PAL.inkDim),
@@ -142,7 +142,7 @@ export class TitleScene extends Phaser.Scene {
       .setAlpha(0);
 
     const prompt = this.add
-      .text(cx, 498, "πάτα  ENTER  —  ή κλικ  —  για να ξυπνήσεις", {
+      .text(cx, 498, "press  ENTER  —  or click  —  to wake up", {
         fontFamily: SPECTRAL,
         fontSize: "23px",
         color: hex(PAL.ink),
@@ -153,7 +153,7 @@ export class TitleScene extends Phaser.Scene {
       .setAlpha(0);
 
     const controls = this.add
-      .text(cx, 558, "WASD / ↑ ↓ ← →  κίνηση        E  κουβέντα        TAB  σημειωματάριο        ESC  pause", {
+      .text(cx, 558, "WASD / ↑ ↓ ← →  walk        E  talk        TAB  notebook        I  pocket        ESC  pause", {
         fontFamily: SPECTRAL,
         fontSize: "15px",
         color: hex(PAL.inkFaint),
@@ -164,7 +164,7 @@ export class TitleScene extends Phaser.Scene {
       .setAlpha(0);
 
     this.add
-      .text(VIEW_W - 16, VIEW_H - 14, "ένα μικρό παιχνίδι από κώδικα · χωρίς εικόνες", {
+      .text(VIEW_W - 16, VIEW_H - 14, "a small game from code · no images", {
         fontFamily: SPECTRAL,
         fontSize: "13px",
         color: "#4f4a3b",

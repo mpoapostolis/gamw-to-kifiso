@@ -7,6 +7,7 @@ import { VIEW_H, VIEW_W } from "./consts";
 import { BootScene } from "./scenes/Boot";
 import { TitleScene } from "./scenes/Title";
 import { GameScene } from "./scenes/Game";
+import { HomeScene } from "./scenes/Home";
 import { UIScene } from "./scenes/Ui";
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -28,7 +29,7 @@ const config: Phaser.Types.Core.GameConfig = {
   },
   fps: { target: 60, min: 24, smoothStep: true },
   render: { powerPreference: "high-performance" },
-  scene: [BootScene, TitleScene, GameScene, UIScene],
+  scene: [BootScene, TitleScene, GameScene, HomeScene, UIScene],
 };
 
 // eslint-disable-next-line no-new

@@ -6,7 +6,7 @@
  * και πάνε στο texture manager.
  */
 import Phaser from "phaser";
-import { PAL, shade } from "./palette";
+import { mix, PAL, shade } from "./palette";
 
 export const TILE = 48;
 
@@ -1234,6 +1234,299 @@ function buildUi(scene: Phaser.Scene) {
 }
 
 /* ----------------------------------------------------------------------- *
+ * PORTRAITS — big, expressive faces shown in the dialog panel              *
+ * ----------------------------------------------------------------------- */
+type PortraitSpec = {
+  key: string;
+  skin: number;
+  skinShade: number;
+  hair: number;
+  hairAlt?: number;
+  cloth: number;
+  clothHi: number;
+  /** "kerchief" | "bald" | "hood" | "cap" | "tied" | "loose" */
+  head: "kerchief" | "bald" | "hood" | "cap" | "tied" | "loose";
+  /** "soft" | "tired" | "kind" | "calm" | "young" */
+  expression: "soft" | "tired" | "kind" | "calm" | "young";
+  /** "open" | "closed" | "half" */
+  eyes?: "open" | "closed" | "half";
+  glasses?: boolean;
+  wrinkles?: boolean;
+  freckles?: boolean;
+};
+
+function drawPortrait(g: GFX, w: number, h: number, s: PortraitSpec) {
+  // backing wash so the portrait sits on its own little card behind the frame
+  g.fillStyle(PAL.panel, 1);
+  g.fillRect(0, 0, w, h);
+  g.fillStyle(PAL.panelHi, 0.6);
+  g.fillRect(0, 0, w, h * 0.55);
+
+  const cx = w / 2;
+  const neckTop = h * 0.74;
+  const chinY = h * 0.58;
+  const headR = w * 0.32;
+  const headCY = chinY - headR * 0.55;
+
+  // shoulders / cloth
+  g.fillStyle(shade(s.cloth, -0.18), 1);
+  g.fillRoundedRect(cx - w * 0.42, neckTop + 4, w * 0.84, h - neckTop - 4 + 6, 14);
+  g.fillStyle(s.cloth, 1);
+  g.fillRoundedRect(cx - w * 0.4, neckTop + 6, w * 0.8, h - neckTop, 12);
+  g.fillStyle(s.clothHi, 0.7);
+  g.fillRect(cx - w * 0.4 + 8, neckTop + 8, w * 0.8 - 16, 3);
+
+  // neck
+  g.fillStyle(shade(s.skin, -0.22), 1);
+  g.fillRect(cx - 10, chinY, 20, neckTop - chinY + 4);
+  g.fillStyle(s.skin, 1);
+  g.fillRect(cx - 8, chinY, 16, neckTop - chinY + 2);
+
+  // head
+  g.fillStyle(s.skinShade, 1);
+  g.fillCircle(cx, headCY + 2, headR);
+  g.fillStyle(s.skin, 1);
+  g.fillCircle(cx, headCY, headR);
+  // jaw shadow
+  g.fillStyle(s.skinShade, 0.55);
+  g.fillEllipse(cx, headCY + headR * 0.45, headR * 1.6, headR * 0.65);
+
+  // hair / head covering
+  const hair = s.hair;
+  const hairHi = s.hairAlt ?? mix(s.hair, 0xffffff, 0.18);
+  if (s.head === "loose") {
+    g.fillStyle(hair, 1);
+    g.fillEllipse(cx, headCY - headR * 0.4, headR * 2.05, headR * 1.3);
+    // long sides
+    g.fillRect(cx - headR - 2, headCY - headR * 0.4, 6, headR * 1.4);
+    g.fillRect(cx + headR - 4, headCY - headR * 0.4, 6, headR * 1.4);
+    g.fillStyle(hairHi, 0.7);
+    g.fillEllipse(cx - headR * 0.5, headCY - headR * 0.55, headR * 0.9, headR * 0.4);
+  } else if (s.head === "tied") {
+    g.fillStyle(hair, 1);
+    g.fillEllipse(cx, headCY - headR * 0.5, headR * 1.95, headR * 1.1);
+    g.fillEllipse(cx + headR * 0.9, headCY + headR * 0.05, headR * 0.55, headR * 0.7); // bun behind
+    g.fillStyle(hairHi, 0.65);
+    g.fillEllipse(cx - headR * 0.55, headCY - headR * 0.6, headR * 0.7, headR * 0.32);
+  } else if (s.head === "kerchief") {
+    g.fillStyle(shade(s.cloth, -0.25), 1);
+    g.fillEllipse(cx, headCY - headR * 0.3, headR * 2.2, headR * 1.5);
+    // a knot at the back
+    g.fillEllipse(cx + headR * 0.8, headCY + headR * 0.25, headR * 0.45, headR * 0.55);
+    // dot pattern
+    g.fillStyle(s.clothHi, 0.7);
+    for (let i = 0; i < 9; i++) {
+      const a = -1.6 + (i / 8) * 2.6;
+      g.fillCircle(cx + Math.cos(a) * headR * 0.9, headCY - headR * 0.4 + Math.sin(a) * headR * 0.5, 1.6);
+    }
+    // a sliver of hair peeking
+    g.fillStyle(hair, 1);
+    g.fillRect(cx - headR * 0.6, headCY - headR * 0.05, headR * 1.2, 4);
+  } else if (s.head === "hood") {
+    g.fillStyle(shade(s.cloth, -0.25), 1);
+    g.fillCircle(cx, headCY - headR * 0.1, headR * 1.15);
+    g.fillStyle(s.cloth, 1);
+    g.fillCircle(cx, headCY - headR * 0.18, headR * 1.05);
+    // the hood opening (face shows)
+    g.fillStyle(s.skin, 1);
+    g.fillEllipse(cx, headCY + 2, headR * 1.4, headR * 1.45);
+  } else if (s.head === "cap") {
+    g.fillStyle(hair, 1);
+    g.fillRoundedRect(cx - headR, headCY - headR * 1.05, headR * 2, headR * 0.6, 6);
+    g.fillStyle(hairHi, 0.6);
+    g.fillRect(cx - headR + 4, headCY - headR + 2, headR * 1.5, 3);
+    g.fillStyle(s.skinShade, 0.4);
+    g.fillRect(cx - headR, headCY - headR * 0.5, headR * 2, 3); // brim shadow
+  } else if (s.head === "bald") {
+    // a faint pate highlight
+    g.fillStyle(mix(s.skin, 0xffffff, 0.2), 0.7);
+    g.fillEllipse(cx, headCY - headR * 0.55, headR * 1.2, headR * 0.6);
+  }
+
+  // ears
+  g.fillStyle(s.skinShade, 1);
+  g.fillEllipse(cx - headR + 2, headCY + 2, 6, 12);
+  g.fillEllipse(cx + headR - 2, headCY + 2, 6, 12);
+
+  // eyebrows
+  const browY = headCY - headR * 0.18;
+  const browW = headR * 0.32;
+  g.fillStyle(s.hair, 1);
+  if (s.expression === "tired") {
+    // slanted-down outer
+    g.fillTriangle(cx - headR * 0.55, browY - 1, cx - headR * 0.15, browY - 3, cx - headR * 0.18, browY + 2);
+    g.fillTriangle(cx + headR * 0.55, browY - 1, cx + headR * 0.15, browY - 3, cx + headR * 0.18, browY + 2);
+  } else if (s.expression === "calm") {
+    g.fillRect(cx - headR * 0.55, browY, browW * 2.5, 2);
+    g.fillRect(cx + headR * 0.18, browY, browW * 2.5, 2);
+  } else {
+    g.fillEllipse(cx - headR * 0.4, browY - 1, browW * 2.2, 4);
+    g.fillEllipse(cx + headR * 0.4, browY - 1, browW * 2.2, 4);
+  }
+
+  // eyes
+  const eyeY = headCY;
+  const eyeOff = headR * 0.4;
+  const eyeMode = s.eyes ?? "open";
+  if (eyeMode === "closed") {
+    g.lineStyle(2, shade(s.skin, -0.5), 1);
+    g.lineBetween(cx - eyeOff - 5, eyeY, cx - eyeOff + 5, eyeY);
+    g.lineBetween(cx + eyeOff - 5, eyeY, cx + eyeOff + 5, eyeY);
+  } else {
+    // sclera
+    g.fillStyle(0xf6efe0, 1);
+    g.fillEllipse(cx - eyeOff, eyeY, 8.5, eyeMode === "half" ? 4 : 6);
+    g.fillEllipse(cx + eyeOff, eyeY, 8.5, eyeMode === "half" ? 4 : 6);
+    // iris
+    g.fillStyle(mix(s.hair, 0x000000, 0.2), 1);
+    g.fillCircle(cx - eyeOff, eyeY, 3);
+    g.fillCircle(cx + eyeOff, eyeY, 3);
+    // pupil
+    g.fillStyle(0x0a0810, 1);
+    g.fillCircle(cx - eyeOff, eyeY, 1.5);
+    g.fillCircle(cx + eyeOff, eyeY, 1.5);
+    // catch-light
+    g.fillStyle(0xffffff, 0.95);
+    g.fillCircle(cx - eyeOff - 1.2, eyeY - 1.3, 0.9);
+    g.fillCircle(cx + eyeOff - 1.2, eyeY - 1.3, 0.9);
+  }
+  // glasses
+  if (s.glasses) {
+    g.lineStyle(1.5, shade(s.hair, -0.3), 0.95);
+    g.strokeCircle(cx - eyeOff, eyeY + 1, 8);
+    g.strokeCircle(cx + eyeOff, eyeY + 1, 8);
+    g.lineBetween(cx - eyeOff + 6, eyeY, cx + eyeOff - 6, eyeY);
+  }
+
+  // nose
+  const noseY = headCY + headR * 0.22;
+  g.fillStyle(s.skinShade, 0.7);
+  g.fillTriangle(cx - 4, noseY - 4, cx + 4, noseY - 4, cx, noseY + 4);
+  // a little nostril shade
+  g.fillStyle(shade(s.skin, -0.45), 0.4);
+  g.fillCircle(cx - 2, noseY + 3, 1);
+  g.fillCircle(cx + 2, noseY + 3, 1);
+
+  // mouth
+  const mouthY = headCY + headR * 0.55;
+  if (s.expression === "kind" || s.expression === "soft") {
+    g.lineStyle(2, shade(s.skin, -0.5), 1);
+    g.beginPath();
+    g.arc(cx, mouthY - 4, headR * 0.42, Phaser.Math.DegToRad(20), Phaser.Math.DegToRad(160), false);
+    g.strokePath();
+  } else if (s.expression === "tired") {
+    g.lineStyle(2, shade(s.skin, -0.5), 1);
+    g.lineBetween(cx - headR * 0.32, mouthY, cx + headR * 0.32, mouthY);
+  } else if (s.expression === "calm") {
+    g.lineStyle(1.7, shade(s.skin, -0.5), 1);
+    g.lineBetween(cx - headR * 0.28, mouthY, cx + headR * 0.28, mouthY);
+  } else {
+    g.lineStyle(2, shade(s.skin, -0.5), 1);
+    g.beginPath();
+    g.arc(cx, mouthY - 2, headR * 0.36, Phaser.Math.DegToRad(20), Phaser.Math.DegToRad(160), false);
+    g.strokePath();
+  }
+  // a hint of lower lip
+  g.fillStyle(mix(s.skin, 0xc46a4e, 0.3), 0.7);
+  g.fillEllipse(cx, mouthY + 1, headR * 0.42, 2.6);
+
+  // wrinkles
+  if (s.wrinkles) {
+    g.lineStyle(1, shade(s.skin, -0.35), 0.4);
+    g.lineBetween(cx - eyeOff - 6, eyeY + 5, cx - eyeOff - 1, eyeY + 7);
+    g.lineBetween(cx + eyeOff + 1, eyeY + 7, cx + eyeOff + 6, eyeY + 5);
+    g.lineBetween(cx - headR * 0.4, mouthY + 6, cx - headR * 0.1, mouthY + 7);
+    g.lineBetween(cx + headR * 0.1, mouthY + 7, cx + headR * 0.4, mouthY + 6);
+    // forehead furrow
+    g.lineBetween(cx - 6, headCY - headR * 0.55, cx + 6, headCY - headR * 0.55);
+  }
+  if (s.freckles) {
+    g.fillStyle(shade(s.skin, -0.25), 0.7);
+    for (let i = 0; i < 7; i++) {
+      g.fillCircle(cx - 12 + i * 4, headCY + 6, 0.9);
+    }
+  }
+
+  // gentle frame inset
+  g.lineStyle(2, PAL.panelEdge, 0.8);
+  g.strokeRect(1, 1, w - 2, h - 2);
+  g.lineStyle(1, PAL.panelEdgeHi, 0.3);
+  g.strokeRect(3, 3, w - 6, h - 6);
+}
+
+function buildPortraits(scene: Phaser.Scene) {
+  const W = 120;
+  const H = 140;
+  const specs: PortraitSpec[] = [
+    {
+      // Helena — round, kind face, hair tied back, soft smile
+      key: "portrait_eleni",
+      skin: 0xe8c79c,
+      skinShade: 0xb98e64,
+      hair: 0x583926,
+      hairAlt: 0x7d563a,
+      cloth: 0x6e8aae,
+      clothHi: 0xc8d4e5,
+      head: "tied",
+      expression: "soft",
+      eyes: "open",
+      freckles: true,
+    },
+    {
+      // Costas — tired, glasses, beard hint via shaded jaw, short hair / cap
+      key: "portrait_kostas",
+      skin: 0xd2a472,
+      skinShade: 0x9d7547,
+      hair: 0x2a1a10,
+      cloth: 0xa48560,
+      clothHi: 0xeacf9b,
+      head: "cap",
+      expression: "tired",
+      eyes: "open",
+      glasses: true,
+    },
+    {
+      // Mrs. Despoina — wrinkled, kind, kerchief with dots, closed-half eyes
+      key: "portrait_despoina",
+      skin: 0xc89e7a,
+      skinShade: 0x866043,
+      hair: 0xbab1a4,
+      cloth: 0x483b54,
+      clothHi: 0x9986b0,
+      head: "kerchief",
+      expression: "kind",
+      eyes: "half",
+      wrinkles: true,
+    },
+    {
+      // The Custodian — bald, calm, pale white robe
+      key: "portrait_epistatis",
+      skin: 0xd6b390,
+      skinShade: 0xa37e58,
+      hair: 0x2c2520,
+      cloth: 0xece6dd,
+      clothHi: 0xfafaf2,
+      head: "bald",
+      expression: "calm",
+      eyes: "open",
+    },
+    {
+      // Alex (the player) — youngish, hooded, dark cloak — used for inner monologue
+      key: "portrait_alex",
+      skin: 0xe2bc94,
+      skinShade: 0xa17e57,
+      hair: 0x3e2c20,
+      cloth: 0x6a5a8a,
+      clothHi: 0x8e7eb0,
+      head: "loose",
+      expression: "young",
+      eyes: "open",
+    },
+  ];
+  for (const s of specs) tex(scene, s.key, W, H, (g) => drawPortrait(g, W, H, s));
+}
+
+/* ----------------------------------------------------------------------- *
  * public entry                                                            *
  * ----------------------------------------------------------------------- */
 export function buildTextures(scene: Phaser.Scene) {
@@ -1243,6 +1536,7 @@ export function buildTextures(scene: Phaser.Scene) {
   buildPickups(scene);
   buildFx(scene);
   buildUi(scene);
+  buildPortraits(scene);
 }
 
 /** Build a data-URL crosshair cursor (called once from Boot, applied via CSS). */

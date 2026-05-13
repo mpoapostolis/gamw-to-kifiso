@@ -32,6 +32,8 @@ export interface GameCtx {
   day: number;
   /** Auto-added notebook entries (note id → true when seen). */
   notes: Record<string, boolean>;
+  /** Items the player carries (item id → true). */
+  inventory: Record<string, boolean>;
 
   // --- actions the dialog layer can take ---
   giveGold(n: number): void;
@@ -43,6 +45,8 @@ export interface GameCtx {
   toast(text: string, tint?: number): void;
   /** add an entry to the notebook + small UI toast */
   addNote(id: string): void;
+  /** add an item to the pocket + small UI toast */
+  addItem(id: string): void;
 }
 
 export interface DialogPage {

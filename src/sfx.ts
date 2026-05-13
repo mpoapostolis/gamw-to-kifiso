@@ -44,6 +44,67 @@ class Synth {
   unlock() {
     const ctx = this.ensure();
     if (ctx && ctx.state === "suspended") void ctx.resume();
+    this.startAmbient();
+  }
+
+  private ambientStarted = false;
+  /** Slow low-amplitude drone — runs forever as a soft "suburb at dusk" bed. */
+  private startAmbient() {
+    if (this.ambientStarted) return;
+    const ctx = this.ensure();
+    if (!ctx) return;
+    this.ambientStarted = true;
+
+    const bed = ctx.createGain();
+    bed.gain.value = 0.0001;
+    bed.connect(this.master);
+    // a slow swell up to a faint level
+    bed.gain.exponentialRampToValueAtTime(0.035, ctx.currentTime + 3.5);
+
+    // two slightly-detuned sines (a low chord, A1 + E2 sort of)
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 600;
+    lp.connect(bed);
+    for (const [f, detune] of [
+      [55, -3],
+      [73.4, 4],
+      [110, -7],
+    ] as const) {
+      const o = ctx.createOscillator();
+      o.type = "sine";
+      o.frequency.value = f;
+      o.detune.value = detune;
+      o.connect(lp);
+      o.start();
+    }
+
+    // very faint wind: noise → highpass → tremolo gain
+    const frames = Math.floor(ctx.sampleRate * 5);
+    const buf = ctx.createBuffer(1, frames, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < frames; i++) data[i] = Math.random() * 2 - 1;
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    noise.loop = true;
+    const hp = ctx.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = 900;
+    const wind = ctx.createGain();
+    wind.gain.value = 0.012;
+    noise.connect(hp);
+    hp.connect(wind);
+    wind.connect(bed);
+    noise.start();
+    // tremolo on the wind
+    const lfo = ctx.createOscillator();
+    lfo.type = "sine";
+    lfo.frequency.value = 0.18;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 0.008;
+    lfo.connect(lfoGain);
+    lfoGain.connect(wind.gain);
+    lfo.start();
   }
 
   setMuted(m: boolean) {

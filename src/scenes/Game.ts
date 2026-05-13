@@ -75,6 +75,7 @@ export class GameScene extends Phaser.Scene {
       flags: {},
       day: 1,
       notes: {},
+      inventory: { house_key: true, wallet: true },
       giveGold: (n) => {
         this.ctx.gold += n;
         this.ui?.setGold(this.ctx.gold);
@@ -101,6 +102,11 @@ export class GameScene extends Phaser.Scene {
         if (this.ctx.notes[id]) return;
         this.ctx.notes[id] = true;
         this.ui?.addNote(id);
+      },
+      addItem: (id) => {
+        if (this.ctx.inventory[id]) return;
+        this.ctx.inventory[id] = true;
+        this.ui?.addItem(id);
       },
     };
 
@@ -163,6 +169,12 @@ export class GameScene extends Phaser.Scene {
     // ---- events --------------------------------------------------------
     this.events.on("gloom-killed", this.onGloomKilled, this);
     this.events.on("player-died", this.onPlayerDied, this);
+    this.events.on("home-exit", (pt: { x: number; y: number }) => {
+      this.player.setPosition(pt.x, pt.y);
+      (this.player.body as Phaser.Physics.Arcade.Body).reset(pt.x, pt.y);
+      this.cameras.main.fadeIn(380, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+      this.player.controlsLocked = false;
+    });
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.events.off("gloom-killed", this.onGloomKilled, this);
       this.events.off("player-died", this.onPlayerDied, this);
@@ -177,11 +189,11 @@ export class GameScene extends Phaser.Scene {
   /** Called by UIScene once its HUD exists, to run the opening crawl. */
   startPrologue() {
     this.pendingPrologue = false;
-    this.ui.showStory("5 ΛΕΠΤΑ ΠΡΙΝ", PROLOGUE, () => {
+    this.ui.showStory("FIVE MINUTES BEFORE", PROLOGUE, () => {
       this.inStory = false;
       this.player.controlsLocked = false;
-      this.ui.showAreaBanner("Η Κοινότητα του Δίου · Ημέρα 1");
-      this.ui.toast("πάτα E δίπλα σε κάποιον για να μιλήσεις · TAB για το σημειωματάριο", PAL.inkDim);
+      this.ui.showAreaBanner("Diona Community · Day 1");
+      this.ui.toast("press E next to someone to talk · TAB for your notebook · I for your pocket", PAL.inkDim);
     });
   }
 
@@ -205,8 +217,9 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // ---- nearby NPC + interaction -------------------------------------
+    // ---- nearby NPC / door interaction --------------------------------
     if (!this.inDialog && !this.inStory && !this.player.dead) {
+      // NPC nearest within 58px
       let best: Npc | null = null;
       let bestD = 58;
       for (const n of this.npcGroup.getChildren()) {
@@ -217,9 +230,16 @@ export class GameScene extends Phaser.Scene {
           best = npc;
         }
       }
+      // your front door — Helena's home, just in front of house_a
+      const door = { x: 13 * 48 + 24, y: 18 * 48 + 4 };
+      const doorD = Phaser.Math.Distance.Between(this.player.x, this.player.y, door.x, door.y);
       if (best) this.ui?.showPrompt(`E  ·  ${best.spawn.name}`, best.x - this.cameras.main.worldView.x, best.y - this.cameras.main.worldView.y - 56);
+      else if (doorD < 56) this.ui?.showPrompt(`E  ·  inside`, door.x - this.cameras.main.worldView.x, door.y - this.cameras.main.worldView.y - 30);
       else this.ui?.hidePrompt();
-      if (best && Phaser.Input.Keyboard.JustDown(this.keyE)) this.startDialog(best);
+      if (Phaser.Input.Keyboard.JustDown(this.keyE)) {
+        if (best) this.startDialog(best);
+        else if (doorD < 56) this.enterHome(door);
+      }
     } else this.ui?.hidePrompt();
 
     // ---- area banners --------------------------------------------------
@@ -258,18 +278,30 @@ export class GameScene extends Phaser.Scene {
     });
   }
 
+  /** Step into Helena's home — fade out, sleep this scene, launch HomeScene. */
+  private enterHome(door: { x: number; y: number }) {
+    this.player.controlsLocked = true;
+    this.ui.hidePrompt();
+    SFX.open();
+    this.cameras.main.fadeOut(380, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+    this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+      this.scene.sleep();
+      this.scene.launch("Home", { returnAt: door });
+    });
+  }
+
   /** Final choice — pressing 1 burns the facility (EPILOGUE_BURN), 2 returns. */
   private offerEnding() {
     this.player.controlsLocked = true;
     this.inStory = true;
-    this.ui.toast("πάτα  1  να ΚΑΨΕΙΣ   ·   2  να ΓΥΡΝΑΣ ΠΙΣΩ", PAL.gloomGlow);
+    this.ui.toast("press  1  to BURN IT DOWN   ·   2  to GO BACK", PAL.gloomGlow);
     const kb = this.input.keyboard!;
     const choose = (burn: boolean) => {
       if (this.ctx.flags.endingChosen) return;
       this.ctx.flags.endingChosen = true;
       kb.off("keydown-ONE", onOne);
       kb.off("keydown-TWO", onTwo);
-      this.ui.showStory(burn ? "Ο ΛΟΦΟΣ" : "ΑΛΛΗ ΜΙΑ ΜΕΡΑ", burn ? EPILOGUE_BURN : EPILOGUE_RETURN, () => {
+      this.ui.showStory(burn ? "THE HILL" : "ANOTHER DAY", burn ? EPILOGUE_BURN : EPILOGUE_RETURN, () => {
         this.inStory = false;
         this.player.controlsLocked = false;
       });
@@ -308,15 +340,15 @@ export class GameScene extends Phaser.Scene {
         if (this.player.dead) return;
         this.player.controlsLocked = true;
         this.inStory = true;
-        this.ui.showStory("ΕΠΙΛΟΓΟΣ", EPILOGUE_BURN, () => {
+        this.ui.showStory("EPILOGUE", EPILOGUE_BURN, () => {
           this.inStory = false;
           this.player.controlsLocked = false;
           this.lightenWorld();
-          this.ui.showAreaBanner("Η Γειτονιά · ξανά");
+          this.ui.showAreaBanner("Diona Community · again");
         });
       });
     } else if (this.ctx.gloomKilled === 5 && this.ctx.questState === 1) {
-      this.ui?.toast("5 κορνάρες · γύρνα στον Παππού Γιάννη", PAL.emberSoft);
+      this.ui?.toast("five quiet ones unmade — return", PAL.emberSoft);
     }
   }
 
@@ -345,8 +377,8 @@ export class GameScene extends Phaser.Scene {
           this.deathHandled = false;
           this.inDialog = false;
           this.cameras.main.fadeIn(420, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
-          if (lost > 0) this.ui.toast(`έχασες ${lost} € στον δρόμο`, PAL.gloomGlow);
-          this.ui.showAreaBanner("Η Γειτονιά");
+          if (lost > 0) this.ui.toast(`you lost ${lost} on the road`, PAL.gloomGlow);
+          this.ui.showAreaBanner("Diona Community");
         });
       });
     });
@@ -374,18 +406,20 @@ export class GameScene extends Phaser.Scene {
       this.areaName = found.name;
       if (!first && !this.player.dead) {
         this.ui?.showAreaBanner(found.name);
-        if (found.name === "Ο Δρόμος Έξω" && !this.ctx.flags.metEdge) {
+        if (found.name === "The Edge Road" && !this.ctx.flags.metEdge) {
           this.ctx.flags.metEdge = true;
-          this.ui?.toast("η κοινότητα τελειώνει εδώ. ο λόφος δεν είναι μακριά.", PAL.inkDim);
+          this.ui?.toast("the community ends here. the hill isn't far.", PAL.inkDim);
         }
-        if (found.name === "Το Παρκάκι" && !this.ctx.flags.enteredPark) {
+        if (found.name === "The Little Park" && !this.ctx.flags.enteredPark) {
           this.ctx.flags.enteredPark = true;
           this.ctx.addNote("parkBench");
+          // a faded letter someone tucked into the bench frame
+          this.ctx.addItem("faded_letter");
         }
-        if (found.name === "Πέρα από την Κοινότητα" && !this.ctx.flags.enteredOutside) {
+        if (found.name === "Beyond the Community" && !this.ctx.flags.enteredOutside) {
           this.ctx.flags.enteredOutside = true;
           SFX.thunderHint();
-          this.ui?.toast("κάτι αλλιώτικο εδώ. ο αέρας έχει κάτι αλμυρό.", PAL.gloomGlow);
+          this.ui?.toast("something is different here. the air tastes salt.", PAL.gloomGlow);
         }
       }
     }

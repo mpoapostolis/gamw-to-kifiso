@@ -1,16 +1,16 @@
-# 5 ΛΕΠΤΑ ΠΡΙΝ
+# Five Minutes Before
 
-Ένα μικρό melancholic top-down RPG για τη μνήμη που σου παίρνουν. Phaser 3 + TypeScript. Χωρίς image assets — όλα ζωγραφίζονται σε κώδικα.
+A small melancholic top-down RPG about the memory they take from you. Phaser 3 + TypeScript. No image assets — everything is drawn in code.
 
-> _Ζεις στην Κοινότητα του Δίου. Όλα είναι ωραία. Η Ελένη σε αγαπάει. Δεν θυμάσαι ποια μέρα είναι, αλλά αυτό δεν σε ανησυχεί. Κανείς δεν θυμάται. Έτσι είναι εδώ._
+> _You live in the Diona Community. Everything is fine. Helena loves you. You don't remember what day it is, but that doesn't worry you. No one remembers._
 >
-> _Σήμερα όμως η μάνα σου σε φώναξε Αντρέα. Διορθώθηκε γελώντας. Και κάτι μέσα σου, σαν μικρό κερί που κάποιος ξέχασε να σβήσει, άναψε._
+> _Today, though, your mother called you Andrew. She laughed and corrected herself. And something inside you — like a small candle someone forgot to blow out — caught._
 
 ## Premise
 
-Κάθε νύχτα, στις **11:55**, οι **Καθαριστές** έρχονται και σου σβήνουν τα τελευταία 5 λεπτά της μνήμης σου. Σε σκοτώνουν στον ύπνο. Το επόμενο πρωί ξυπνάς σε ένα καινούργιο σώμα, μια μέρα γερασμένο, με την ίδια ταυτότητα — έτσι νομίζεις. Όλοι το έχουν αυτό. Κανένας δεν το ξέρει.
+Every night, at **11:55**, the Cleaners come and erase the last five minutes of your memory. They kill you in your sleep. The next morning you wake up in a new body, one day older, with the same identity — or so you think. Everyone has this happen. No one knows.
 
-Εκτός από εσένα, που σιγά σιγά αρχίζεις να το θυμάσαι μέσα από ασυνέπειες στις συνομιλίες.
+Except you, who slowly starts to remember through inconsistencies in conversations.
 
 ## Run
 
@@ -21,53 +21,59 @@ bun run dev      # → http://localhost:5173
 
 ## Controls
 
-| key                | does                                                  |
-|--------------------|-------------------------------------------------------|
-| WASD / βελάκια     | κίνηση                                                |
-| E                  | κουβέντα με γείτονα όταν είσαι δίπλα του              |
-| TAB                | άνοιγμα/κλείσιμο του σημειωματαρίου                   |
-| ESC                | pause                                                 |
-| M                  | mute (μουσική + sfx)                                  |
+| key                | does                                                    |
+|--------------------|---------------------------------------------------------|
+| WASD / arrows      | walk                                                    |
+| E                  | talk to a neighbour, enter a door                       |
+| TAB                | open / close the notebook                               |
+| I                  | open / close the pocket (inventory)                     |
+| ESC                | pause                                                   |
+| M                  | mute (music + sfx)                                      |
 
-## Πρωταγωνιστές
+## Cast
 
-- **Ελένη** — η σύντροφος. Σε αγαπάει αληθινά. Από τη δεύτερη μέρα αρχίζει να αναφέρεται σε πράγματα που δεν θυμάσαι ότι έγιναν.
-- **Κώστας** — ο γείτονας. Βάφει την πόρτα του εδώ και τρεις βδομάδες χωρίς να την τελειώνει ποτέ. Στην 4η μέρα θα σου αποκαλύψει πως ξέρει.
-- **Κυρά Δέσποινα** — η γριά στη γωνία. Λέει αλήθειες και κανείς δεν την πιστεύει. Δε γερνά ποτέ.
-- **Ο Επιστάτης** — στο τέλος του λόφου, έξω από την Κοινότητα. Δεν είναι κακός. Πιστεύει ότι αυτό είναι έλεος.
+- **Helena** — your partner. She loves you. From day 2 onwards she starts referring to things you don't remember doing.
+- **Costas** — neighbour. He's been painting his front door for three weeks without ever finishing. On day 4 he tells you he knows.
+- **Mrs. Despoina** — the old woman at the corner. She tells truths nobody believes. She doesn't age.
+- **The Custodian** — at the end of the hill, beyond the community. He isn't cruel. He believes this is mercy.
 
-## Δύο τέλη
+## Two endings
 
-- **ΚΑΨΕ ΤΟ** — όλοι ξυπνάνε, ξεκινάνε να γερνάνε φυσιολογικά. Η Ελένη σε κοιτάει για στιγμή σαν άγνωστο, μετά σε αναγνωρίζει. Γερνάτε μαζί.
-- **ΓΥΡΝΑ ΠΙΣΩ** — ο Επιστάτης σου χαϊδεύει το κεφάλι. Ξυπνάς αύριο. Δε θυμάσαι τίποτα. Όλα είναι ωραία. Μέχρι η μάνα σου να σε φωνάξει Αντρέα.
+- **BURN IT DOWN** — everyone wakes up and starts to age normally. Helena looks at you for a second like a stranger, then she knows you. You grow old together.
+- **GO BACK** — the Custodian strokes your head. You wake up tomorrow. You don't remember anything. Everything is fine. Until your mother calls you Andrew.
+
+## Features
+
+- **Portraits** — every named character has a detailed, hand-drawn-in-code portrait (120 × 140) that shows in the dialog panel.
+- **Notebook** (TAB) — inconsistencies you notice in dialog auto-add themselves to your notebook. Open it any time.
+- **Pocket** (I) — items you find or are given. House key and wallet to start. Helena's book, Despoina's candle, Costas's map etc. arrive through dialog.
+- **Multi-scene** — walk to your front door, press E, fade out, fade in inside your house. Bed, mirror, table, sink. Press E by the mirror — your face is slightly different every day. Step back through the door to return outside.
+- **Soft ambient bed** — a low Web-Audio drone, a hint of wind. Plus a music loop on top.
 
 ## Stack
 
 ```
 src/
-├── main.ts           Phaser config, scene list
+├── main.ts           Phaser config, 5 scenes
 ├── consts.ts         viewport + depth bands
-├── palette.ts        soft melancholic suburb-at-dusk palette
-├── textures.ts       όλα τα sprites ζωγραφισμένα σε boot
-├── sfx.ts            tiny Web-Audio synth
+├── palette.ts        soft melancholic dawn palette
+├── textures.ts       all sprites + the big character portraits, drawn at boot
+├── sfx.ts            tiny Web-Audio synth + ambient drone
 ├── bgm.ts            background music loader
-├── story.ts          prologue + 2 endings + notebook entries
-├── map.ts            ο κόσμος: terrain, props, NPCs με conditional dialog ανά μέρα
-├── types.ts          shared interfaces (GameCtx με day + notes + addNote)
-├── objects/
-│   ├── Player.ts     ο Άλεξ — κίνηση + interact
-│   ├── Gloom.ts      οι Καθαριστές (kept for the eventual 11:55 mechanic)
-│   ├── Npc.ts        γείτονες — στέκονται, αναπνέουν, μιλάνε
-│   └── Pickup.ts     unused για τώρα
+├── story.ts          prologue + endings + notebook entries + items
+├── map.ts            world: terrain, props, NPCs with per-day conditional dialog
+├── types.ts          shared interfaces (GameCtx with day, notes, inventory)
+├── objects/          Player / NPC / etc.
 └── scenes/
-    ├── Boot.ts       forge textures + anims + fonts
-    ├── Title.ts      "5 ΛΕΠΤΑ ΠΡΙΝ" — soft entrance με embers + moon
-    ├── Game.ts       world + dialog + endings + lighting + Fx
-    └── Ui.ts         HUD + banners + prompts + dialog + story cards + notebook + pause
+    ├── Boot.ts       textures + anims + fonts
+    ├── Title.ts      title screen
+    ├── Game.ts       the outdoor world + dialog + endings + Fx
+    ├── Home.ts       interior of Alex's house — multi-scene demo
+    └── Ui.ts         HUD + dialog + story cards + notebook + pocket + pause
 ```
 
-Fonts: **Cinzel** (display) + **Spectral** (body), από Google Fonts.
+Fonts: **Cinzel** (display) + **Spectral** (body), from Google Fonts.
 
 ---
 
-*"Τα κεριά ξέρουν ότι έσβησαν, ακόμα κι αν δεν τους το πεις."*
+*"Candles know they were lit, even if you don't tell them."*

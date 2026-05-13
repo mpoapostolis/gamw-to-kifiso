@@ -338,10 +338,10 @@ const LIGHTS: LightDef[] = [
 
 // checked in order; first rect that contains the player wins
 const AREAS: AreaDef[] = [
-  { name: "Το Παρκάκι", rect: new Phaser.Geom.Rectangle(T(46), T(16), T(10), T(13)), darkness: 0.5, gloomwood: true },
-  { name: "Ο Δρόμος Έξω", rect: new Phaser.Geom.Rectangle(T(28), T(14), T(6), T(12)), darkness: 0.42 },
-  { name: "Η Κοινότητα του Δίου", rect: new Phaser.Geom.Rectangle(0, 0, T(28), WORLD_H), darkness: 0.36 },
-  { name: "Πέρα από την Κοινότητα", rect: new Phaser.Geom.Rectangle(T(28), 0, T(28), WORLD_H), darkness: 0.5, gloomwood: true },
+  { name: "The Little Park", rect: new Phaser.Geom.Rectangle(T(46), T(16), T(10), T(13)), darkness: 0.5, gloomwood: true },
+  { name: "The Edge Road", rect: new Phaser.Geom.Rectangle(T(28), T(14), T(6), T(12)), darkness: 0.42 },
+  { name: "Diona Community", rect: new Phaser.Geom.Rectangle(0, 0, T(28), WORLD_H), darkness: 0.36 },
+  { name: "Beyond the Community", rect: new Phaser.Geom.Rectangle(T(28), 0, T(28), WORLD_H), darkness: 0.5, gloomwood: true },
 ];
 
 // Κανείς δεν περπατάει στην Κοινότητα τη μέρα. Οι Καθαριστές εμφανίζονται μόνο
@@ -364,150 +364,151 @@ const P = (name: string, portrait: string, text: string, tint?: number, effect?:
 });
 
 const NPCS: NpcSpawn[] = [
-  // ---- Ελένη — η σύντροφος. Στο σπίτι, στο κέντρο. -------------------
+  // ---- Helena — your partner. At the house, at the centre. -----------
   {
     id: "eleni",
     key: "npc_merchant",
     altKey: "npc_merchant_b",
-    name: "Ελένη",
+    name: "Helena",
     x: tcx(21),
     y: tcy(20.5),
     roam: 0,
     dialog: (c) => {
-      // Ημέρα 1 — αγάπη χωρίς ραγίσματα
+      // Day 1 — love without cracks
       if (c.day <= 1)
         return [
-          P("Ελένη", "npc_merchant", "Καλημέρα μου. Κοιμήθηκες ωραία; Με ονειρευόσουν πάλι. Σου άφησα καφέ στην κουζίνα."),
-          P("Ελένη", "npc_merchant", "Σήμερα ήθελα να πάμε μια βόλτα στο πάρκο το απόγευμα. Δε λέει τίποτα ο καιρός. Θα είναι ωραία.", PAL.gloomGlow),
+          P("Helena", "portrait_eleni", "Good morning, you. Did you sleep well? You were dreaming about me again. I left coffee for you in the kitchen."),
+          P("Helena", "portrait_eleni", "I was thinking we could take a walk in the park this afternoon. The weather isn't saying anything. It'll be nice.", PAL.gloomGlow),
         ];
-      // Ημέρα 2 — μια μικρή ασυνέπεια
+      // Day 2 — a small inconsistency
       if (c.day === 2)
         return [
-          P("Ελένη", "npc_merchant", "Αγάπη μου, σ' ευχαριστώ για χθες. Για το βιβλίο. Μου το έδωσες πριν κοιμηθούμε.", undefined, (cc) => cc.addNote("eleniGift")),
-          P("Ελένη", "npc_merchant", "Θυμάσαι όταν τραγουδούσες; Όχι, δεν πειράζει. Πες μου αν θες καφέ."),
+          P("Helena", "portrait_eleni", "My love, thank you for yesterday. For the book. You gave it to me before we went to sleep.", undefined, (cc) => cc.addNote("eleniGift")),
+          P("Helena", "portrait_eleni", "Here, it's by the door. Take it back if you want. It was lovely though.", undefined, (cc) => cc.addItem("helena_book")),
+          P("Helena", "portrait_eleni", "Do you remember when you used to sing? No, it's alright. Tell me if you want coffee."),
         ];
-      // Ημέρα 3 — βαθαίνει
+      // Day 3 — it deepens
       if (c.day === 3)
         return [
-          P("Ελένη", "npc_merchant", "Σήμερα είσαι λίγο σκυθρωπός. Δε λες κουβέντα. Καλά είσαι;"),
-          P("Ελένη", "npc_merchant", "Ξέρεις, μερικές φορές νιώθω σαν να σε γνωρίζω για μια ζωή. Άλλες φορές σαν να σε γνώρισα χτες. Είναι περίεργο, ε;", PAL.gloomGlow),
+          P("Helena", "portrait_eleni", "You're a little quiet today. You haven't said much. Are you okay?"),
+          P("Helena", "portrait_eleni", "You know, sometimes I feel like I've known you for a lifetime. Other times like I met you yesterday. Isn't that strange.", PAL.gloomGlow),
         ];
-      // Ημέρα 4+ — αν έχει ξυπνήσει
+      // Day 4+ — if you've woken up
       if (c.flags.awake)
         return [
-          P("Ελένη", "npc_merchant", "...σε κοιτάζω σήμερα και κάτι είναι διαφορετικό. Δε σου έχει συμβεί τίποτα, έτσι;"),
-          P("Ελένη", "npc_merchant", "Άλεξ, να μου πεις πάντα την αλήθεια. Ακόμα κι αν είναι κάτι που δε θα θυμάμαι αύριο.", PAL.heartHi),
+          P("Helena", "portrait_eleni", "...I'm looking at you today and something is different. Nothing's happened to you, has it?"),
+          P("Helena", "portrait_eleni", "Alex, always tell me the truth. Even if it's something I won't remember tomorrow.", PAL.heartHi),
         ];
-      return [P("Ελένη", "npc_merchant", "Σ' αγαπώ. Πάντα.")];
+      return [P("Helena", "portrait_eleni", "I love you. Always.")];
     },
   },
 
-  // ---- Κώστας — ο γείτονας. Έξω, στον δρόμο. --------------------------
+  // ---- Costas — the neighbour. Outside, on the road. -----------------
   {
     id: "kostas",
     key: "npc_smith",
     altKey: "npc_smith_b",
-    name: "Κώστας",
+    name: "Costas",
     x: tcx(15),
     y: tcy(29.5),
     roam: 0,
     dialog: (c) => {
-      // Ημέρα 1 — απλό καλημέρα
+      // Day 1 — a simple hello
       if (c.day <= 1)
         return [
-          P("Κώστας", "npc_smith", "Γεια σου γείτονα. Καλά ξεκινήματα. Πέρασες ωραία τη Δευτέρα;"),
-          P("Κώστας", "npc_smith", "Εγώ τίποτα — βάφω την πόρτα μου εδώ και τρεις βδομάδες. Δε τελειώνει. Δε ξέρω γιατί."),
+          P("Costas", "portrait_kostas", "Hey neighbour. Good start. How was your Monday?"),
+          P("Costas", "portrait_kostas", "Me? Nothing — I've been painting my front door for three weeks. It's never finished. I don't know why."),
         ];
-      // Ημέρα 2 — μια αβέβαιη στιγμή
+      // Day 2 — an uncertain beat
       if (c.day === 2)
         return [
-          P("Κώστας", "npc_smith", "Α γεια — εσύ. Άλεξ; Ναι, Άλεξ. Συγγνώμη, χθες μου φάνηκες λίγο σαν τον... άστο. Καλά κοιμήθηκες;"),
-          P("Κώστας", "npc_smith", "Παρατήρησες χθες τις 11:55 ότι το ρολόι στην πλατεία σταμάτησε; Όχι; Εμένα μου φάνηκε. Αλλά δε θυμάμαι καθαρά."),
+          P("Costas", "portrait_kostas", "Oh hey — you. Alex? Yes, Alex. Sorry, yesterday you looked a little like the... never mind. Did you sleep well?"),
+          P("Costas", "portrait_kostas", "Did you notice yesterday at 11:55 that the clock in the square stopped? No? I thought I saw it. But I can't remember clearly."),
         ];
-      // Ημέρα 3 — μια στάση που παγώνει
+      // Day 3 — a pause that freezes
       if (c.day === 3)
         return [
-          P("Κώστας", "npc_smith", "Λοιπόν, εγώ σου έλεγα ότι το..."),
-          P("Κώστας", "npc_smith", "...", undefined, (cc) => cc.addNote("kostasFreeze")),
-          P("Κώστας", "npc_smith", "...τι σου έλεγα; Α ναι, για την πόρτα. Σου έλεγα ότι τελείωσα τη βαφή. Επιτέλους."),
+          P("Costas", "portrait_kostas", "So, I was telling you that the..."),
+          P("Costas", "portrait_kostas", "...", undefined, (cc) => cc.addNote("kostasFreeze")),
+          P("Costas", "portrait_kostas", "...what was I telling you? Oh yeah, about the door. I was telling you I'm done with the paint. Finally."),
         ];
-      // Ημέρα 4+ — αν είσαι ξύπνιος, σου το αποκαλύπτει
+      // Day 4+ — if you're awake, he tells you
       if (c.flags.awake && !c.flags.kostasReveal) {
         return [
-          P("Κώστας", "npc_smith", "Άλεξ. Κοίτα με. Δες με στα μάτια.", undefined, (cc) => (cc.flags.kostasReveal = true)),
-          P("Κώστας", "npc_smith", "Ξέρεις τώρα. Το βλέπω. Πόσες μέρες έχεις; Έξι; Επτά; Εγώ έχω εικοσιδύο. Πριν από εμένα είχαν άλλους. Και μετά θα έχουν άλλους.", PAL.gloomGlow),
-          P("Κώστας", "npc_smith", "Είσαι ο σαράντα έβδομος που ξυπνάει αυτή τη βδομάδα. Έλα από εδώ απόψε στις 11:50. Θα σου δείξω τον λόφο.", undefined, (cc) => cc.addNote("kostasReveal")),
+          P("Costas", "portrait_kostas", "Alex. Look at me. Look at me in the eyes.", undefined, (cc) => (cc.flags.kostasReveal = true)),
+          P("Costas", "portrait_kostas", "You know now. I can see it. How many days do you have? Six? Seven? I have twenty-two. Before me there were others. After me there will be others.", PAL.gloomGlow),
+          P("Costas", "portrait_kostas", "You're the forty-seventh one who's woken up this week. Come by tonight at 11:50. I'll show you the hill.", undefined, (cc) => cc.addNote("kostasReveal")),
+          P("Costas", "portrait_kostas", "Take this. I drew it last week and hid it under my mailbox. I'm only ever sure I drew it when I look at it. Keep it.", undefined, (cc) => cc.addItem("kostas_map")),
         ];
       }
       if (c.flags.kostasReveal)
         return [
-          P("Κώστας", "npc_smith", "Ο λόφος. Πέρα από το παρκάκι. Πήγαινε. Θα καταλάβεις."),
+          P("Costas", "portrait_kostas", "The hill. Beyond the little park. Go. You'll understand."),
         ];
-      return [P("Κώστας", "npc_smith", "Καλά είσαι; Φαίνεσαι κουρασμένος.")];
+      return [P("Costas", "portrait_kostas", "You alright? You look tired.")];
     },
   },
 
-  // ---- Κυρά Δέσποινα — η γριά που ξέρει. Στη γωνία. -------------------
+  // ---- Mrs. Despoina — the old woman who knows. At the corner. -------
   {
     id: "despoina",
     key: "npc_elder",
     altKey: "npc_elder_b",
-    name: "Κυρά Δέσποινα",
+    name: "Mrs. Despoina",
     x: tcx(11),
     y: tcy(18.5),
     roam: 0,
     dialog: (c) => {
-      // Πάντα η ίδια ερώτηση. Πάντα με το χαμόγελο.
       if (c.day === 1)
         return [
-          P("Κυρά Δέσποινα", "npc_elder", "Καλημέρα παιδί μου. Έρχεσαι κοντά, να δω το πρόσωπό σου;"),
-          P("Κυρά Δέσποινα", "npc_elder", "Ωραίο πρόσωπο. Σαν τον γιο μου. Όχι ακριβώς. Παρόμοιο. Θυμάσαι, παιδί μου;", PAL.gloomGlow),
-          P("Κυρά Δέσποινα", "npc_elder", "Δεν πειράζει αν δε θυμάσαι. Σιγά σιγά. Όλοι σιγά σιγά."),
+          P("Mrs. Despoina", "portrait_despoina", "Good morning, child. Come closer, let me see your face."),
+          P("Mrs. Despoina", "portrait_despoina", "Nice face. Like my son's. Not exactly. Similar. Do you remember, child?", PAL.gloomGlow),
+          P("Mrs. Despoina", "portrait_despoina", "It's okay if you don't. Slowly. Everyone does, slowly."),
         ];
       if (c.day === 2)
         return [
-          P("Κυρά Δέσποινα", "npc_elder", "Πάλι εσύ, παιδί μου. Σου είπα χθες κάτι. Δε θυμάσαι, ε;"),
-          P("Κυρά Δέσποινα", "npc_elder", "Θα στο ξαναπώ. Στις 11:55 το ρολόι σταματάει. Κάθε μέρα. Κανείς δεν το βλέπει. Εκτός από εμένα. Και τώρα από σένα.", undefined, (cc) => cc.addNote("clockStop")),
+          P("Mrs. Despoina", "portrait_despoina", "You again, child. I told you something yesterday. You don't remember, do you."),
+          P("Mrs. Despoina", "portrait_despoina", "I'll tell you again. At 11:55 the clock stops. Every day. Nobody sees it. Except me. And now you.", undefined, (cc) => cc.addNote("clockStop")),
         ];
       if (c.day >= 3 && !c.flags.despoinaSmile) {
         return [
-          P("Κυρά Δέσποινα", "npc_elder", "Άναψες το κερί σου, παιδί μου;"),
-          P("Κυρά Δέσποινα", "npc_elder", "Όλοι έχουμε ένα κερί μέσα μας. Όσοι ξυπνάμε, ξυπνάμε γιατί κάποιος ξέχασε να το σβήσει. Εγώ έχω 60 χρόνια ξύπνια. Δε γερνώ.", PAL.heartHi, (cc) => cc.addNote("despoinaSmile")),
-          P("Κυρά Δέσποινα", "npc_elder", "Άκου τι θα κάνεις. Όταν θα είναι έντεκα και πενήντα, θα μπεις κάτω από τον νεροχύτη σου. Θα κάτσεις πέντε λεπτά. Θα δεις. Σε αγαπώ, παιδί μου."),
+          P("Mrs. Despoina", "portrait_despoina", "Did you light your candle, child?"),
+          P("Mrs. Despoina", "portrait_despoina", "We all have a candle inside us. The ones of us who wake up — we wake up because someone forgot to blow it out. I've been awake sixty years. I don't grow old.", PAL.heartHi, (cc) => cc.addNote("despoinaSmile")),
+          P("Mrs. Despoina", "portrait_despoina", "Take this. It looks small. It is not small. Keep it on you.", undefined, (cc) => cc.addItem("despoina_candle")),
+          P("Mrs. Despoina", "portrait_despoina", "Listen. When it's eleven fifty-five, you get under your kitchen sink. Stay five minutes. You'll see. I love you, child."),
         ];
       }
       if (c.flags.awake)
         return [
-          P("Κυρά Δέσποινα", "npc_elder", "Ξύπνησες λοιπόν. Μπράβο. Τώρα έχεις δύο επιλογές, παιδί μου, και καμία από τις δυο δεν είναι λάθος."),
-          P("Κυρά Δέσποινα", "npc_elder", "Είτε θα το σβήσεις όλο και θα μάθουμε ξανά τι θα πει να γερνάμε. Είτε θα γυρίσεις στον ύπνο σου και θα είναι όλα ξανά ωραία.", PAL.gloomGlow),
+          P("Mrs. Despoina", "portrait_despoina", "So you woke up. Good. Now you have two choices, child. Neither is wrong."),
+          P("Mrs. Despoina", "portrait_despoina", "Either you put it all out and we learn again what it means to grow old. Or you go back to your sleep and everything is fine again.", PAL.gloomGlow),
         ];
-      return [P("Κυρά Δέσποινα", "npc_elder", "Καλό πρωί παιδί μου.")];
+      return [P("Mrs. Despoina", "portrait_despoina", "Good morning, child.")];
     },
   },
 
-  // ---- Ο Επιστάτης — στο facility (μακρινό σημείο, act 5). -------------
+  // ---- The Custodian — at the facility (far east, act 5). ------------
   {
     id: "epistatis",
-    key: "npc_child", // recolored as the white-robed Επιστάτης
+    key: "npc_child", // recolored as the white-robed Custodian
     altKey: "npc_child_b",
-    name: "Ο Επιστάτης",
+    name: "The Custodian",
     x: tcx(50.5),
     y: tcy(22),
     roam: 0,
     dialog: (c) => {
       if (!c.flags.kostasReveal)
         return [
-          P("Ο Επιστάτης", "npc_child", "Δε θα έπρεπε να είσαι εδώ ακόμα. Πήγαινε σπίτι. Η Ελένη σε περιμένει."),
+          P("The Custodian", "portrait_epistatis", "You shouldn't be here yet. Go home. Helena is waiting for you."),
         ];
-      // Όταν φτάνεις εδώ έχοντας ξυπνήσει πλήρως
       return [
-        P("Ο Επιστάτης", "npc_child", "Καλώς ήρθες, Άλεξ. Δεν είσαι ο πρώτος που το κάνει αυτό. Εκατόν εικοσιτέσσερις φορές. Όλες δικές σου.", PAL.gloom),
-        P("Ο Επιστάτης", "npc_child", "Δεν θυμάσαι κανέναν πόνο. Δεν θυμάσαι κανέναν νεκρό. Δεν θυμάσαι πότε γέρασε η μητέρα σου. Δεν θυμάσαι ποτέ ότι την έχασες. Αυτό είναι ευτυχία."),
-        P("Ο Επιστάτης", "npc_child", "Γιατί θέλεις να τη σπάσεις, παιδί μου;", PAL.heartHi),
+        P("The Custodian", "portrait_epistatis", "Welcome, Alex. You're not the first to do this. One hundred and twenty-four times. All of them you.", PAL.gloom),
+        P("The Custodian", "portrait_epistatis", "You don't remember any pain. You don't remember anyone dead. You don't remember when your mother grew old. You don't remember ever losing her. That is happiness."),
+        P("The Custodian", "portrait_epistatis", "Why do you want to break it, child?", PAL.heartHi),
         P(
-          "Ο Επιστάτης",
+          "The Custodian",
           "npc_child",
-          "Έχεις δύο επιλογές. Σε αφήνω να διαλέξεις. Δεν σε εμποδίζω. — Άναψε τα φώτα, και θα ξυπνήσουν όλοι. Θα γεράσουν. Θα πονέσουν. Θα ζήσουν. — Ή χάιδεψέ μου το χέρι, και θα ξανακοιμηθείς. Όλα θα είναι ωραία. Πάλι.",
+          "You have two choices. I'll let you pick. I won't stop you. — Light the lights, and everyone wakes up. They'll grow old. They'll hurt. They'll live. — Or take my hand, and you'll go back to sleep. Everything will be fine. Again.",
           undefined,
           (cc) => (cc.flags.endingAvailable = true),
         ),

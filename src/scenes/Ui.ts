@@ -7,7 +7,7 @@ import Phaser from "phaser";
 import { VIEW_H, VIEW_W } from "../consts";
 import { hex, PAL } from "../palette";
 import { SFX } from "../sfx";
-import { NOTES } from "../story";
+import { ITEMS, NOTES } from "../story";
 import type { DialogPage, GameCtx } from "../types";
 import type { GameScene } from "./Game";
 
@@ -87,6 +87,11 @@ export class UIScene extends Phaser.Scene {
   notebookOpen = false;
   private noteCount = 0;
 
+  // pocket / inventory
+  private inventoryRoot!: Phaser.GameObjects.Container;
+  private inventoryList!: Phaser.GameObjects.Text;
+  inventoryOpen = false;
+
   constructor() {
     super("UI");
   }
@@ -111,7 +116,7 @@ export class UIScene extends Phaser.Scene {
     drawPanel(killBg, 16, 70, 196, 38, PAL.panelEdge);
     this.hudKillIcon = this.add.image(16 + 22, 70 + 19, "ui_sigil").setDepth(21).setScale(0.8);
     this.hudKills = this.add
-      .text(16 + 40, 70 + 19, "TAB  ·  0 σημειώσεις", { fontFamily: SPECTRAL, fontSize: "14px", color: hex(PAL.inkDim), fontStyle: "500" })
+      .text(16 + 40, 70 + 19, "TAB  ·  0 notes", { fontFamily: SPECTRAL, fontSize: "14px", color: hex(PAL.inkDim), fontStyle: "500" })
       .setOrigin(0, 0.5)
       .setDepth(21);
 
@@ -144,6 +149,8 @@ export class UIScene extends Phaser.Scene {
     this.buildPause();
     // ----- notebook -----------------------------------------------------
     this.buildNotebook();
+    // ----- inventory ----------------------------------------------------
+    this.buildInventory();
 
     // advance handlers (shared by dialog & story & death) + pause toggle
     const advance = () => this.onAdvance();
@@ -151,17 +158,23 @@ export class UIScene extends Phaser.Scene {
     this.input.keyboard?.on("keydown-ENTER", advance);
     this.input.keyboard?.on("keydown-E", advance);
     this.input.on(Phaser.Input.Events.POINTER_DOWN, advance);
-    // ESC: pause · TAB: notebook · raw event survives GameScene being paused.
+    // ESC: pause · TAB: notebook · I: pocket · raw event survives GameScene pause.
     this.input.keyboard?.on("keydown", (ev: KeyboardEvent) => {
       SFX.unlock();
+      const idle = !this.deathRoot.visible && !this.storyRoot.visible && !this.dlgRoot.visible;
       if (ev.key === "Escape" || ev.code === "Escape") {
-        if (!this.deathRoot.visible && !this.storyRoot.visible && !this.dlgRoot.visible && !this.notebookOpen) {
+        if (idle && !this.notebookOpen && !this.inventoryOpen) {
           this.togglePause();
           ev.preventDefault?.();
         }
       } else if (ev.key === "Tab" || ev.code === "Tab") {
-        if (!this.deathRoot.visible && !this.storyRoot.visible && !this.dlgRoot.visible && !this.paused) {
+        if (idle && !this.paused && !this.inventoryOpen) {
           this.toggleNotebook();
+          ev.preventDefault?.();
+        }
+      } else if (ev.key === "i" || ev.key === "I" || ev.code === "KeyI") {
+        if (idle && !this.paused && !this.notebookOpen) {
+          this.toggleInventory();
           ev.preventDefault?.();
         }
       }
@@ -217,19 +230,17 @@ export class UIScene extends Phaser.Scene {
   }
 
   setKills(_n: number) {
-    // legacy (kept for engine compat) — note count handled by addNote() instead
     if (!this.hudKills) return;
-    this.hudKills.setText(`TAB  ·  ${this.noteCount} σημει${this.noteCount === 1 ? "ωση" : "ώσεις"}`);
+    this.hudKills.setText(`TAB  ·  ${this.noteCount} note${this.noteCount === 1 ? "" : "s"}`);
   }
 
   addNote(id: string) {
     if (!this.notebookList) return;
     const line = NOTES[id] ?? id;
     this.noteCount++;
-    this.hudKills?.setText(`TAB  ·  ${this.noteCount} σημει${this.noteCount === 1 ? "ωση" : "ώσεις"}`);
+    this.hudKills?.setText(`TAB  ·  ${this.noteCount} note${this.noteCount === 1 ? "" : "s"}`);
     this.notebookList.setText(this.notebookList.text + (this.notebookList.text ? "\n\n" : "") + "•  " + line);
-    this.toast("+ σημείωση", PAL.heartHi);
-    // little pulse on the icon
+    this.toast("+ note", PAL.heartHi);
     if (this.hudKillIcon) {
       this.tweens.add({ targets: this.hudKillIcon, scale: 1.3, yoyo: true, duration: 240, ease: "Back.easeOut" });
     }
@@ -316,25 +327,33 @@ export class UIScene extends Phaser.Scene {
    * DIALOG                                                             *
    * ------------------------------------------------------------------ */
   private buildDialog() {
-    const boxW = 900;
-    const boxH = 168;
+    const boxW = 940;
+    const boxH = 196;
     const x = VIEW_W / 2 - boxW / 2;
     const y = VIEW_H - boxH - 28;
     this.dlgPanel = this.add.graphics();
     drawPanel(this.dlgPanel, x, y, boxW, boxH, PAL.panelEdgeHi);
-    this.dlgPortraitBg = this.add.image(x + 24 + 40, y + 24 + 40, "ui_portrait_bg").setDisplaySize(86, 86);
-    this.dlgPortrait = this.add.image(x + 24 + 40, y + 24 + 48, "npc_elder").setOrigin(0.5, 1).setScale(1.7);
-    this.dlgName = this.add.text(x + 132, y + 18, "", { fontFamily: CINZEL, fontSize: "20px", color: hex(PAL.emberHot), fontStyle: "600" }).setLetterSpacing(2);
-    this.dlgText = this.add.text(x + 132, y + 50, "", {
+    // Larger portrait box — the big detailed face shows here
+    const portraitW = 124;
+    const portraitH = 156;
+    this.dlgPortraitBg = this.add
+      .image(x + 22 + portraitW / 2, y + 20 + portraitH / 2, "ui_portrait_bg")
+      .setDisplaySize(portraitW + 4, portraitH + 4);
+    this.dlgPortrait = this.add
+      .image(x + 22 + portraitW / 2, y + 20 + portraitH / 2, "portrait_eleni")
+      .setOrigin(0.5, 0.5)
+      .setDisplaySize(portraitW, portraitH);
+    this.dlgName = this.add.text(x + 22 + portraitW + 22, y + 18, "", { fontFamily: CINZEL, fontSize: "22px", color: hex(PAL.emberHot), fontStyle: "600" }).setLetterSpacing(3);
+    this.dlgText = this.add.text(x + 22 + portraitW + 22, y + 56, "", {
       fontFamily: SPECTRAL,
       fontSize: "20px",
       color: hex(PAL.ink),
       fontStyle: "400",
       lineSpacing: 7,
-      wordWrap: { width: boxW - 132 - 32 },
+      wordWrap: { width: boxW - portraitW - 86 },
     });
     this.dlgHint = this.add
-      .text(x + boxW - 18, y + boxH - 14, "SPACE  ▸  παρακάτω", { fontFamily: SPECTRAL, fontSize: "13px", color: hex(PAL.inkFaint), fontStyle: "italic 400" })
+      .text(x + boxW - 20, y + boxH - 14, "SPACE  ▸  continue", { fontFamily: SPECTRAL, fontSize: "13px", color: hex(PAL.inkFaint), fontStyle: "italic 400" })
       .setOrigin(1, 1);
     this.tweens.add({ targets: this.dlgHint, alpha: { from: 1, to: 0.3 }, yoyo: true, repeat: -1, duration: 900, ease: "Sine.easeInOut" });
     this.dlgRoot = this.add
@@ -431,7 +450,7 @@ export class UIScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
     this.storyHint = this.add
-      .text(VIEW_W / 2, VIEW_H - 64, "SPACE / κλικ  ▸  συνέχεια", { fontFamily: SPECTRAL, fontSize: "15px", color: hex(PAL.inkFaint), fontStyle: "italic 400" })
+      .text(VIEW_W / 2, VIEW_H - 64, "SPACE / click  ▸  continue", { fontFamily: SPECTRAL, fontSize: "15px", color: hex(PAL.inkFaint), fontStyle: "italic 400" })
       .setOrigin(0.5);
     this.tweens.add({ targets: this.storyHint, alpha: { from: 1, to: 0.3 }, yoyo: true, repeat: -1, duration: 1000, ease: "Sine.easeInOut" });
     this.storyRoot = this.add.container(0, 0, [this.storyDim, this.storyTitle, this.storyBody, this.storyHint]).setDepth(80).setVisible(false);
@@ -508,15 +527,15 @@ export class UIScene extends Phaser.Scene {
   private buildDeath() {
     const dim = this.add.rectangle(VIEW_W / 2, VIEW_H / 2, VIEW_W, VIEW_H, 0x0a0612, 0.86);
     const big = this.add
-      .text(VIEW_W / 2, VIEW_H / 2 - 36, "ΣΕ ΠΗΡΑΝ", { fontFamily: CINZEL, fontSize: "62px", color: hex(PAL.gloomGlow), fontStyle: "800" })
+      .text(VIEW_W / 2, VIEW_H / 2 - 36, "THEY TOOK YOU", { fontFamily: CINZEL, fontSize: "54px", color: hex(PAL.gloomGlow), fontStyle: "800" })
       .setOrigin(0.5)
-      .setLetterSpacing(14)
+      .setLetterSpacing(12)
       .setShadow(0, 4, "rgba(0,0,0,0.7)", 8);
     const sub = this.add
-      .text(VIEW_W / 2, VIEW_H / 2 + 32, "ξύπνα.  μια ακόμα μέρα.", { fontFamily: SPECTRAL, fontSize: "22px", color: hex(PAL.inkDim), fontStyle: "italic 400" })
+      .text(VIEW_W / 2, VIEW_H / 2 + 32, "wake up.  another day.", { fontFamily: SPECTRAL, fontSize: "22px", color: hex(PAL.inkDim), fontStyle: "italic 400" })
       .setOrigin(0.5);
     const hint = this.add
-      .text(VIEW_W / 2, VIEW_H / 2 + 86, "πάτα οτιδήποτε  ▸  το επόμενο πρωί", { fontFamily: SPECTRAL, fontSize: "16px", color: hex(PAL.inkFaint), fontStyle: "400" })
+      .text(VIEW_W / 2, VIEW_H / 2 + 86, "press anything  ▸  the next morning", { fontFamily: SPECTRAL, fontSize: "16px", color: hex(PAL.inkFaint), fontStyle: "400" })
       .setOrigin(0.5);
     this.tweens.add({ targets: hint, alpha: { from: 1, to: 0.35 }, yoyo: true, repeat: -1, duration: 950, ease: "Sine.easeInOut" });
     this.deathRoot = this.add.container(0, 0, [dim, big, sub, hint]).setDepth(85).setVisible(false);
@@ -535,21 +554,22 @@ export class UIScene extends Phaser.Scene {
     const dim = this.add.rectangle(VIEW_W / 2, VIEW_H / 2, VIEW_W, VIEW_H, PAL.void, 0.78);
     const panel = this.add.graphics();
     drawPanel(panel, VIEW_W / 2 - 280, VIEW_H / 2 - 180, 560, 360, PAL.panelEdgeHi);
-    const title = this.add.text(VIEW_W / 2, VIEW_H / 2 - 150, "5 ΛΕΠΤΑ ΠΡΙΝ", { fontFamily: CINZEL, fontSize: "34px", color: hex(PAL.ink), fontStyle: "800" }).setOrigin(0.5).setLetterSpacing(10);
+    const title = this.add.text(VIEW_W / 2, VIEW_H / 2 - 150, "FIVE MINUTES BEFORE", { fontFamily: CINZEL, fontSize: "26px", color: hex(PAL.ink), fontStyle: "800" }).setOrigin(0.5).setLetterSpacing(8);
     const lines = [
-      "κίνηση           W A S D   ·   ↑ ↓ ← →",
-      "κουβέντα       E   (δίπλα σε γείτονα)",
-      "σημειώσεις    TAB",
-      "pause             ESC                mute   M",
+      "walk           W A S D   ·   ↑ ↓ ← →",
+      "talk            E   (next to a neighbour)",
+      "notebook   TAB",
+      "pocket        I",
+      "pause         ESC                mute   M",
       "",
-      "Μίλα με όλους. Πρόσεξε όταν λένε κάτι",
-      "που δεν ταιριάζει με ό,τι θυμάσαι.",
-      "Σιγά σιγά κάτι θα ξυπνήσει μέσα σου.",
+      "Talk to everyone. Notice when they say something",
+      "that doesn't match what you remember.",
+      "Slowly, something will wake up inside you.",
     ];
     const body = this.add
       .text(VIEW_W / 2, VIEW_H / 2 - 80, lines.join("\n"), { fontFamily: SPECTRAL, fontSize: "17px", color: hex(PAL.inkDim), fontStyle: "400", align: "center", lineSpacing: 9 })
       .setOrigin(0.5, 0);
-    const hint = this.add.text(VIEW_W / 2, VIEW_H / 2 + 152, "ESC  ▸  πίσω στον δρόμο", { fontFamily: SPECTRAL, fontSize: "14px", color: hex(PAL.inkFaint), fontStyle: "italic 400" }).setOrigin(0.5);
+    const hint = this.add.text(VIEW_W / 2, VIEW_H / 2 + 152, "ESC  ▸  back outside", { fontFamily: SPECTRAL, fontSize: "14px", color: hex(PAL.inkFaint), fontStyle: "italic 400" }).setOrigin(0.5);
     this.tweens.add({ targets: hint, alpha: { from: 1, to: 0.4 }, yoyo: true, repeat: -1, duration: 1000 });
     this.pauseRoot = this.add.container(0, 0, [dim, panel, title, body, hint]).setDepth(90).setVisible(false);
   }
@@ -610,9 +630,9 @@ export class UIScene extends Phaser.Scene {
     const panel = this.add.graphics();
     drawPanel(panel, x, y, w, h, PAL.panelEdgeHi);
     const title = this.add
-      .text(VIEW_W / 2, y + 36, "Σ Η Μ Ε Ι Ω Σ Ε Ι Σ", { fontFamily: CINZEL, fontSize: "26px", color: hex(PAL.ink), fontStyle: "600" })
+      .text(VIEW_W / 2, y + 36, "NOTES", { fontFamily: CINZEL, fontSize: "30px", color: hex(PAL.ink), fontStyle: "600" })
       .setOrigin(0.5)
-      .setLetterSpacing(8);
+      .setLetterSpacing(12);
     const ruleG = this.add.graphics();
     ruleG.lineStyle(1, PAL.panelEdgeHi, 0.7);
     ruleG.lineBetween(x + 60, y + 64, x + w - 60, y + 64);
@@ -625,10 +645,10 @@ export class UIScene extends Phaser.Scene {
       lineSpacing: 4,
     });
     const empty = this.add
-      .text(VIEW_W / 2, VIEW_H / 2 + 20, "(ακόμα τίποτα)\n\nμίλα στους γείτονες · πρόσεξε τι λένε ξανά και ξανά", { fontFamily: SPECTRAL, fontSize: "16px", color: hex(PAL.inkFaint), fontStyle: "italic 400", align: "center", lineSpacing: 6 })
+      .text(VIEW_W / 2, VIEW_H / 2 + 20, "(nothing yet)\n\ntalk to the neighbours · notice what they say again and again", { fontFamily: SPECTRAL, fontSize: "16px", color: hex(PAL.inkFaint), fontStyle: "italic 400", align: "center", lineSpacing: 6 })
       .setOrigin(0.5);
     const hint = this.add
-      .text(VIEW_W / 2, y + h - 22, "TAB  ▸  πίσω", { fontFamily: SPECTRAL, fontSize: "13px", color: hex(PAL.inkFaint), fontStyle: "italic 400" })
+      .text(VIEW_W / 2, y + h - 22, "TAB  ▸  back", { fontFamily: SPECTRAL, fontSize: "13px", color: hex(PAL.inkFaint), fontStyle: "italic 400" })
       .setOrigin(0.5);
     this.tweens.add({ targets: hint, alpha: { from: 1, to: 0.4 }, yoyo: true, repeat: -1, duration: 1000 });
     this.notebookRoot = this.add.container(0, 0, [dim, panel, title, ruleG, this.notebookList, empty, hint]).setDepth(70).setVisible(false);
@@ -651,6 +671,83 @@ export class UIScene extends Phaser.Scene {
     if (this.notebookOpen) {
       this.notebookRoot.setAlpha(0);
       this.tweens.add({ targets: this.notebookRoot, alpha: 1, duration: 220 });
+      SFX.open();
+      this.scene.get("Game").scene.pause();
+    } else {
+      SFX.close();
+      this.scene.get("Game").scene.resume();
+    }
+  }
+
+  /* ------------------------------------------------------------------ *
+   * POCKET / INVENTORY                                                 *
+   * ------------------------------------------------------------------ */
+  private buildInventory() {
+    const w = 720;
+    const h = 520;
+    const x = VIEW_W / 2 - w / 2;
+    const y = VIEW_H / 2 - h / 2;
+    const dim = this.add.rectangle(VIEW_W / 2, VIEW_H / 2, VIEW_W, VIEW_H, PAL.void, 0.7);
+    const panel = this.add.graphics();
+    drawPanel(panel, x, y, w, h, PAL.panelEdgeHi);
+    const title = this.add
+      .text(VIEW_W / 2, y + 36, "POCKET", { fontFamily: CINZEL, fontSize: "30px", color: hex(PAL.ink), fontStyle: "600" })
+      .setOrigin(0.5)
+      .setLetterSpacing(12);
+    const ruleG = this.add.graphics();
+    ruleG.lineStyle(1, PAL.panelEdgeHi, 0.7);
+    ruleG.lineBetween(x + 60, y + 64, x + w - 60, y + 64);
+    this.inventoryList = this.add.text(x + 36, y + 86, "", {
+      fontFamily: SPECTRAL,
+      fontSize: "17px",
+      color: hex(PAL.inkDim),
+      fontStyle: "400",
+      wordWrap: { width: w - 72 },
+      lineSpacing: 4,
+    });
+    const empty = this.add
+      .text(VIEW_W / 2, VIEW_H / 2 + 20, "(empty)", { fontFamily: SPECTRAL, fontSize: "16px", color: hex(PAL.inkFaint), fontStyle: "italic 400" })
+      .setOrigin(0.5);
+    const hint = this.add
+      .text(VIEW_W / 2, y + h - 22, "I  ▸  back", { fontFamily: SPECTRAL, fontSize: "13px", color: hex(PAL.inkFaint), fontStyle: "italic 400" })
+      .setOrigin(0.5);
+    this.tweens.add({ targets: hint, alpha: { from: 1, to: 0.4 }, yoyo: true, repeat: -1, duration: 1000 });
+    this.inventoryRoot = this.add.container(0, 0, [dim, panel, title, ruleG, this.inventoryList, empty, hint]).setDepth(72).setVisible(false);
+    this.tweens.add({
+      targets: empty,
+      alpha: { from: 1, to: 1 },
+      duration: 1,
+      onUpdate: () => empty.setAlpha(this.inventoryList.text.length > 0 ? 0 : 1),
+      repeat: -1,
+    });
+  }
+
+  private refreshInventory() {
+    if (!this.inventoryList || !this.ctx) return;
+    const lines: string[] = [];
+    for (const id of Object.keys(this.ctx.inventory)) {
+      if (!this.ctx.inventory[id]) continue;
+      const item = ITEMS[id];
+      if (!item) continue;
+      lines.push(`◆  ${item.name}\n     ${item.description}`);
+    }
+    this.inventoryList.setText(lines.join("\n\n"));
+  }
+
+  addItem(id: string) {
+    const item = ITEMS[id];
+    if (!item) return;
+    this.refreshInventory();
+    this.toast(`+ ${item.name}`, PAL.heartHi);
+  }
+
+  toggleInventory() {
+    this.inventoryOpen = !this.inventoryOpen;
+    if (this.inventoryOpen) this.refreshInventory();
+    this.inventoryRoot.setVisible(this.inventoryOpen);
+    if (this.inventoryOpen) {
+      this.inventoryRoot.setAlpha(0);
+      this.tweens.add({ targets: this.inventoryRoot, alpha: 1, duration: 220 });
       SFX.open();
       this.scene.get("Game").scene.pause();
     } else {
