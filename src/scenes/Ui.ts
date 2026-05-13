@@ -38,6 +38,8 @@ export class UIScene extends Phaser.Scene {
   private hudGold!: Phaser.GameObjects.Text;
   private hudKills!: Phaser.GameObjects.Text;
   private hudKillIcon!: Phaser.GameObjects.Image;
+  private hudClock!: Phaser.GameObjects.Text;
+  private hudDay!: Phaser.GameObjects.Text;
 
   // banner / prompt / toasts
   private banner!: Phaser.GameObjects.Text;
@@ -118,6 +120,20 @@ export class UIScene extends Phaser.Scene {
     this.hudKills = this.add
       .text(16 + 40, 70 + 19, "TAB  ·  0 notes", { fontFamily: SPECTRAL, fontSize: "14px", color: hex(PAL.inkDim), fontStyle: "500" })
       .setOrigin(0, 0.5)
+      .setDepth(21);
+
+    // ----- clock (top-centre) ------------------------------------------
+    const clockBg = this.add.graphics().setDepth(20);
+    drawPanel(clockBg, VIEW_W / 2 - 110, 14, 220, 56, PAL.panelEdgeHi);
+    this.hudClock = this.add
+      .text(VIEW_W / 2, 14 + 22, "07:00", { fontFamily: CINZEL, fontSize: "26px", color: hex(PAL.ink), fontStyle: "800" })
+      .setOrigin(0.5)
+      .setLetterSpacing(4)
+      .setDepth(21);
+    this.hudDay = this.add
+      .text(VIEW_W / 2, 14 + 46, "Day 1", { fontFamily: SPECTRAL, fontSize: "13px", color: hex(PAL.inkDim), fontStyle: "italic 400" })
+      .setOrigin(0.5)
+      .setLetterSpacing(2)
       .setDepth(21);
 
     // ----- banner -------------------------------------------------------
@@ -221,6 +237,34 @@ export class UIScene extends Phaser.Scene {
     this.heartIcons.forEach((h, i) =>
       this.tweens.add({ targets: h, scale: { from: 1, to: 1.4 }, yoyo: true, duration: 180, delay: i * 40, ease: "Quad.easeOut" }),
     );
+  }
+
+  /** Re-pull HUD state from ctx (used after a memory wipe). */
+  refreshAll() {
+    if (!this.ctx) return;
+    // rebuild notebook list from notes
+    if (this.notebookList) {
+      const lines: string[] = [];
+      for (const id of Object.keys(this.ctx.notes)) {
+        if (!this.ctx.notes[id]) continue;
+        const line = NOTES[id] ?? id;
+        lines.push("•  " + line);
+      }
+      this.noteCount = lines.length;
+      this.notebookList.setText(lines.join("\n\n"));
+      this.hudKills?.setText(`TAB  ·  ${this.noteCount} note${this.noteCount === 1 ? "" : "s"}`);
+    }
+    this.refreshInventory();
+  }
+
+  setClock(minutes: number, day: number, danger = false) {
+    if (!this.hudClock) return;
+    const h = Math.floor(minutes / 60) % 24;
+    const m = Math.floor(minutes) % 60;
+    const pad = (n: number) => (n < 10 ? "0" + n : "" + n);
+    this.hudClock.setText(`${pad(h)}:${pad(m)}`);
+    this.hudClock.setColor(hex(danger ? PAL.gloomGlow : PAL.ink));
+    this.hudDay?.setText(`Day ${day}`);
   }
 
   setGold(n: number) {

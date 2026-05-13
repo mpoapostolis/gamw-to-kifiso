@@ -1,6 +1,7 @@
 /** Boot: forge every procedural texture, define animations, wait for fonts, go. */
 import Phaser from "phaser";
 import { buildTextures, buildCursor } from "../textures";
+import { Audio } from "../audio";
 
 function anim(scene: Phaser.Scene, key: string, frames: string[], frameRate: number, repeat = -1) {
   if (scene.anims.exists(key)) return;
@@ -10,6 +11,10 @@ function anim(scene: Phaser.Scene, key: string, frames: string[], frameRate: num
 export class BootScene extends Phaser.Scene {
   constructor() {
     super("Boot");
+  }
+
+  preload() {
+    Audio.preload(this);
   }
 
   create() {

@@ -8,6 +8,7 @@ import { DEPTH, VIEW_H, VIEW_W } from "../consts";
 import { hex, mix, PAL } from "../palette";
 import { SFX } from "../sfx";
 import { MUSIC } from "../music";
+import { Audio } from "../audio";
 import { buildWorld, WORLD_H, WORLD_W } from "../map";
 import { EPILOGUE_BURN, EPILOGUE_RETURN, PROLOGUE } from "../story";
 import type { Fx, GameCtx, World } from "../types";
@@ -51,6 +52,13 @@ export class GameScene extends Phaser.Scene {
   private hitStopUntil = 0;
   private deathHandled = false;
 
+  // 11:55 cleaner phase state
+  cleanerPhase = false;
+  private cleaners: Phaser.Physics.Arcade.Sprite[] = [];
+  private cleanerOverlap: Phaser.Physics.Arcade.Collider | null = null;
+  private cleanerVignette: Phaser.GameObjects.Rectangle | null = null;
+  private cleanerEndsAt = 0;
+
   constructor() {
     super("Game");
   }
@@ -74,8 +82,11 @@ export class GameScene extends Phaser.Scene {
       attackBonus: false,
       flags: {},
       day: 1,
+      time: 7 * 60, // wake up at 07:00
       notes: {},
       inventory: { house_key: true, wallet: true },
+      dayStartNotes: {},
+      dayStartInventory: { house_key: true, wallet: true },
       giveGold: (n) => {
         this.ctx.gold += n;
         this.ui?.setGold(this.ctx.gold);
@@ -161,10 +172,12 @@ export class GameScene extends Phaser.Scene {
     this.input.keyboard!.on("keydown-M", () => {
       const m = SFX.toggleMute();
       MUSIC.setMuted(m);
+      Audio.setMuted(m);
       this.ui?.toast(m ? "sound off" : "sound on", PAL.inkDim);
     });
     SFX.unlock();
     MUSIC.start();
+    Audio.startMusic(this);
 
     // ---- events --------------------------------------------------------
     this.events.on("gloom-killed", this.onGloomKilled, this);
@@ -210,6 +223,30 @@ export class GameScene extends Phaser.Scene {
   update(time: number, _delta: number) {
     // hit-stop release
     if (this.physics.world.isPaused && time >= this.hitStopUntil) this.physics.world.resume();
+
+    // ---- time-of-day advance -------------------------------------------
+    if (!this.inDialog && !this.inStory && !this.player.dead && !this.cleanerPhase) {
+      const TIME_RATE = 5.5; // in-game minutes per real second
+      this.ctx.time += (_delta / 1000) * TIME_RATE;
+      const t = Math.floor(this.ctx.time);
+      const dangerSoon = t >= 23 * 60 + 30 && t < 23 * 60 + 55;
+      const danger = t >= 23 * 60 + 55;
+      this.ui?.setClock(t, this.ctx.day, danger || dangerSoon);
+      if (dangerSoon && !this.ctx.flags.latenightWarned) {
+        this.ctx.flags.latenightWarned = true;
+        this.ui?.toast("the night is getting close. go home.", PAL.gloomGlow);
+      }
+      if (danger && !this.cleanerPhase && this.ctx.day >= 3) {
+        this.startCleanerPhase();
+      } else if (danger && this.ctx.day < 3) {
+        // before day 3 the night still ends, just without cleaners
+        this.advanceDay(false);
+      }
+    }
+    // keep the clock UI in sync even during pauses
+    if ((this.inDialog || this.inStory) && this.ui) {
+      this.ui.setClock(Math.floor(this.ctx.time), this.ctx.day);
+    }
 
     // ---- attack hits ---------------------------------------------------
     if (this.player.attackActive) {
@@ -265,6 +302,9 @@ export class GameScene extends Phaser.Scene {
 
     // ---- ambient emitter follows player --------------------------------
     this.pAmbient.setPosition(this.player.x, this.player.y);
+
+    // ---- cleaner phase chase -------------------------------------------
+    if (this.cleanerPhase) this.updateCleaners(_delta);
   }
 
   /* ===================================================================== *
@@ -310,11 +350,131 @@ export class GameScene extends Phaser.Scene {
     this.player.controlsLocked = true;
     this.ui.hidePrompt();
     SFX.open();
+    // entering home during the cleaner phase escapes it (no wipe)
+    if (this.cleanerPhase) this.escapeCleanerPhase();
     this.cameras.main.fadeOut(380, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       this.scene.sleep();
       this.scene.launch("Home", { returnAt: door });
     });
+  }
+
+  /* ===================================================================== *
+   * CLEANER PHASE — the 11:55 hide-or-be-wiped loop                       *
+   * ===================================================================== */
+  private startCleanerPhase() {
+    this.cleanerPhase = true;
+    this.cleanerEndsAt = this.time.now + 30_000; // 30s grace to reach home
+    Audio.duckMusic(this, 0.05);
+    Audio.startHeartbeat(this, false);
+    SFX.thunderHint();
+    this.cameras.main.shake(220, 0.006);
+    // freeze NPC bobs
+    for (const n of this.npcGroup.getChildren()) (n as Npc).setTalking(true);
+    // big toast
+    this.ui?.toast("THEY ARE HERE.  RUN HOME.", PAL.gloomGlow);
+    // a desaturating overlay
+    this.cleanerVignette = this.add
+      .rectangle(VIEW_W / 2, VIEW_H / 2, VIEW_W, VIEW_H, 0x100c1a, 0)
+      .setScrollFactor(0)
+      .setDepth(DEPTH.darkness - 1);
+    this.tweens.add({ targets: this.cleanerVignette, fillAlpha: 0.45, duration: 800 });
+    // spawn 3 cleaners around the player
+    for (let i = 0; i < 3; i++) {
+      const ang = (i / 3) * Math.PI * 2 + Math.random() * 0.4;
+      const r = 220 + Math.random() * 80;
+      const x = Phaser.Math.Clamp(this.player.x + Math.cos(ang) * r, 200, WORLD_W - 200);
+      const y = Phaser.Math.Clamp(this.player.y + Math.sin(ang) * r, 200, WORLD_H - 200);
+      const c = this.physics.add.sprite(x, y, "npc_cleaner").setOrigin(0.5, 0.92).setBlendMode(Phaser.BlendModes.SCREEN).setAlpha(0).setDepth(y);
+      const body = c.body as Phaser.Physics.Arcade.Body;
+      body.setSize(16, 14);
+      body.setOffset((c.width - 16) / 2, c.height * 0.92 - 14);
+      body.setMaxVelocity(80, 80);
+      this.tweens.add({ targets: c, alpha: 0.95, duration: 600 });
+      // halo
+      const halo = this.add.image(x, y - 18, "glow_violet").setBlendMode(Phaser.BlendModes.ADD).setDepth(y - 0.5).setScale(1.1).setAlpha(0);
+      this.tweens.add({ targets: halo, alpha: 0.5, duration: 600 });
+      c.setData("halo", halo);
+      this.cleaners.push(c);
+    }
+    // contact = caught
+    this.cleanerOverlap = this.physics.add.overlap(this.player, this.cleaners, () => this.onCaughtByCleaner());
+  }
+
+  private updateCleaners(_delta: number) {
+    if (!this.cleanerPhase) return;
+    for (const c of this.cleaners) {
+      const ang = Phaser.Math.Angle.Between(c.x, c.y, this.player.x, this.player.y);
+      const speed = 38; // slow drift — outrunnable but inexorable
+      (c.body as Phaser.Physics.Arcade.Body).setVelocity(Math.cos(ang) * speed, Math.sin(ang) * speed);
+      c.setDepth(c.y);
+      const halo = c.getData("halo") as Phaser.GameObjects.Image;
+      if (halo) halo.setPosition(c.x, c.y - 18).setDepth(c.y - 0.5);
+    }
+    // safety net: if the phase has been running 60s past the deadline
+    if (this.time.now > this.cleanerEndsAt + 30_000) this.onCaughtByCleaner();
+  }
+
+  /** Called when a cleaner overlaps the player, or when time runs out outside. */
+  private onCaughtByCleaner() {
+    if (!this.cleanerPhase || this.ctx.flags.endingChosen) return;
+    this.endCleanerPhase(true /* wiped */);
+  }
+
+  /** Called from enterHome — the player escaped, no wipe. */
+  escapeCleanerPhase() {
+    if (this.cleanerPhase) this.endCleanerPhase(false);
+  }
+
+  private endCleanerPhase(wiped: boolean) {
+    this.cleanerPhase = false;
+    Audio.stopHeartbeat();
+    Audio.unduckMusic(this);
+    if (this.cleanerOverlap) {
+      this.cleanerOverlap.destroy();
+      this.cleanerOverlap = null;
+    }
+    for (const c of this.cleaners) {
+      const halo = c.getData("halo") as Phaser.GameObjects.Image | null;
+      this.tweens.add({ targets: [c, halo].filter(Boolean), alpha: 0, duration: 500, onComplete: () => { c.destroy(); halo?.destroy(); } });
+    }
+    this.cleaners = [];
+    if (this.cleanerVignette) {
+      const v = this.cleanerVignette;
+      this.cleanerVignette = null;
+      this.tweens.add({ targets: v, fillAlpha: 0, duration: 700, onComplete: () => v.destroy() });
+    }
+    // un-freeze NPCs
+    for (const n of this.npcGroup.getChildren()) (n as Npc).setTalking(false);
+    this.advanceDay(wiped);
+  }
+
+  /** Advance the in-game day. If `wiped`, roll back today's notes + items. */
+  advanceDay(wiped: boolean) {
+    if (wiped) {
+      this.ctx.notes = { ...this.ctx.dayStartNotes };
+      this.ctx.inventory = { ...this.ctx.dayStartInventory };
+      this.ui?.refreshAll();
+      this.ui?.toast("you didn't make it. the morning takes some of you with it.", PAL.gloomGlow);
+    } else {
+      this.ui?.toast("you woke up.", PAL.inkDim);
+    }
+    this.ctx.day++;
+    this.ctx.time = 7 * 60;
+    this.ctx.dayStartNotes = { ...this.ctx.notes };
+    this.ctx.dayStartInventory = { ...this.ctx.inventory };
+    if (this.ctx.day >= 4 && !this.ctx.flags.awake) {
+      this.ctx.flags.awake = true;
+      this.ui?.toast("something inside you is awake", PAL.gloomGlow);
+    }
+    // teleport player home (front door, the next morning)
+    const door = { x: 13 * 48 + 24, y: 18 * 48 + 4 };
+    this.player.setPosition(door.x, door.y);
+    (this.player.body as Phaser.Physics.Arcade.Body).reset(door.x, door.y);
+    this.cameras.main.centerOn(door.x, door.y);
+    this.cameras.main.fadeIn(620, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+    this.ui?.showAreaBanner(`Day ${this.ctx.day} · morning`);
+    this.ui?.setClock(this.ctx.time, this.ctx.day);
   }
 
   /** Final choice — pressing 1 burns the facility (EPILOGUE_BURN), 2 returns. */

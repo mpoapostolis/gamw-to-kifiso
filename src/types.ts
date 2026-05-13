@@ -30,10 +30,16 @@ export interface GameCtx {
 
   /** Current in-game day (1, 2, 3, ...). Survives 11:55 events. */
   day: number;
+  /** In-game time, in minutes from midnight. 7:00 AM = 420, 11:55 PM = 1435. */
+  time: number;
   /** Auto-added notebook entries (note id → true when seen). */
   notes: Record<string, boolean>;
   /** Items the player carries (item id → true). */
   inventory: Record<string, boolean>;
+  /** Snapshot of notes & inventory at the start of the current day. The
+   *  cleaner phase restores these on a memory wipe (= "you got caught"). */
+  dayStartNotes: Record<string, boolean>;
+  dayStartInventory: Record<string, boolean>;
 
   // --- actions the dialog layer can take ---
   giveGold(n: number): void;

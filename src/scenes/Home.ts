@@ -246,6 +246,7 @@ export class HomeScene extends Phaser.Scene {
     const startX = dX + 22;
     const startY = dY + 4;
     this.player = new Player(this, startX, startY, this.ctx, this.fx);
+    this.player.surface = "wood";
     this.cameras.main.startFollow(this.player, true, 0.2, 0.2);
     this.cameras.main.setBounds(0, 0, VIEW_W, VIEW_H);
     this.physics.world.setBounds(ox - 20, oy - 60, roomW + 40, roomH + 70);
@@ -469,6 +470,9 @@ export class HomeScene extends Phaser.Scene {
 
   private afterSleep() {
     this.ctx.day++;
+    this.ctx.time = 7 * 60;
+    this.ctx.dayStartNotes = { ...this.ctx.notes };
+    this.ctx.dayStartInventory = { ...this.ctx.inventory };
     // wake up next to the bed
     this.player.setPosition(this.bed.x, this.bed.y + 16);
     (this.player.body as Phaser.Physics.Arcade.Body).reset(this.bed.x, this.bed.y + 16);
@@ -476,6 +480,7 @@ export class HomeScene extends Phaser.Scene {
     this.player.controlsLocked = false;
     this.cameras.main.fadeIn(700, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
     this.ui.showAreaBanner(`Day ${this.ctx.day} · morning`);
+    this.ui.setClock(this.ctx.time, this.ctx.day);
     if (this.ctx.day >= 3 && !this.ctx.flags.bodyMirror) {
       this.ui.toast("your face — slightly different in the mirror", PAL.gloomGlow);
     }

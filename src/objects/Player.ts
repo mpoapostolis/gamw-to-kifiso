@@ -6,6 +6,7 @@
 import Phaser from "phaser";
 import { PAL } from "../palette";
 import { SFX } from "../sfx";
+import { Audio } from "../audio";
 import type { Fx, GameCtx } from "../types";
 
 type Facing = "down" | "up" | "side";
@@ -42,6 +43,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   dead = false;
 
   private stepAccum = 0;
+  /** Surface the player is walking on — set by the current scene. */
+  surface: "wood" | "grass" = "grass";
   private flickerT = 0;
   /** GameScene raises this during dialog / death so movement & attacks freeze. */
   controlsLocked = false;
@@ -325,6 +328,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         if (this.stepAccum > 26) {
           this.stepAccum = 0;
           SFX.footstep();
+          Audio.footstep(this.scene, this.surface);
           this.fx.dust(this.x + Phaser.Math.Between(-3, 3), this.y + 1, 1);
         }
       } else this.stepAccum = Math.min(this.stepAccum, 20);
