@@ -214,7 +214,11 @@ export class KitchenScene extends Phaser.Scene {
       x: bedDoorX, y: bedDoorY - 32,
       r: 64,
       label: "E  ·  back to the bedroom",
-      act: () => SceneRouter.go(this, "Bedroom"),
+      // Pass a spawn so Bedroom knows this is a RE-ENTRY (not a fresh
+      // morning wake) — skips the day banner + control lock + tutorial
+      // sequence that would otherwise replay every time you walk back in.
+      // Coords land the player south of Bedroom's kitchen-door wall.
+      act: () => SceneRouter.go(this, "Bedroom", { x: 827, y: 240 }),
     });
 
     const lrDoorX = right - TILE * 0.8;

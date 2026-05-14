@@ -412,6 +412,17 @@ export class BedroomScene extends Phaser.Scene {
       .setScrollFactor(0);
 
     // ---- DAY BANNER + opening beat ----------------------------------
+    // Only fire the full ~5 second wake sequence when this is a real
+    // morning entry — i.e. the scene was entered without a spawn point
+    // (start-of-game OR after the Sleep scene). On a normal re-entry
+    // (the player walked back in from the kitchen), we skip the banner
+    // entirely so the room is playable instantly.
+    const isMorningEntry = !this.spawn;
+    if (!isMorningEntry) {
+      // quick fade-in only, no controls lock, no banner
+      this.cameras.main.fadeIn(280, 0, 0, 0);
+      return;
+    }
     this.player.controlsLocked = true;
     this.cameras.main.fadeIn(1200, 0, 0, 0);
     this.dayBanner = this.add
