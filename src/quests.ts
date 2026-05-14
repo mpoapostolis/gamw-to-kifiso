@@ -29,12 +29,15 @@ export interface QuestDef {
   id: string;
   act: 1 | 2 | 3;
   title: string;
+  /** Static fallback hint. The HUD prefers `dynamicHint(c)` if defined. */
   hint: string;
   description: string;
   isComplete(c: GameCtx): boolean;
   reward?: QuestReward;
   /** Quest only becomes active when this returns true. Reads other quests' done state. */
   requires?: (c: GameCtx, doneIds: Set<string>) => boolean;
+  /** Optional state-aware hint. Lets the hint shrink as the player makes progress. */
+  dynamicHint?: (c: GameCtx) => string;
 }
 
 /* ------------------------------------------------------------------ *
@@ -81,6 +84,16 @@ const q_meet_villagers: QuestDef = {
     c.flags.metDespoina === true,
   reward: { memories: 5 },
   requires: (_c, done) => done.has("q_step_outside"),
+  // Shrink the hint as you tick villagers off, so the HUD always reflects
+  // exactly who's left.
+  dynamicHint: (c) => {
+    const left: string[] = [];
+    if (!c.flags.metHelena) left.push("Helena (by the well)");
+    if (!c.flags.metCostas) left.push("Costas (south)");
+    if (!c.flags.metDespoina) left.push("Mrs. Despoina (west, indoors)");
+    if (left.length === 0) return "All three met. Head back home.";
+    return "Still to meet: " + left.join(" · ");
+  },
 };
 
 const q_survive_night_1: QuestDef = {
@@ -141,6 +154,14 @@ const q_shopkeeper_errand: QuestDef = {
   isComplete: (c) => c.notes.q_shopkeeper_done === true,
   reward: { memories: 10, unlocks: "cafe_backroom" },
   requires: (_c, done) => done.has("q_clinic_appointment"),
+  dynamicHint: (c) => {
+    const need: string[] = [];
+    if (!c.inventory.helena_book)    need.push("Helena's book");
+    if (!c.inventory.despoina_candle) need.push("Despoina's candle");
+    if (!c.inventory.kostas_map)     need.push("Costas's map");
+    if (need.length === 0) return "All three gathered. Bring them to the shopkeeper at the café.";
+    return "Still need: " + need.join(" · ");
+  },
 };
 
 const q_despoina_candle: QuestDef = {
@@ -253,4 +274,17 @@ export function completedCount(c: GameCtx): number {
   let n = 0;
   for (const q of QUESTS) if (q.isComplete(c)) n++;
   return n;
+}
+
+/**
+ * A single-line "headline" for the morning toast on day N. Reads the current
+ * state so the toast reflects what's actually open today, not just a static
+ * day → string table. Returns null when nothing's left to do (e.g. ending
+ * already chosen).
+ */
+export function dayHeadline(c: GameCtx): string | null {
+  if (c.flags.endingChosen) return null;
+  const q = activeQuest(c);
+  if (q) return `Day ${c.day} · ${q.title}`;
+  return `Day ${c.day} · explore the community`;
 }

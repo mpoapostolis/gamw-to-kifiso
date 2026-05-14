@@ -424,7 +424,31 @@ export class CafeScene extends Phaser.Scene {
 
     if (target && Phaser.Input.Keyboard.JustDown(this.keyE)) {
       if (target === "exit") this.exitScene();
-      else if (target === "counter") this.startDialog(this.shopkeeper, DIALOGUES.shopkeeper);
+      else if (target === "counter") {
+        // The shopkeeper has two modes:
+        //  • morning chat (DIALOGUES.shopkeeper) — the default warmth
+        //  • errand pickup (DIALOGUES.shopkeeper_errand) — the "hang on,
+        //    before you leave" branch that asks for the three small things
+        //    and pays out memories + the back room when you've brought them.
+        // Switch to errand mode either once the player has finished the
+        // clinic check-up (so the quest is officially open) OR once they're
+        // already carrying all three items, so even an off-script player can
+        // hand them in. Once handed in, fall back to the morning chat.
+        const errandQuestOpen =
+          !this.ctx.notes.q_shopkeeper_done &&
+          (this.ctx.notes.clinicList === true ||
+            this.ctx.notes.doctorRecognised === true);
+        const hasAll =
+          this.ctx.inventory.helena_book === true &&
+          this.ctx.inventory.despoina_candle === true &&
+          this.ctx.inventory.kostas_map === true;
+        const useErrand =
+          !this.ctx.notes.q_shopkeeper_done && (errandQuestOpen || hasAll);
+        this.startDialog(
+          this.shopkeeper,
+          useErrand ? DIALOGUES.shopkeeper_errand : DIALOGUES.shopkeeper,
+        );
+      }
       else if (target === "shelf") this.startDialog(this.shopkeeper, DIALOGUES.shopkeeper_shop);
       else if (target === "chalkboard") this.readChalkboard();
       else if (target === "table") this.sitAtTable();

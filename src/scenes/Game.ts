@@ -10,7 +10,7 @@ import { SFX } from "../sfx";
 import { Audio } from "../audio";
 import { buildWorld, WORLD_H, WORLD_W } from "../map";
 import { EPILOGUE_BURN, EPILOGUE_RETURN } from "../story";
-import { activeQuest, QUESTS } from "../quests";
+import { activeQuest, dayHeadline, QUESTS } from "../quests";
 import type { Fx, GameCtx, World } from "../types";
 import { Player } from "../objects/Player";
 import { Gloom } from "../objects/Gloom";
@@ -22,6 +22,11 @@ import type { UIScene } from "./Ui";
 interface Door {
   x: number;
   y: number;
+  /** id used by the quest arrow + signboard text */
+  id: string;
+  /** short text shown on the hanging wood sign above the building */
+  sign: string;
+  /** label inside the E·X prompt when the player is close */
   label: string;
   gatedLabel?: string;
   act: () => void;
@@ -29,6 +34,7 @@ interface Door {
   marker?: Phaser.GameObjects.Image;
   beacon?: Phaser.GameObjects.Image;
   glow?: Phaser.GameObjects.Image;
+  signTxt?: Phaser.GameObjects.Text;
 }
 
 export class GameScene extends Phaser.Scene {
@@ -396,10 +402,12 @@ export class GameScene extends Phaser.Scene {
     // ---- HUD: active quest + mini-map ----------------------------------
     if (this.ui) {
       const q = activeQuest(this.ctx);
-      this.ui.setActiveQuest(q ? q.title : "—", q ? q.hint : "");
+      const hint = q ? (q.dynamicHint ? q.dynamicHint(this.ctx) : q.hint) : "";
+      this.ui.setActiveQuest(q ? q.title : "—", hint);
       const doorsForMap = this.doors.map((d) => ({ x: d.x, y: d.y, open: d.gated ? d.gated() : true }));
       const npcsForMap = this.npcGroup.getChildren().map((n) => ({ x: (n as Npc).x, y: (n as Npc).y }));
-      this.ui.setMinimap(this.player.x, this.player.y, WORLD_W, WORLD_H, doorsForMap, npcsForMap);
+      const qTarget = this.getQuestTarget(q?.id);
+      this.ui.setMinimap(this.player.x, this.player.y, WORLD_W, WORLD_H, doorsForMap, npcsForMap, qTarget);
 
       // ---- quest target arrow ----------------------------------------
       // Point the chevron at whatever the active quest wants from this
@@ -472,13 +480,15 @@ export class GameScene extends Phaser.Scene {
     // door positions match the bottom-front of each house (one tile south of
     // the building's bottom-centre anchor). Keep these in sync with map.ts.
     const defs: Door[] = [
-      { x: 13 * 48 + 24, y: 20 * 48,      label: "E  ·  home",            act: () => this.enterHome({ x: 13 * 48 + 24, y: 20 * 48 }) },
-      { x: 7 * 48 + 24,  y: 19 * 48,      label: "E  ·  Mrs. Despoina's", act: () => this.enterDespoina({ x: 7 * 48 + 24, y: 19 * 48 }) },
-      { x: 22 * 48 + 24, y: 14 * 48,      label: "E  ·  the café",        act: () => this.enterCafe({ x: 22 * 48 + 24, y: 14 * 48 }) },
-      { x: 29 * 48 + 24, y: 20 * 48,      label: "E  ·  the clinic",      act: () => this.enterClinic({ x: 29 * 48 + 24, y: 20 * 48 }) },
-      { x: 16 * 48,      y: 34 * 48,      label: "E  ·  to the park",     act: () => this.enterPark({ x: 16 * 48, y: 34 * 48 - 4 }) },
+      { id: "home",     x: 13 * 48 + 24, y: 20 * 48, sign: "HOME",          label: "E  ·  home",            act: () => this.enterHome({ x: 13 * 48 + 24, y: 20 * 48 }) },
+      { id: "despoina", x: 7 * 48 + 24,  y: 19 * 48, sign: "DESPOINA'S",    label: "E  ·  Mrs. Despoina's", act: () => this.enterDespoina({ x: 7 * 48 + 24, y: 19 * 48 }) },
+      { id: "cafe",     x: 22 * 48 + 24, y: 14 * 48, sign: "CAFÉ",          label: "E  ·  the café",        act: () => this.enterCafe({ x: 22 * 48 + 24, y: 14 * 48 }) },
+      { id: "clinic",   x: 29 * 48 + 24, y: 20 * 48, sign: "CLINIC",        label: "E  ·  the clinic",      act: () => this.enterClinic({ x: 29 * 48 + 24, y: 20 * 48 }) },
+      { id: "park",     x: 16 * 48,      y: 34 * 48, sign: "TO THE PARK ↓", label: "E  ·  to the park",     act: () => this.enterPark({ x: 16 * 48, y: 34 * 48 - 4 }) },
       {
+        id: "descend",
         x: 50.5 * 48, y: 22 * 48,
+        sign: "↓",
         label: "E  ·  descend",
         gated: () => !!this.ctx.flags.kostasReveal && !this.ctx.flags.endingChosen,
         gatedLabel: "the way isn't ready yet",
@@ -507,6 +517,37 @@ export class GameScene extends Phaser.Scene {
       this.tweens.add({ targets: beacon, y: d.y - 72, yoyo: true, repeat: -1, duration: 1100, ease: "Sine.easeInOut" });
       this.tweens.add({ targets: beacon, alpha: { from: 0.85, to: 1 }, yoyo: true, repeat: -1, duration: 700, ease: "Sine.easeInOut" });
       d.beacon = beacon;
+      // a hanging wood signboard above the door so the player can read the
+      // town layout from a distance instead of walking up to every door.
+      // The y offset puts it above the door but below the beacon, with a
+      // ribbon outline for legibility in the dim ambient light.
+      const sx = d.x;
+      const sy = d.y - 96;
+      const plank = this.add.graphics().setDepth(d.y + 199);
+      plank.fillStyle(PAL.shadow, 0.45);
+      plank.fillRoundedRect(sx - 56, sy - 12, 112, 28, 4);
+      plank.fillStyle(PAL.woodDark, 1);
+      plank.fillRoundedRect(sx - 54, sy - 14, 108, 26, 4);
+      plank.fillStyle(PAL.woodMid, 1);
+      plank.fillRoundedRect(sx - 51, sy - 12, 102, 22, 3);
+      plank.fillStyle(PAL.woodHi, 0.55);
+      plank.fillRect(sx - 51, sy - 12, 102, 2);
+      // two short rope strands tying it to the wall
+      plank.lineStyle(2, PAL.woodDark, 0.9);
+      plank.lineBetween(sx - 36, sy - 22, sx - 36, sy - 14);
+      plank.lineBetween(sx + 36, sy - 22, sx + 36, sy - 14);
+      const signTxt = this.add
+        .text(sx, sy, d.sign, {
+          fontFamily: '"Cinzel", serif',
+          fontSize: "11px",
+          color: hex(PAL.goldHi),
+          fontStyle: "800",
+        })
+        .setOrigin(0.5)
+        .setDepth(d.y + 200);
+      d.signTxt = signTxt;
+      // gentle sway so the signs feel alive without being distracting
+      this.tweens.add({ targets: [plank, signTxt], y: `+=2`, yoyo: true, repeat: -1, duration: 2400, ease: "Sine.easeInOut" });
     }
   }
 
@@ -525,24 +566,30 @@ export class GameScene extends Phaser.Scene {
       }
       return null;
     };
-    const doorAt = (label: string): { x: number; y: number } | null => {
-      const d = this.doors.find((dd) => dd.label.includes(label));
+    const doorAt = (id: string): { x: number; y: number } | null => {
+      const d = this.doors.find((dd) => dd.id === id);
       return d ? { x: d.x, y: d.y } : null;
     };
     switch (questId) {
-      case "q_wake_up":          return doorAt("home");            // back into the house
-      case "q_step_outside":     return doorAt("home");            // step out the front door
-      case "q_meet_villagers":   return npcAt("eleni")             // Helena first
-                                     || doorAt("Despoina");        // then Despoina's house
-      case "q_survive_night_1":  return doorAt("home");            // get back in bed
-      case "q_read_bench":       return doorAt("park");            // park has the bench
+      case "q_wake_up":            return doorAt("home");           // back into the house
+      case "q_step_outside":       return doorAt("home");           // step out the front door
+      case "q_meet_villagers": {
+        // Adapt to whoever you haven't met yet, in a sensible order:
+        // Helena → Costas → Despoina.
+        if (!this.ctx.flags.metHelena)  return npcAt("eleni");
+        if (!this.ctx.flags.metCostas)  return npcAt("kostas");
+        if (!this.ctx.flags.metDespoina) return doorAt("despoina");
+        return null;
+      }
+      case "q_survive_night_1":    return doorAt("home");           // get back in bed
+      case "q_read_bench":         return doorAt("park");           // park has the bench
       case "q_clinic_appointment": return doorAt("clinic");
-      case "q_shopkeeper_errand": return doorAt("café");
-      case "q_despoina_candle":  return doorAt("Despoina");
-      case "q_costas_hill":      return npcAt("kostas");
-      case "q_descend":          return doorAt("descend");
-      case "q_make_choice":      return doorAt("descend");
-      default:                   return null;
+      case "q_shopkeeper_errand":  return doorAt("cafe");
+      case "q_despoina_candle":    return doorAt("despoina");
+      case "q_costas_hill":        return npcAt("kostas");
+      case "q_descend":            return doorAt("descend");
+      case "q_make_choice":        return doorAt("descend");
+      default:                     return null;
     }
   }
 
@@ -756,6 +803,12 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.fadeIn(620, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
     this.ui?.showAreaBanner(`Day ${this.ctx.day} · morning`);
     this.ui?.setClock(this.ctx.time, this.ctx.day);
+    // Same day-headline toast Home.afterSleep shows, so the cleaner-phase
+    // path doesn't drop the player into a new day without a goal.
+    this.time.delayedCall(2200, () => {
+      const headline = dayHeadline(this.ctx);
+      if (headline) this.ui?.toast(headline, PAL.emberSoft);
+    });
   }
 
   /** Final choice — pressing 1 burns the facility (EPILOGUE_BURN), 2 returns. */

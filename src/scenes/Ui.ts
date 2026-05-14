@@ -9,6 +9,7 @@ import { hex, PAL } from "../palette";
 import { SFX } from "../sfx";
 import { ITEMS, NOTES } from "../story";
 import type { DialogPage, GameCtx } from "../types";
+import { activeQuest } from "../quests";
 import type { GameScene } from "./Game";
 
 const SPECTRAL = '"Spectral", Georgia, serif';
@@ -232,6 +233,22 @@ export class UIScene extends Phaser.Scene {
     if (this.gameScene.pendingPrologue) this.gameScene.startPrologue();
   }
 
+  /**
+   * Self-poll the active quest each frame, so the panel stays current no
+   * matter which scene the player is actually in. (Without this the HUD only
+   * refreshed inside Game.update — interior scenes left the panel stale.)
+   */
+  update() {
+    if (!this.ctx || !this.hudQuestTitle) return;
+    const q = activeQuest(this.ctx);
+    const title = q ? q.title : "—";
+    const hint = q ? (q.dynamicHint ? q.dynamicHint(this.ctx) : q.hint) : "";
+    // setText is cheap if the value hasn't changed, but the explicit check
+    // saves Phaser the BitmapData rebuild for the (very common) no-op frame.
+    if (this.hudQuestTitle.text !== title) this.hudQuestTitle.setText(title);
+    if (this.hudQuestHint.text !== hint) this.hudQuestHint.setText(hint);
+  }
+
   /* ------------------------------------------------------------------ *
    * HUD                                                                *
    * ------------------------------------------------------------------ */
@@ -294,7 +311,9 @@ export class UIScene extends Phaser.Scene {
   /**
    * Repaint the radar in the bottom-right corner. Coords are world-space.
    * Doors are bright amber dots; NPCs are soft cream dots; the player is the
-   * pulsing central marker.
+   * pulsing central marker. If `questTarget` is provided, a gold pulsing ring
+   * is drawn around the matching spot (or, when the target falls outside the
+   * radar, on the arc at the edge so it still points the right way).
    */
   setMinimap(
     px: number,
@@ -303,6 +322,7 @@ export class UIScene extends Phaser.Scene {
     worldH: number,
     doors: Array<{ x: number; y: number; open?: boolean }>,
     npcs: Array<{ x: number; y: number }>,
+    questTarget?: { x: number; y: number } | null,
   ) {
     if (!this.minimapG) return;
     const r = 60;
@@ -345,6 +365,29 @@ export class UIScene extends Phaser.Scene {
       this.minimapG.fillCircle(p[0], p[1], 3.5);
       this.minimapG.lineStyle(1, PAL.ember, 0.7);
       this.minimapG.strokeCircle(p[0], p[1], 5);
+    }
+    // quest target pulse — bright gold ring at the active objective. If the
+    // target is off-radar, project it onto the edge so the ring still hints
+    // at the right direction.
+    if (questTarget) {
+      let qx: number;
+      let qy: number;
+      const p = project(questTarget.x, questTarget.y);
+      if (p) {
+        qx = p[0];
+        qy = p[1];
+      } else {
+        const dx = questTarget.x - px;
+        const dy = questTarget.y - py;
+        const a = Math.atan2(dy, dx);
+        qx = cx + Math.cos(a) * (r - 8);
+        qy = cy + Math.sin(a) * (r - 8);
+      }
+      const pulseQ = 0.6 + 0.4 * Math.sin(this.time.now * 0.006);
+      this.minimapG.lineStyle(2, PAL.goldHi, 0.95 * pulseQ);
+      this.minimapG.strokeCircle(qx, qy, 7 + 2 * pulseQ);
+      this.minimapG.fillStyle(PAL.gold, 0.9);
+      this.minimapG.fillCircle(qx, qy, 2.4);
     }
     // player pulse
     const pulse = 0.85 + 0.15 * Math.sin(this.time.now * 0.005);

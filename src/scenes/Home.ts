@@ -13,6 +13,7 @@ import type { Fx, GameCtx, NpcSpawn } from "../types";
 import { Player } from "../objects/Player";
 import { Npc } from "../objects/Npc";
 import { DIALOGUES } from "../dialogues";
+import { dayHeadline } from "../quests";
 import { PROLOGUE } from "../story";
 import type { GameScene } from "./Game";
 import type { UIScene } from "./Ui";
@@ -502,6 +503,12 @@ export class HomeScene extends Phaser.Scene {
     this.cameras.main.fadeIn(700, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
     this.ui.showAreaBanner(`Day ${this.ctx.day} · morning`);
     this.ui.setClock(this.ctx.time, this.ctx.day);
+    // Headline what's open today so the player doesn't have to read the
+    // panel to know where to start. Delay so it lands AFTER the banner.
+    this.time.delayedCall(2200, () => {
+      const headline = dayHeadline(this.ctx);
+      if (headline) this.ui.toast(headline, PAL.emberSoft);
+    });
     if (this.ctx.day >= 3 && !this.ctx.flags.bodyMirror) {
       this.ui.toast("your face — slightly different in the mirror", PAL.gloomGlow);
     }
