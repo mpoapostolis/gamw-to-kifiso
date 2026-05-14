@@ -2,6 +2,7 @@
 import Phaser from "phaser";
 import { buildTextures, buildCursor } from "../textures";
 import { Audio } from "../audio";
+import { GameState } from "../state/gameState";
 
 function anim(scene: Phaser.Scene, key: string, frames: string[], frameRate: number, repeat = -1) {
   if (scene.anims.exists(key)) return;
@@ -15,6 +16,8 @@ export class BootScene extends Phaser.Scene {
 
   preload() {
     Audio.preload(this);
+    // hydrate persistent state from localStorage exactly once.
+    GameState.load();
   }
 
   create() {
