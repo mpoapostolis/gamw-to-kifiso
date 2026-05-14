@@ -31,6 +31,7 @@ import { openJournal } from "./journalUtil";
 import { applyPostFX, type CleanersFXPipeline } from "../../fx/postProcess";
 import { surfaceFragment } from "../../cleaners/fragmentSurface";
 import { ensureHud } from "./Hud";
+import { fireTutorial, TUT_OUT_OF_APARTMENT } from "../../cleaners/tutorial";
 import { dummyCtx, dummyFx } from "./ctx";
 import type { Fx, GameCtx } from "../../types";
 
@@ -373,6 +374,7 @@ export class StairwellScene extends Phaser.Scene {
 
     this.fxPipeline = applyPostFX(this);
     ensureHud(this);
+    this.time.delayedCall(800, () => fireTutorial(this, TUT_OUT_OF_APARTMENT));
   }
 
   /**

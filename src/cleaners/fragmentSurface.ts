@@ -20,6 +20,7 @@ import { GameState } from "../state/gameState";
 import { pulseGlitch, type CleanersFXPipeline } from "../fx/postProcess";
 import { VIEW_W } from "../consts";
 import { hex, PAL } from "../palette";
+import { fireTutorial, TUT_FIRST_FRAGMENT } from "./tutorial";
 
 /**
  * A scene that has called applyPostFX() and parked the pipeline on a
@@ -55,13 +56,11 @@ export function surfaceFragment(scene: SceneWithFX, def: FragmentSurface): boole
   // sees that something registered. We swallow null because some scenes
   // (Sleep / Credits / Title) intentionally skip the FX pipeline.
   if (scene.fxPipeline) pulseGlitch(scene.fxPipeline, 220);
-  // First-fragment tutorial nudge — only the first time anyone is added.
+  // First-fragment-ever moment: fire the big modal "YOU WROTE IT DOWN"
+  // tutorial that teaches the J key, instead of a small toast you might
+  // miss. The fireTutorial helper is idempotent by GameState flag.
   if (GameState.state.fragmentsFound.length === 1) {
-    floatTip(
-      scene,
-      "you wrote it down. press  J  to read your notebook.",
-      4200,
-    );
+    scene.time.delayedCall(900, () => fireTutorial(scene, TUT_FIRST_FRAGMENT));
   }
   return true;
 }

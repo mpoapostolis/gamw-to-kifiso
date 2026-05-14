@@ -105,13 +105,13 @@ export class HudScene extends Phaser.Scene {
       .setDepth(9510);
 
     this.taskBody = this.add
-      .text(VIEW_W / 2, 68, "", {
+      .text(VIEW_W / 2, 66, "", {
         fontFamily: SPECTRAL,
-        fontSize: "15px",
-        color: hex(PAL.thatchHi),
-        fontStyle: "italic 400",
+        fontSize: "18px",
+        color: hex(PAL.emberHot),
+        fontStyle: "italic 600",
         align: "center",
-        wordWrap: { width: 720 },
+        wordWrap: { width: 820 },
       })
       .setOrigin(0.5, 0)
       .setScrollFactor(0)
@@ -165,6 +165,23 @@ export class HudScene extends Phaser.Scene {
     if (force || taskKey !== this.lastTask) {
       this.taskBody.setText(obj.text);
       this.taskSub.setText(obj.sub ?? "");
+      // pulse when the objective changes, so the player's eye is drawn
+      // up to the new line. Skip on the very first paint (force=true).
+      if (!force) {
+        this.tweens.add({
+          targets: this.taskBody,
+          scale: { from: 1.0, to: 1.08 },
+          yoyo: true,
+          duration: 220,
+          ease: "Sine.easeOut",
+        });
+        this.tweens.add({
+          targets: this.taskBody,
+          alpha: { from: 0.3, to: 1 },
+          duration: 380,
+          ease: "Cubic.easeOut",
+        });
+      }
       this.lastTask = taskKey;
     }
   }

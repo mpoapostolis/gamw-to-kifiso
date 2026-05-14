@@ -30,6 +30,7 @@ import { openJournal } from "./journalUtil";
 import { applyPostFX, type CleanersFXPipeline } from "../../fx/postProcess";
 import { surfaceFragment } from "../../cleaners/fragmentSurface";
 import { ensureHud } from "./Hud";
+import { fireTutorial, TUT_WAKE, TUT_LEAVE_BEDROOM, TUT_TIME_TO_SLEEP } from "../../cleaners/tutorial";
 
 /**
  * A tiny in-scene interactable: a hit-box + a label + an `act()` callback.
@@ -462,6 +463,10 @@ export class BedroomScene extends Phaser.Scene {
       hold: 2800,
       onComplete: () => t.destroy(),
     });
+    // Day 1 only — once, ever — fire the big "GOOD MORNING" tutorial
+    // panel that explains WASD + E. Lands 1.4s after the toast so it
+    // doesn't fight for attention.
+    this.time.delayedCall(1400, () => fireTutorial(this, TUT_WAKE));
   }
 
   private dayLabel(): string {
@@ -593,6 +598,17 @@ export class BedroomScene extends Phaser.Scene {
 
   update() {
     if (!this.player) return;
+
+    // Once the player has surfaced any 2 fragments in the bedroom, gently
+    // suggest leaving — the "GO THROUGH A CHEVRON" tutorial. Fires once.
+    if (GameState.state.fragmentsFound.length >= 2) {
+      fireTutorial(this, TUT_LEAVE_BEDROOM);
+    }
+    // Once they've done the morning loop and come back, point them at
+    // the bed for sleep. Fires once.
+    if (GameState.flag("visited_cafe") || GameState.flag("visited_office")) {
+      fireTutorial(this, TUT_TIME_TO_SLEEP);
+    }
 
     // ---- the dog's three-second hesitation, then tail wag ------------
     if (this.dogLookStartedAt > 0 && !this.dogRecognised) {

@@ -20,6 +20,7 @@ import { openJournal } from "./journalUtil";
 import { applyPostFX, type CleanersFXPipeline } from "../../fx/postProcess";
 import { surfaceFragment } from "../../cleaners/fragmentSurface";
 import { ensureHud } from "./Hud";
+import { fireTutorial, TUT_IN_LIVINGROOM } from "../../cleaners/tutorial";
 import type { Fx, GameCtx } from "../../types";
 
 interface Spot { x: number; y: number; r: number; label: string; act: () => void }
@@ -303,6 +304,9 @@ export class LivingRoomScene extends Phaser.Scene {
     // Universal HUD + post-FX (CRT + chromatic aberration + film grain).
     this.fxPipeline = applyPostFX(this);
     ensureHud(this);
+    // First time the player walks into the living room, point them at
+    // the front door. Fires once via GameState flag.
+    this.time.delayedCall(800, () => fireTutorial(this, TUT_IN_LIVINGROOM));
   }
 
   private flashLine(text: string, ms = 2400) {

@@ -34,6 +34,7 @@ import { openJournal } from "./journalUtil";
 import { applyPostFX, type CleanersFXPipeline } from "../../fx/postProcess";
 import { surfaceFragment } from "../../cleaners/fragmentSurface";
 import { ensureHud } from "./Hud";
+import { fireTutorial, TUT_IN_STREET } from "../../cleaners/tutorial";
 import type { Fx, GameCtx } from "../../types";
 
 /** A tiny in-scene interactable. */
@@ -419,6 +420,7 @@ export class StreetScene extends Phaser.Scene {
 
     this.fxPipeline = applyPostFX(this);
     ensureHud(this);
+    this.time.delayedCall(800, () => fireTutorial(this, TUT_IN_STREET));
   }
 
   /**
