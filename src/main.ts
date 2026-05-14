@@ -1,14 +1,15 @@
 /**
  * THE CLEANERS — entry point.
  *
- * Wires the Phaser game. Boot → Title → Bedroom (the Day 1 starter beat
- * lives in BedroomScene). Apartment rooms (Bedroom / Kitchen / LivingRoom
- * / Bathroom) navigate via the SceneRouter. The Journal scene is launched
- * as an overlay via `J` from any room.
+ * Wires the Phaser game. Boot → Title → Bedroom. Apartment rooms
+ * (Bedroom / Kitchen / LivingRoom / Bathroom) navigate via SceneRouter.
+ * Morning loop (Stairwell / Street / Cafe / Office / Metro) hangs off the
+ * apartment's front door. Sleep + Credits are special-purpose scenes
+ * launched at the right moment in the day cycle. Journal is an overlay
+ * any room can launch via J.
  *
- * The original Yesterday Echoes scenes are still in the repo (en-rewrite
- * branch) but are no longer registered here — this branch is purely the
- * Cleaners build.
+ * The Yesterday Echoes scenes are no longer registered here. They live on
+ * en-rewrite for reference.
  */
 import Phaser from "phaser";
 import { VIEW_H, VIEW_W } from "./consts";
@@ -18,6 +19,13 @@ import { BedroomScene } from "./scenes/cleaners/Bedroom";
 import { KitchenScene } from "./scenes/cleaners/Kitchen";
 import { LivingRoomScene } from "./scenes/cleaners/LivingRoom";
 import { BathroomScene } from "./scenes/cleaners/Bathroom";
+import { StairwellScene } from "./scenes/cleaners/Stairwell";
+import { StreetScene } from "./scenes/cleaners/Street";
+import { CafeScene } from "./scenes/cleaners/Cafe";
+import { OfficeScene } from "./scenes/cleaners/Office";
+import { MetroScene } from "./scenes/cleaners/Metro";
+import { SleepScene } from "./scenes/cleaners/Sleep";
+import { CreditsScene } from "./scenes/cleaners/Credits";
 import { JournalScene } from "./scenes/cleaners/Journal";
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -42,10 +50,20 @@ const config: Phaser.Types.Core.GameConfig = {
   scene: [
     BootScene,
     TitleScene,
+    // The Apartment
     BedroomScene,
     KitchenScene,
     LivingRoomScene,
     BathroomScene,
+    // The morning loop
+    StairwellScene,
+    StreetScene,
+    CafeScene,
+    OfficeScene,
+    MetroScene,
+    // Special-purpose
+    SleepScene,
+    CreditsScene,
     JournalScene,
   ],
 };

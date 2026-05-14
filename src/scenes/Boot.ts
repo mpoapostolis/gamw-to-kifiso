@@ -3,6 +3,7 @@ import Phaser from "phaser";
 import { buildTextures, buildCursor } from "../textures";
 import { Audio } from "../audio";
 import { GameState } from "../state/gameState";
+import { registerPostFX } from "../fx/postProcess";
 
 function anim(scene: Phaser.Scene, key: string, frames: string[], frameRate: number, repeat = -1) {
   if (scene.anims.exists(key)) return;
@@ -22,6 +23,9 @@ export class BootScene extends Phaser.Scene {
 
   create() {
     this.cameras.main.setBackgroundColor("#07060d");
+    // Register the post-FX pipeline (CRT + chromatic aberration + grain)
+    // once with the WebGL renderer. No-op if WebGL isn't available.
+    registerPostFX(this.game);
     buildTextures(this);
 
     // ---- animations ----------------------------------------------------

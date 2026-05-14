@@ -1,0 +1,78 @@
+{
+  "barista_day2_intro": {
+    "id": "barista_day2_intro",
+    "speaker": "Barista",
+    "lines": [
+      "The usual, Elias?",
+      "Coffee, no sugar?"
+    ],
+    "choices": [
+      {
+        "text": "yes",
+        "next": "barista_yes"
+      },
+      {
+        "text": "no, I  actually, my name isn't Elias",
+        "conditions": { "awarenessMin": 3 },
+        "next": "barista_correction",
+        "effects": {
+          "awareness": "+1",
+          "flag": "questioned_barista"
+        }
+      }
+    ]
+  },
+  "barista_yes": {
+    "id": "barista_yes",
+    "speaker": "Barista",
+    "lines": [
+      "Coming right up.",
+      "Have a good one."
+    ]
+  },
+  "barista_correction": {
+    "id": "barista_correction",
+    "speaker": "Barista",
+    "lines": [
+      "Oh  sorry. I could've sworn.",
+      "It's the regulars, you know. Half of you blur together by the third coffee.",
+      "What was it again?"
+    ],
+    "choices": [
+      {
+        "text": "never mind. coffee, no sugar.",
+        "next": "barista_apology",
+        "effects": {
+          "journal": "The barista called me Elias today. I corrected him. He apologised, said the regulars blur together. I didn't tell him what my name actually is. I'm not sure I remember.",
+          "flag": "barista_called_me_elias"
+        }
+      },
+      {
+        "text": "...you call me Elias every morning.",
+        "conditions": { "awarenessMin": 5 },
+        "next": "barista_too_much",
+        "effects": {
+          "flag": "pressed_barista_on_name"
+        }
+      }
+    ]
+  },
+  "barista_apology": {
+    "id": "barista_apology",
+    "speaker": "Barista",
+    "lines": [
+      "Right. Coffee, no sugar. On the house today, sorry about that."
+    ]
+  },
+  "barista_too_much": {
+    "id": "barista_too_much",
+    "speaker": "Alex",
+    "lines": [
+      "(He's already turned to the machine. I don't think he heard. Or he did, and chose not to.)"
+    ],
+    "onExit": {
+      "awareness": "+2",
+      "journal": "I told him he calls me Elias every morning. He didn't answer. The line moved. Someone behind me was already ordering."
+    }
+  }
+}

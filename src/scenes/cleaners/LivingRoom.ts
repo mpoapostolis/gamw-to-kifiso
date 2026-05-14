@@ -43,7 +43,7 @@ export class LivingRoomScene extends Phaser.Scene {
       exits: [
         { to: "Kitchen", label: "kitchen" },
         { to: "Bathroom", label: "bathroom" },
-        // The front door — Stairwell scene lands in a future iteration.
+        { to: "Stairwell", label: "out to the stairwell" },
       ],
       fragments: [
         { id: "frag_mail_wrong_name", journalText: "A letter on the coffee table is addressed to a name that isn't mine. Same street, same apartment.", awareness: 2 },
@@ -213,6 +213,34 @@ export class LivingRoomScene extends Phaser.Scene {
       r: 56,
       label: "E  ·  the bathroom",
       act: () => SceneRouter.go(this, "Bathroom"),
+    });
+
+    // ---- FRONT DOOR (north wall) — out into the stairwell ----------
+    // This is the apartment's exit to the rest of the world. The handle
+    // is a small brass plate; a deadbolt above it sits open. Through this
+    // door, in a future iteration, the Cleaners walk in at 11:55.
+    const fDoorX = ox + rW / 2;
+    const fDoorY = oy - 4;
+    const fd = this.add.graphics().setDepth(fDoorY);
+    fd.fillStyle(PAL.woodDark, 1);
+    fd.fillRoundedRect(fDoorX - 26, fDoorY - 68, 52, 72, 3);
+    fd.fillStyle(shade(PAL.woodDark, 0.06), 1);
+    fd.fillRoundedRect(fDoorX - 24, fDoorY - 66, 48, 66, 2);
+    // panel seam
+    fd.lineStyle(1, shade(PAL.woodDark, -0.25), 0.9);
+    fd.lineBetween(fDoorX - 24, fDoorY - 36, fDoorX + 24, fDoorY - 36);
+    // brass plate + deadbolt
+    fd.fillStyle(PAL.gold, 1);
+    fd.fillRect(fDoorX + 12, fDoorY - 42, 6, 12);
+    fd.fillStyle(PAL.goldHi, 0.65);
+    fd.fillRect(fDoorX + 12, fDoorY - 42, 6, 2);
+    fd.fillStyle(PAL.gold, 1);
+    fd.fillCircle(fDoorX + 15, fDoorY - 36, 2);
+    this.spots.push({
+      x: fDoorX, y: fDoorY,
+      r: 56,
+      label: "E  ·  out to the stairwell",
+      act: () => SceneRouter.go(this, "Stairwell"),
     });
 
     // ---- player ----

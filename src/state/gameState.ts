@@ -169,6 +169,16 @@ class GameStateClass {
     this.data.playerName = name.trim().slice(0, 24) || "Elias";
     this.save();
   }
+
+  /**
+   * Toggle the CRT scanline overlay. Stored as the inverse flag
+   * `crt_disabled` so the default behaviour (no flag set) is ON, which
+   * matches the design doc. Read by the post-FX pipeline every frame.
+   */
+  setCRT(enabled: boolean): void {
+    this.data.endingFlags["crt_disabled"] = !enabled;
+    this.save();
+  }
 }
 
 /** The one and only game-state instance. Import this, never instantiate. */

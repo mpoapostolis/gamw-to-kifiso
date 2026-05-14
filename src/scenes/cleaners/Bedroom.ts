@@ -24,6 +24,8 @@ import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
 import type { Fx, GameCtx } from "../../types";
 import { dummyCtx, dummyFx } from "./ctx";
+import { launchSleep } from "./sleepUtil";
+import { applyPostFX, pulseGlitch, type CleanersFXPipeline } from "../../fx/postProcess";
 
 /**
  * A tiny in-scene interactable: a hit-box + a label + an `act()` callback.
@@ -62,6 +64,7 @@ export class BedroomScene extends Phaser.Scene {
   private prompt?: Phaser.GameObjects.Text;
   private dayBanner?: Phaser.GameObjects.Text;
   private spawn?: { x: number; y: number };
+  private fxPipeline: CleanersFXPipeline | null = null;
 
   constructor() {
     super("Bedroom");
@@ -211,6 +214,17 @@ export class BedroomScene extends Phaser.Scene {
     for (let i = 0; i < 4; i++)
       bedG.lineBetween(bedX + 10, bedY + bedH * 0.35 + i * 14, bedX + bedW - 10, bedY + bedH * 0.35 + i * 14);
     this.bedPos = { x: bedX + bedW / 2, y: bedY + bedH * 0.55 };
+    // The bed itself is an interactable: pressing E on it ends the day —
+    // the Sleep scene plays the cinematic + the memory-wipe QTE, then
+    // advances the day and routes back to the bedroom. This is the daily
+    // loop in two lines of code.
+    this.spots.push({
+      x: this.bedPos.x,
+      y: this.bedPos.y,
+      r: 70,
+      label: "E  ·  go back to sleep",
+      act: () => launchSleep(this),
+    });
 
     // ---- NIGHTSTAND + GLASS (to the right of the bed) ---------------
     const nsX = bedX + bedW + 14;
@@ -355,6 +369,12 @@ export class BedroomScene extends Phaser.Scene {
       .setDepth(9100)
       .setTint(0x6e3f1c)
       .setAlpha(0.7);
+
+    // ---- POST-FX (CRT + chromatic aberration + grain) ----------------
+    // The pipeline reads awareness off GameState each frame to drive
+    // baseline aberration. A discrete `pulseGlitch()` call below kicks in
+    // when a fragment surfaces — see readNote/examineGlass/greetDog.
+    this.fxPipeline = applyPostFX(this);
 
     // ---- prompt text (floats over the player) ------------------------
     this.prompt = this.add
@@ -532,11 +552,14 @@ export class BedroomScene extends Phaser.Scene {
     this.flashLine('the note says: "remember to call mom." it is in your handwriting. you do not remember writing it.');
     if (!this.noteRead) {
       this.noteRead = true;
-      GameState.addFragment("frag_note_to_mom", 1);
-      GameState.addJournalEntry(
-        'A note in my handwriting on the table: "Remember to call Mom." I don\'t remember writing it.',
-        { fragmentId: "frag_note_to_mom" },
-      );
+      const added = GameState.addFragment("frag_note_to_mom", 1);
+      if (added) {
+        GameState.addJournalEntry(
+          'A note in my handwriting on the table: "Remember to call Mom." I don\'t remember writing it.',
+          { fragmentId: "frag_note_to_mom" },
+        );
+        if (this.fxPipeline) pulseGlitch(this.fxPipeline);
+      }
     }
   }
 
@@ -544,11 +567,14 @@ export class BedroomScene extends Phaser.Scene {
     this.flashLine("the glass is half empty. you do not remember drinking from it.");
     if (!this.glassExamined) {
       this.glassExamined = true;
-      GameState.addFragment("frag_glass_half_finished", 1);
-      GameState.addJournalEntry(
-        "The glass on the nightstand is half empty. I don't remember drinking from it.",
-        { fragmentId: "frag_glass_half_finished" },
-      );
+      const added = GameState.addFragment("frag_glass_half_finished", 1);
+      if (added) {
+        GameState.addJournalEntry(
+          "The glass on the nightstand is half empty. I don't remember drinking from it.",
+          { fragmentId: "frag_glass_half_finished" },
+        );
+        if (this.fxPipeline) pulseGlitch(this.fxPipeline);
+      }
     }
   }
 
@@ -562,11 +588,14 @@ export class BedroomScene extends Phaser.Scene {
         this.dogRecognised = true;
         this.inDialog = false;
         this.player.controlsLocked = false;
-        GameState.addFragment("frag_dog_no_recognition", 2);
-        GameState.addJournalEntry(
-          "The dog didn't know me for three seconds. Then it did. Or it decided to.",
-          { fragmentId: "frag_dog_no_recognition" },
-        );
+        const added = GameState.addFragment("frag_dog_no_recognition", 2);
+        if (added) {
+          GameState.addJournalEntry(
+            "The dog didn't know me for three seconds. Then it did. Or it decided to.",
+            { fragmentId: "frag_dog_no_recognition" },
+          );
+          if (this.fxPipeline) pulseGlitch(this.fxPipeline, 320);
+        }
         this.flashLine("the dog's tail starts to wag.", 2200);
       }
     }
