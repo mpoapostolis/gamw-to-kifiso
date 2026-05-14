@@ -249,12 +249,17 @@ function buildProps(): PropDef[] {
   props.push({ key: "fire0", x: tcx(50.5), y: tcy(22) + 6 });
 
   // --- LUMIN VILLAGE ----------------------------------------------------
-  // houses: anchor = bottom-centre; solids inferred from texture dims below
+  // houses: anchor = bottom-centre; solids inferred from texture dims below.
+  // The whole town is just SIX buildings — each one labelled to a function so
+  // the world has clear negative space between every roof.
   type HouseDef = { key: string; tw: number; th: number; bx: number; by: number };
   const houses: HouseDef[] = [
-    { key: "house_c", tw: 6, th: 5, bx: tcx(23), by: tcy(12) }, // elder's hall, north of plaza
-    { key: "house_a", tw: 5, th: 4, bx: tcx(13), by: tcy(17) }, // Bree's, west of plaza
-    { key: "house_b", tw: 4, th: 4, bx: tcx(13), by: tcy(31) }, // Garrick's, south
+    { key: "house_a", tw: 5, th: 4, bx: tcx(13), by: tcy(19) }, // (1) your house — west of plaza
+    { key: "house_a", tw: 5, th: 4, bx: tcx(7),  by: tcy(18) }, // (2) Mrs. Despoina's — far west
+    { key: "house_b", tw: 4, th: 4, bx: tcx(22), by: tcy(13) }, // (3) the Café — north of plaza
+    { key: "house_b", tw: 4, th: 4, bx: tcx(29), by: tcy(19) }, // (4) the Clinic — east of plaza
+    { key: "house_b", tw: 4, th: 4, bx: tcx(13), by: tcy(31) }, // (5) Costas & Anna's — south
+    { key: "house_c", tw: 6, th: 5, bx: tcx(24), by: tcy(33) }, // (6) a dim lit house, southeast (decoration)
   ];
   for (const h of houses) {
     const wallH = h.th * TILE * 0.62;
@@ -297,73 +302,13 @@ function buildProps(): PropDef[] {
   props.push({ key: "sign", x: tcx(18), y: tcy(23) + 28, solid: [10, 8], solidUp: -3 });
   props.push({ key: "sign", x: tcx(2.6), y: tcy(24) + 28, solid: [10, 8], solidUp: -3, flipX: true });
 
-  // --- a few more houses, generously spaced. Three quiet neighbourhoods,
-  //     none of them on top of the original three or on the path/plaza. ----
-  const moreHouses: HouseDef[] = [
-    // NW residential — clear of the pond and the original house_a
-    { key: "house_a", tw: 5, th: 4, bx: tcx(8), by: tcy(15) },
-    // NE residential — east of the elder's hall
-    { key: "house_b", tw: 4, th: 4, bx: tcx(27), by: tcy(13) },
-    // South-mid — between the well and Garrick's old place
-    { key: "house_a", tw: 5, th: 4, bx: tcx(18), by: tcy(29) },
-    // SW solo — by itself in the corner
-    { key: "house_b", tw: 4, th: 4, bx: tcx(7), by: tcy(35) },
-    // Two small shops along the main street (no overlap with houses)
-    { key: "house_b", tw: 4, th: 4, bx: tcx(10), by: tcy(22) }, // the café exterior
-    { key: "house_b", tw: 4, th: 4, bx: tcx(27), by: tcy(28) }, // east shop
-  ];
-  for (const h of moreHouses) {
-    const wallH = h.th * TILE * 0.62;
-    props.push({
-      key: h.key,
-      x: h.bx,
-      y: h.by,
-      solid: [h.tw * TILE * 0.84, wallH * 0.92],
-      solidUp: -(14 + wallH * 0.5),
-    });
-  }
-
-  // --- a couple of extra lamp posts so the new streets glow at dusk ----
+  // a few extra lamp posts so the village streets glow at dusk -----------
   for (const [tx, ty] of [
-    [10, 20],
-    [27, 26],
-    [18, 27],
+    [10, 21],
+    [25, 21],
+    [16, 30],
   ] as const)
     props.push({ key: "lamp", x: tcx(tx), y: tcy(ty) + 6, solid: [10, 8], solidUp: -4 });
-
-  // --- a little ground dressing along the new clusters — grass tiles only,
-  //     well outside any house footprint so nothing stacks visually --------
-  for (let i = 0; i < 36; i++) {
-    const pick = hash2(i, 211);
-    const a = hash2(i, 223);
-    const b = hash2(i, 233);
-    let tx: number, ty: number;
-    if (pick < 0.45) {
-      // along the south band, away from house footprints
-      tx = 3 + Math.floor(a * 9);
-      ty = 33 + Math.floor(b * 3);
-    } else if (pick < 0.75) {
-      // along the NW area
-      tx = 4 + Math.floor(a * 5);
-      ty = 13 + Math.floor(b * 4);
-    } else {
-      // near the eastern row
-      tx = 26 + Math.floor(a * 3);
-      ty = 14 + Math.floor(b * 4);
-    }
-    if (tx < 3 || tx > MAP_W - 3 || ty < 3 || ty > MAP_H - 3) continue;
-    if (groundAt(tx, ty) !== "grass") continue;
-    const r = hash2(tx, ty + 1);
-    const key = r < 0.45 ? "tuft" : r < 0.75 ? "flower" : "flower_v";
-    props.push(
-      flat(
-        key,
-        tcx(tx) + (hash2(tx, ty) - 0.5) * 26,
-        tcy(ty) + (hash2(ty, tx) - 0.5) * 22,
-        0.85 + hash2(i, 13) * 0.3,
-      ),
-    );
-  }
 
   // --- ground dressing: flowers / tufts (flat, no collision) ------------
   for (let i = 0; i < 130; i++) {

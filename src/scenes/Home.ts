@@ -13,6 +13,7 @@ import type { Fx, GameCtx, NpcSpawn } from "../types";
 import { Player } from "../objects/Player";
 import { Npc } from "../objects/Npc";
 import { DIALOGUES } from "../dialogues";
+import { PROLOGUE } from "../story";
 import type { GameScene } from "./Game";
 import type { UIScene } from "./Ui";
 
@@ -36,8 +37,12 @@ export class HomeScene extends Phaser.Scene {
     super("Home");
   }
 
-  init(data: { returnAt: { x: number; y: number } }) {
-    this.returnAt = data.returnAt;
+  /** Is this the very first entry of the game? If so, play the prologue + place the player in bed. */
+  private isStart = false;
+
+  init(data: { returnAt?: { x: number; y: number }; isStart?: boolean }) {
+    this.returnAt = data?.returnAt ?? { x: 13 * 48 + 24, y: 20 * 48 };
+    this.isStart = !!data?.isStart;
   }
 
   create() {
@@ -243,8 +248,10 @@ export class HomeScene extends Phaser.Scene {
     this.mom = new Npc(this, momSpawn);
 
     // ---- player -----------------------------------------------------
-    const startX = dX + 22;
-    const startY = dY + 4;
+    // On the very first entry of the game the player wakes up IN BED;
+    // otherwise they appear by the front door (as before).
+    const startX = this.isStart ? this.bed.x : dX + 22;
+    const startY = this.isStart ? this.bed.y + 16 : dY + 4;
     this.player = new Player(this, startX, startY, this.ctx, this.fx);
     this.player.surface = "wood";
     this.cameras.main.startFollow(this.player, true, 0.2, 0.2);
@@ -276,8 +283,22 @@ export class HomeScene extends Phaser.Scene {
     this.keyE = this.input.keyboard!.addKey("E");
 
     // ---- fade in ----------------------------------------------------
-    this.cameras.main.fadeIn(420, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
-    this.ui.showAreaBanner("Your House");
+    this.cameras.main.fadeIn(this.isStart ? 1400 : 420, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+    if (this.isStart) {
+      // The opening of the game: prologue first, then unlock the player
+      // and point them at Mom in the kitchen.
+      this.player.controlsLocked = true;
+      this.time.delayedCall(900, () => {
+        this.ui.showStory("YESTERDAY ECHOES", PROLOGUE, () => {
+          this.player.controlsLocked = false;
+          this.ui.showAreaBanner("ACT I · Awakening");
+          this.time.delayedCall(2800, () => this.ui.showAreaBanner("Your Bedroom"));
+          this.ui.toast("walk to the kitchen and talk to Mom", PAL.gloomGlow);
+        });
+      });
+    } else {
+      this.ui.showAreaBanner("Your House");
+    }
   }
 
   update() {
@@ -503,11 +524,13 @@ export class HomeScene extends Phaser.Scene {
 
   private exit() {
     SFX.close();
+    this.ctx.flags.steppedOut = true;
     this.cameras.main.fadeOut(380, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
     this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
       // hand over to GameScene
       this.scene.stop("Home");
-      this.scene.wake("Game");
+      if (this.gameScene.scene.isSleeping()) this.scene.wake("Game");
+      else if (!this.gameScene.scene.isActive()) this.scene.run("Game");
       this.gameScene.events.emit("home-exit", this.returnAt);
     });
   }

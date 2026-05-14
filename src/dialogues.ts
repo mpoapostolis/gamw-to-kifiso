@@ -34,7 +34,7 @@ export const DIALOGUES: Record<string, (c: GameCtx) => DialogPage[]> = {
   mom: (c) => {
     if (c.day === 1)
       return [
-        P("Mom", "npc_mom", "Good morning, Andrew. — Oh. Sorry, sorry. Alex. I don't know why I said that.", undefined, (cc) => cc.addNote("motherName")),
+        P("Mom", "npc_mom", "Good morning, Andrew. — Oh. Sorry, sorry. Alex. I don't know why I said that.", undefined, (cc) => { cc.addNote("motherName"); cc.flags.metMom = true; }),
         P("Mom", "npc_mom", "I made you toast. The good kind, with the seeds. Eat before it goes cold, my love."),
         P("Mom", "npc_mom", "I had a son who would've been your age, you know. — That came out wrong. I mean — I do have a son. You. I have you. Eat your toast.", PAL.gloomGlow, (cc) => cc.addNote("momHadSon")),
         P("Mom", "npc_mom", "You're a good boy. You've always been a good boy. — Even on the days I forget which one."),

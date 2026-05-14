@@ -44,30 +44,43 @@ export interface QuestDef {
 const q_wake_up: QuestDef = {
   id: "q_wake_up",
   act: 1,
-  title: "Wake up",
-  hint: "Get out of bed. Start your morning.",
+  title: "Talk to Mom",
+  hint: "Walk to the kitchen and talk to Mom. (E next to her.)",
   description:
-    "You woke up. Your mother is humming in the kitchen. Helena is somewhere too. " +
-    "The day will start whether you stand up or not. Open your eyes. Listen for a name.",
-  isComplete: (c) => c.day >= 1 && Object.keys(c.notes).length >= 1,
+    "She's humming in the kitchen. She'll have coffee, and probably half a sentence " +
+    "she didn't mean to say. Get up.",
+  isComplete: (c) => c.flags.metMom === true,
   reward: { memories: 2 },
+};
+
+const q_step_outside: QuestDef = {
+  id: "q_step_outside",
+  act: 1,
+  title: "Step outside",
+  hint: "Find the front door. Press E to go out.",
+  description:
+    "The town is small. You'll see the well in the square, lamp posts down the road, " +
+    "and a few houses that have always been there. Step out and breathe.",
+  isComplete: (c) => c.flags.steppedOut === true,
+  reward: { memories: 1 },
+  requires: (_c, done) => done.has("q_wake_up"),
 };
 
 const q_meet_villagers: QuestDef = {
   id: "q_meet_villagers",
   act: 1,
   title: "Meet the villagers",
-  hint: "Find Helena, Costas, and Mrs. Despoina.",
+  hint: "Helena by the well · Costas south · Mrs. Despoina's house is west.",
   description:
-    "Three people will help you understand. Helena in the garden — she loves you. " +
-    "Costas across the road, painting the same door for three weeks. Mrs. Despoina, " +
-    "the old woman who has not aged in sixty years. Say hello to each of them.",
+    "Three people will help you understand. Helena waits in the front garden by the well. " +
+    "Costas is across the road to the south, painting the same door for three weeks. " +
+    "Mrs. Despoina lives in the small house far to the west. Knock on her door.",
   isComplete: (c) =>
     c.flags.metHelena === true &&
     c.flags.metCostas === true &&
     c.flags.metDespoina === true,
   reward: { memories: 5 },
-  requires: (_c, done) => done.has("q_wake_up"),
+  requires: (_c, done) => done.has("q_step_outside"),
 };
 
 const q_survive_night_1: QuestDef = {
@@ -196,6 +209,7 @@ const q_make_choice: QuestDef = {
 
 export const QUESTS: QuestDef[] = [
   q_wake_up,
+  q_step_outside,
   q_meet_villagers,
   q_survive_night_1,
   q_read_bench,

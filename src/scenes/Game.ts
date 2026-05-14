@@ -10,7 +10,7 @@ import { SFX } from "../sfx";
 import { MUSIC } from "../music";
 import { Audio } from "../audio";
 import { buildWorld, WORLD_H, WORLD_W } from "../map";
-import { EPILOGUE_BURN, EPILOGUE_RETURN, PROLOGUE } from "../story";
+import { EPILOGUE_BURN, EPILOGUE_RETURN } from "../story";
 import { activeQuest, QUESTS } from "../quests";
 import type { Fx, GameCtx, World } from "../types";
 import { Player } from "../objects/Player";
@@ -205,8 +205,17 @@ export class GameScene extends Phaser.Scene {
     this.events.on("home-exit", (pt: { x: number; y: number }) => {
       this.player.setPosition(pt.x, pt.y);
       (this.player.body as Phaser.Physics.Arcade.Body).reset(pt.x, pt.y);
-      this.cameras.main.fadeIn(380, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+      this.cameras.main.centerOn(pt.x, pt.y);
+      this.cameras.main.fadeIn(620, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
       this.player.controlsLocked = false;
+      this.inStory = false;
+      // first-time step-out: announce the community and the next objective
+      if (!this.ctx.flags.steppedOutAnnounced) {
+        this.ctx.flags.steppedOutAnnounced = true;
+        this.ui?.showAreaBanner("Diona Community · Day 1");
+        this.ui?.toast("Helena is by the well. Costas is south. Mrs. Despoina is west.", PAL.inkDim);
+      }
+      Audio.playMusic(this, "music_hope");
     });
     this.events.on("facility-exit", (pt: { x: number; y: number }) => {
       this.player.setPosition(pt.x, pt.y);
@@ -249,22 +258,19 @@ export class GameScene extends Phaser.Scene {
       this.events.off("player-died", this.onPlayerDied, this);
     });
 
-    // ---- open on the prologue -----------------------------------------
+    // ---- open INSIDE the house: HomeScene plays the prologue + wake-up.
+    // We sleep this scene immediately so the outdoor world is staged but
+    // not visible until the player steps out the front door.
     this.player.controlsLocked = true;
     this.inStory = true;
-    this.cameras.main.fadeIn(800, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+    this.cameras.main.fadeIn(0, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
+    this.scene.sleep();
+    this.scene.launch("Home", { isStart: true, returnAt: { x: 13 * 48 + 24, y: 20 * 48 } });
   }
 
-  /** Called by UIScene once its HUD exists, to run the opening crawl. */
+  /** Called by UIScene when it's ready — kept around as a no-op for compatibility. */
   startPrologue() {
     this.pendingPrologue = false;
-    this.ui.showStory("YESTERDAY ECHOES", PROLOGUE, () => {
-      this.inStory = false;
-      this.player.controlsLocked = false;
-      this.ui.showAreaBanner("ACT I · Awakening");
-      this.time.delayedCall(3200, () => this.ui.showAreaBanner("Diona Community · Day 1"));
-      this.ui.toast("E talk · TAB notebook · I pocket", PAL.inkDim);
-    });
   }
 
   /* ===================================================================== *
@@ -432,20 +438,21 @@ export class GameScene extends Phaser.Scene {
 
   /** Build every interactable portal once + paint its persistent beacon. */
   private buildDoors() {
+    // door positions match the bottom-front of each house (one tile south of
+    // the building's bottom-centre anchor). Keep these in sync with map.ts.
     const defs: Door[] = [
-      { x: 13 * 48 + 24, y: 18 * 48 + 4, label: "E  ·  inside", act: () => this.enterHome({ x: 13 * 48 + 24, y: 18 * 48 + 4 }) },
+      { x: 13 * 48 + 24, y: 20 * 48,      label: "E  ·  home",            act: () => this.enterHome({ x: 13 * 48 + 24, y: 20 * 48 }) },
+      { x: 7 * 48 + 24,  y: 19 * 48,      label: "E  ·  Mrs. Despoina's", act: () => this.enterDespoina({ x: 7 * 48 + 24, y: 19 * 48 }) },
+      { x: 22 * 48 + 24, y: 14 * 48,      label: "E  ·  the café",        act: () => this.enterCafe({ x: 22 * 48 + 24, y: 14 * 48 }) },
+      { x: 29 * 48 + 24, y: 20 * 48,      label: "E  ·  the clinic",      act: () => this.enterClinic({ x: 29 * 48 + 24, y: 20 * 48 }) },
+      { x: 16 * 48,      y: 34 * 48,      label: "E  ·  to the park",     act: () => this.enterPark({ x: 16 * 48, y: 34 * 48 - 4 }) },
       {
-        x: 50.5 * 48,
-        y: 22 * 48,
+        x: 50.5 * 48, y: 22 * 48,
         label: "E  ·  descend",
         gated: () => !!this.ctx.flags.kostasReveal && !this.ctx.flags.endingChosen,
         gatedLabel: "the way isn't ready yet",
         act: () => this.enterFacility({ x: 50.5 * 48, y: 22 * 48 }),
       },
-      { x: 8 * 48 + 24, y: 16 * 48, label: "E  ·  Mrs. Despoina's", act: () => this.enterDespoina({ x: 8 * 48 + 24, y: 16 * 48 }) },
-      { x: 16 * 48, y: 34 * 48, label: "E  ·  to the park", act: () => this.enterPark({ x: 16 * 48, y: 34 * 48 - 4 }) },
-      { x: 10 * 48 + 24, y: 22 * 48 + 14, label: "E  ·  the café", act: () => this.enterCafe({ x: 10 * 48 + 24, y: 22 * 48 + 14 }) },
-      { x: 27 * 48 + 24, y: 14 * 48 - 4, label: "E  ·  the clinic", act: () => this.enterClinic({ x: 27 * 48 + 24, y: 14 * 48 - 4 }) },
     ];
     this.doors = defs;
     for (const d of this.doors) {
