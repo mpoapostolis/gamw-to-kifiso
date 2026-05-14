@@ -153,7 +153,7 @@ export class TitleScene extends Phaser.Scene {
       .setAlpha(0);
 
     const controls = this.add
-      .text(cx, 558, "WASD / ↑ ↓ ← →  walk        E  talk        TAB  notebook        I  pocket        ESC  pause", {
+      .text(cx, 558, "WASD / ↑ ↓ ← →  walk     SPACE  sprint     E  talk     TAB  notebook     I  pocket     ESC  pause", {
         fontFamily: SPECTRAL,
         fontSize: "15px",
         color: hex(PAL.inkFaint),

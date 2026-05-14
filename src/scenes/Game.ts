@@ -245,6 +245,8 @@ export class GameScene extends Phaser.Scene {
         this.ctx.flags.steppedOutAnnounced = true;
         this.ui?.showAreaBanner("Diona Community · Day 1");
         this.ui?.toast("Helena is by the well. Costas is south. Mrs. Despoina is west.", PAL.inkDim);
+        // teach the sprint key once — the town's wider than it looks
+        this.time.delayedCall(2600, () => this.ui?.toast("hold SPACE to sprint", PAL.inkDim));
       }
       Audio.playMusic(this, "music_hope");
     });

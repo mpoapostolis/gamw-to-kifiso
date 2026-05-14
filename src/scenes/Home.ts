@@ -378,10 +378,11 @@ export class HomeScene extends Phaser.Scene {
     // is black and only the text plays.
     if (this.ctx.day >= 3) this.spawnCleanerVisit();
 
+    // Three beats only, snappy. The whole cinematic now lasts about five
+    // seconds — short enough that the player doesn't get bored, long enough
+    // to feel like a real handover between days.
     const beats = [
       "you close your eyes.",
-      "you don't dream.",
-      "for five minutes, you are not.",
       this.ctx.day >= 3 ? "something white moves at the foot of the bed." : "outside, a clock stops.",
       "morning.",
     ];
@@ -400,36 +401,74 @@ export class HomeScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setScrollFactor(0);
     layer.add(lineText);
+    // "press SPACE to skip" hint
+    const skipHint = this.add
+      .text(VIEW_W / 2, VIEW_H - 36, "SPACE  ·  skip", {
+        fontFamily: '"Spectral", Georgia, serif',
+        fontSize: "12px",
+        color: hex(PAL.inkFaint),
+        fontStyle: "italic 400",
+      })
+      .setOrigin(0.5)
+      .setScrollFactor(0)
+      .setAlpha(0.6);
+    layer.add(skipHint);
 
     let i = 0;
+    let skipped = false;
+    let activeTween: Phaser.Tweens.Tween | null = null;
+    let delayCall: Phaser.Time.TimerEvent | null = null;
+    const finish = () => {
+      activeTween?.stop();
+      delayCall?.remove(false);
+      this.tweens.add({
+        targets: layer,
+        alpha: 0,
+        duration: 280,
+        onComplete: () => {
+          layer.destroy();
+          this.afterSleep();
+        },
+      });
+    };
+    const space = this.input.keyboard!.addKey("SPACE");
+    const enter = this.input.keyboard!.addKey("ENTER");
+    const onSkip = () => {
+      if (skipped) return;
+      skipped = true;
+      finish();
+    };
+    space.on("down", onSkip);
+    enter.on("down", onSkip);
+    layer.once("destroy", () => {
+      space.off("down", onSkip);
+      enter.off("down", onSkip);
+    });
+
     const step = () => {
+      if (skipped) return;
       if (i >= beats.length) {
-        this.tweens.add({
-          targets: layer,
-          alpha: 0,
-          duration: 600,
-          onComplete: () => {
-            layer.destroy();
-            this.afterSleep();
-          },
-        });
+        finish();
         return;
       }
       lineText.setText(beats[i]);
       lineText.setAlpha(0);
-      this.tweens.add({
+      activeTween = this.tweens.add({
         targets: lineText,
         alpha: 1,
-        duration: 700,
+        duration: 380,
         ease: "Sine.easeInOut",
         onComplete: () => {
-          this.time.delayedCall(1100, () => {
-            this.tweens.add({
+          if (skipped) return;
+          delayCall = this.time.delayedCall(550, () => {
+            if (skipped) return;
+            activeTween = this.tweens.add({
               targets: lineText,
               alpha: 0,
-              duration: 600,
+              duration: 320,
               ease: "Sine.easeInOut",
               onComplete: () => {
+                if (skipped) return;
                 i++;
                 step();
               },

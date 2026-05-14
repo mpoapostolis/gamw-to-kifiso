@@ -12,6 +12,7 @@ import type { Fx, GameCtx } from "../types";
 type Facing = "down" | "up" | "side";
 
 const SPEED = 132;
+const SPRINT_MULT = 1.65; // hold SPACE to run; the town's wide enough to want it
 const ROLL_SPEED = 330;
 const ROLL_TIME = 240;
 const ROLL_CD = 620;
@@ -65,9 +66,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     a: Phaser.Input.Keyboard.Key;
     s: Phaser.Input.Keyboard.Key;
     d: Phaser.Input.Keyboard.Key;
-    attack: Phaser.Input.Keyboard.Key;
+    /** SPACE: hold to sprint. (Used to be attack; combat is ENTER only now.) */
+    sprint: Phaser.Input.Keyboard.Key;
+    attack: Phaser.Input.Keyboard.Key; // Enter — niche combat for cleaner phase
     roll: Phaser.Input.Keyboard.Key;
-    attack2: Phaser.Input.Keyboard.Key; // Enter (alt)
   };
   private pointerAttack = false;
 
@@ -109,8 +111,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       a: kb.addKey("A"),
       s: kb.addKey("S"),
       d: kb.addKey("D"),
-      attack: kb.addKey("SPACE"),
-      attack2: kb.addKey("ENTER"),
+      sprint: kb.addKey("SPACE"),
+      attack: kb.addKey("ENTER"),
       roll: kb.addKey("SHIFT"),
     };
     scene.input.on(Phaser.Input.Events.POINTER_DOWN, (p: Phaser.Input.Pointer) => {
@@ -300,10 +302,11 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         iy /= len;
       }
 
-      const wantAttack = Phaser.Input.Keyboard.JustDown(this.keys.attack) || Phaser.Input.Keyboard.JustDown(this.keys.attack2) || this.pointerAttack;
+      const wantAttack = Phaser.Input.Keyboard.JustDown(this.keys.attack) || this.pointerAttack;
       this.pointerAttack = false;
       if (Phaser.Input.Keyboard.JustDown(this.keys.roll)) this.tryRoll(ix, iy);
       if (wantAttack) this.tryAttack();
+      const sprinting = this.keys.sprint.isDown && len > 0 && !this.attacking;
 
       // ---- locomotion --------------------------------------------------
       if (this.rolling) {
@@ -311,7 +314,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       } else if (t < this.hurtUntil) {
         // knockback owns velocity; leave it be
       } else {
-        const sp = SPEED * (this.attacking ? 0.32 : 1);
+        const sp = SPEED * (this.attacking ? 0.32 : sprinting ? SPRINT_MULT : 1);
         if (len > 0) {
           b.setVelocity(ix * sp, iy * sp);
           if (!this.attacking) this.setFacingFromVec(ix, iy);

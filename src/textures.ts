@@ -542,9 +542,18 @@ function buildProps(scene: Phaser.Scene) {
   });
 
   // ---- houses (whole-building textures; collide on most of the footprint)
+  // Generic variants kept as fallbacks for any old call sites.
   buildHouse(scene, "house_a", 5, 4, PAL.roof, PAL.roofHi);
   buildHouse(scene, "house_b", 4, 4, PAL.thatch, PAL.thatchHi, true);
   buildHouse(scene, "house_c", 6, 5, PAL.roofDark, PAL.roof);
+  // Per-function buildings — each one is visually unique so the player can
+  // read the town at a glance: where they live, where Despoina lives, the
+  // café, the clinic, Costas's half-painted place.
+  buildHouseAlex(scene);
+  buildHouseDespoina(scene);
+  buildHouseCafe(scene);
+  buildHouseClinic(scene);
+  buildHouseCostas(scene);
 }
 
 function buildHouse(
@@ -1568,6 +1577,490 @@ function buildPortraits(scene: Phaser.Scene) {
     },
   ];
   for (const s of specs) tex(scene, s.key, W, H, (g) => drawPortrait(g, W, H, s));
+}
+
+/* ----------------------------------------------------------------------- *
+ * PER-FUNCTION BUILDINGS                                                   *
+ *                                                                          *
+ * Each one is the same anchor convention as buildHouse (bottom-centre),    *
+ * but visually distinct so the town reads as a place where different      *
+ * people do different things, instead of a row of identical roofs.        *
+ * ----------------------------------------------------------------------- */
+function buildHouseAlex(scene: Phaser.Scene) {
+  // Cozy cottage. Warm cream siding, dusty-lavender slate roof, a small
+  // wreath on the door, window boxes with little flowers. Reads as "home".
+  const tw = 5;
+  const th = 4;
+  const w = tw * TILE;
+  const wallH = th * TILE * 0.62;
+  const roofH = th * TILE * 0.62;
+  const h = wallH + roofH + 14;
+  const roofCol = PAL.roof;
+  const roofHi = PAL.roofHi;
+  tex(scene, "house_alex", w, h, (g) => {
+    const baseY = roofH;
+    g.fillStyle(PAL.shadow, 0.3);
+    g.fillEllipse(w / 2, h - 4, w * 0.94, 18);
+    // cream siding
+    g.fillStyle(shade(PAL.thatch, -0.05), 1);
+    g.fillRect(0, baseY, w, wallH + 12);
+    g.fillStyle(PAL.thatchHi, 1);
+    g.fillRect(3, baseY + 2, w - 6, wallH + 8);
+    // horizontal clapboard seams
+    g.lineStyle(1, shade(PAL.thatch, -0.2), 0.45);
+    for (let y = baseY + 10; y < baseY + wallH + 8; y += 8) g.lineBetween(3, y, w - 3, y);
+    // corner trim
+    g.fillStyle(shade(PAL.woodHi, -0.05), 1);
+    g.fillRect(3, baseY + 2, 5, wallH + 8);
+    g.fillRect(w - 8, baseY + 2, 5, wallH + 8);
+    // door — painted lavender, with a green wreath
+    const dw = 44;
+    const dx = w / 2 - dw / 2;
+    const dy = baseY + wallH + 12 - TILE * 0.95;
+    g.fillStyle(shade(PAL.cloak, -0.1), 1);
+    g.fillRoundedRect(dx, dy, dw, TILE * 0.95, 4);
+    g.fillStyle(PAL.cloak, 1);
+    g.fillRect(dx + 3, dy + 3, dw - 6, TILE * 0.95 - 5);
+    g.lineStyle(1, PAL.cloakDark, 1);
+    g.lineBetween(dx + dw / 2, dy + 3, dx + dw / 2, dy + TILE * 0.95 - 4);
+    g.fillStyle(PAL.gold, 1);
+    g.fillCircle(dx + dw - 7, dy + TILE * 0.5, 2);
+    // wreath
+    g.lineStyle(3, PAL.grassMid, 1);
+    g.strokeCircle(dx + dw / 2, dy + 10, 7);
+    g.fillStyle(PAL.heart, 1);
+    g.fillCircle(dx + dw / 2 + 5, dy + 14, 1.6);
+    // windows with little flower boxes
+    const winY = baseY + 12;
+    for (const cx of [w * 0.22, w * 0.78]) {
+      g.fillStyle(PAL.woodDark, 1);
+      g.fillRect(cx - 13, winY - 2, 26, 22);
+      g.fillStyle(PAL.emberSoft, 0.95);
+      g.fillRect(cx - 10, winY, 20, 16);
+      g.fillStyle(PAL.emberHot, 0.7);
+      g.fillRect(cx - 9, winY + 9, 18, 6);
+      g.lineStyle(2, PAL.woodDark, 1);
+      g.lineBetween(cx, winY, cx, winY + 16);
+      g.lineBetween(cx - 10, winY + 8, cx + 10, winY + 8);
+      // window box with flowers
+      g.fillStyle(PAL.woodMid, 1);
+      g.fillRect(cx - 16, winY + 19, 32, 5);
+      g.fillStyle(PAL.heart, 1);
+      g.fillCircle(cx - 9, winY + 19, 2);
+      g.fillCircle(cx, winY + 18, 2);
+      g.fillStyle(PAL.heartHi, 1);
+      g.fillCircle(cx + 9, winY + 19, 2);
+    }
+    // gabled slate roof
+    g.fillStyle(shade(roofCol, -0.22), 1);
+    g.fillTriangle(-8, baseY + 10, w + 8, baseY + 10, w / 2, -10);
+    g.fillStyle(roofCol, 1);
+    g.fillTriangle(-4, baseY + 8, w + 4, baseY + 8, w / 2, -5);
+    // slate rows
+    g.fillStyle(shade(roofCol, -0.12), 0.65);
+    for (let row = 0; row < 5; row++) {
+      const yy = baseY + 6 - row * (baseY / 5.5);
+      const inset = (row / 5) * (w / 2 - 6);
+      g.fillRect(inset - 2, yy - 2, w - inset * 2 + 4, 3);
+    }
+    g.fillStyle(roofHi, 0.55);
+    g.fillTriangle(0, baseY + 6, w / 2, 0, w / 2 - 4, baseY + 6);
+    g.fillStyle(shade(roofCol, 0.1), 1);
+    g.fillRect(w / 2 - 2, -6, 4, baseY + 12);
+    // small chimney with a little curl of smoke baked in
+    g.fillStyle(PAL.stone, 1);
+    g.fillRect(w * 0.74, -2, 12, roofH * 0.45);
+    g.fillStyle(PAL.stoneEdge, 1);
+    g.fillRect(w * 0.74 - 2, -5, 16, 4);
+  });
+}
+
+function buildHouseDespoina(scene: Phaser.Scene) {
+  // Old + weathered. Cracked plaster, ivy crawling up the south wall, dark
+  // rose-grey roof, a heavy oak door with brass knocker.
+  const tw = 5;
+  const th = 4;
+  const w = tw * TILE;
+  const wallH = th * TILE * 0.62;
+  const roofH = th * TILE * 0.62;
+  const h = wallH + roofH + 14;
+  tex(scene, "house_despoina", w, h, (g) => {
+    const baseY = roofH;
+    g.fillStyle(PAL.shadow, 0.32);
+    g.fillEllipse(w / 2, h - 4, w * 0.94, 20);
+    // stone/plaster walls — cool grey
+    g.fillStyle(shade(PAL.stone, -0.15), 1);
+    g.fillRect(0, baseY, w, wallH + 12);
+    g.fillStyle(PAL.stone, 1);
+    g.fillRect(3, baseY + 2, w - 6, wallH + 8);
+    // hand-set stones
+    g.lineStyle(1, PAL.stoneEdge, 0.5);
+    for (let y = baseY + 8; y < baseY + wallH + 8; y += 9) {
+      g.lineBetween(3, y, w - 3, y);
+      const offs = (y % 18 === 0) ? 0 : TILE / 2;
+      for (let x = offs; x < w; x += TILE) g.lineBetween(x, y, x, y + 9);
+    }
+    // ivy on the left side — drawn as little green tendrils
+    g.fillStyle(PAL.grassMid, 0.92);
+    for (let i = 0; i < 24; i++) {
+      const t = i / 24;
+      const ix = 4 + Math.sin(i * 1.6) * 16 + t * 18;
+      const iy = baseY + 4 + t * (wallH + 4);
+      g.fillCircle(ix, iy, 3.4);
+      g.fillCircle(ix - 3, iy + 2, 2.2);
+    }
+    g.fillStyle(shade(PAL.grassMid, 0.15), 0.9);
+    for (let i = 0; i < 10; i++) {
+      const t = i / 10;
+      const ix = 8 + Math.sin(i * 2.2) * 10 + t * 14;
+      const iy = baseY + 8 + t * (wallH);
+      g.fillCircle(ix, iy, 2);
+    }
+    // heavy oak door, dark
+    const dw = 46;
+    const dx = w / 2 - dw / 2;
+    const dy = baseY + wallH + 12 - TILE * 0.95;
+    g.fillStyle(shade(PAL.woodDark, -0.1), 1);
+    g.fillRoundedRect(dx, dy, dw, TILE * 0.95, 3);
+    g.fillStyle(PAL.woodDark, 1);
+    g.fillRect(dx + 3, dy + 3, dw - 6, TILE * 0.95 - 5);
+    // panel seams
+    g.lineStyle(1, shade(PAL.woodDark, -0.3), 1);
+    g.lineBetween(dx + dw / 2, dy + 3, dx + dw / 2, dy + TILE * 0.95 - 4);
+    g.lineBetween(dx + 3, dy + TILE * 0.5, dx + dw - 3, dy + TILE * 0.5);
+    // brass knocker
+    g.fillStyle(PAL.gold, 1);
+    g.fillCircle(dx + dw / 2, dy + TILE * 0.32, 3);
+    g.lineStyle(1.5, PAL.goldDark, 1);
+    g.strokeCircle(dx + dw / 2, dy + TILE * 0.32, 4);
+    // single deep window on the right
+    const winY = baseY + 14;
+    const cx = w * 0.78;
+    g.fillStyle(PAL.woodDark, 1);
+    g.fillRect(cx - 14, winY - 2, 28, 24);
+    g.fillStyle(shade(PAL.ember, -0.2), 0.85);
+    g.fillRect(cx - 11, winY, 22, 18);
+    g.fillStyle(PAL.emberDeep, 0.7);
+    g.fillRect(cx - 10, winY + 11, 20, 5);
+    g.lineStyle(2, PAL.woodDark, 1);
+    g.lineBetween(cx, winY, cx, winY + 18);
+    g.lineBetween(cx - 11, winY + 9, cx + 11, winY + 9);
+    // dark-rose mansard roof, drooping
+    g.fillStyle(shade(PAL.heartDark, -0.05), 1);
+    g.fillTriangle(-6, baseY + 10, w + 6, baseY + 10, w / 2, -6);
+    g.fillStyle(PAL.heartDark, 1);
+    g.fillTriangle(-2, baseY + 8, w + 2, baseY + 8, w / 2, -2);
+    // missing tiles / cracks
+    g.fillStyle(PAL.stoneEdge, 0.95);
+    g.fillRect(w * 0.35, baseY - 2, 4, 4);
+    g.fillRect(w * 0.62, baseY - 8, 3, 5);
+    // ridge cap
+    g.fillStyle(shade(PAL.heartDark, 0.15), 1);
+    g.fillRect(w / 2 - 2, -4, 4, baseY + 12);
+    // tall stone chimney — actively smoking
+    g.fillStyle(PAL.stoneEdge, 1);
+    g.fillRect(w * 0.18, -8, 14, roofH * 0.7);
+    g.fillStyle(PAL.stone, 1);
+    g.fillRect(w * 0.18 - 2, -11, 18, 4);
+    // smoke wisps
+    g.fillStyle(PAL.gloomMid, 0.55);
+    g.fillCircle(w * 0.18 + 7, -16, 4);
+    g.fillStyle(PAL.gloomHi, 0.4);
+    g.fillCircle(w * 0.18 + 12, -22, 5);
+  });
+}
+
+function buildHouseCafe(scene: Phaser.Scene) {
+  // Café: striped red-and-cream awning, a sign that says "CAFÉ", a chalkboard
+  // beside the door, big warm windows.
+  const tw = 4;
+  const th = 4;
+  const w = tw * TILE;
+  const wallH = th * TILE * 0.62;
+  const roofH = th * TILE * 0.62;
+  const h = wallH + roofH + 14;
+  tex(scene, "house_cafe", w, h, (g) => {
+    const baseY = roofH;
+    g.fillStyle(PAL.shadow, 0.32);
+    g.fillEllipse(w / 2, h - 4, w * 0.94, 18);
+    // brick walls — warm rose
+    g.fillStyle(shade(PAL.heart, -0.25), 1);
+    g.fillRect(0, baseY, w, wallH + 12);
+    g.fillStyle(shade(PAL.heart, -0.1), 1);
+    g.fillRect(3, baseY + 2, w - 6, wallH + 8);
+    // brick rows
+    g.lineStyle(1, shade(PAL.heart, -0.45), 0.55);
+    for (let y = baseY + 8; y < baseY + wallH + 8; y += 7) {
+      g.lineBetween(3, y, w - 3, y);
+      const offs = (Math.floor(y / 7) % 2 === 0) ? 0 : TILE / 2;
+      for (let x = offs; x < w; x += TILE) g.lineBetween(x, y, x, y + 7);
+    }
+    // big shop window LEFT of door
+    const winY = baseY + 12;
+    const winLx = w * 0.28;
+    g.fillStyle(PAL.woodDark, 1);
+    g.fillRect(winLx - 22, winY - 2, 44, 28);
+    g.fillStyle(PAL.emberSoft, 0.95);
+    g.fillRect(winLx - 19, winY, 38, 22);
+    g.fillStyle(PAL.emberHot, 0.65);
+    g.fillRect(winLx - 18, winY + 12, 36, 8);
+    // muntin grid
+    g.lineStyle(2, PAL.woodDark, 1);
+    g.lineBetween(winLx, winY, winLx, winY + 22);
+    g.lineBetween(winLx - 19, winY + 11, winLx + 19, winY + 11);
+    // door — half-glass, brass kick plate
+    const dw = 38;
+    const dx = w * 0.65 - dw / 2;
+    const dy = baseY + wallH + 12 - TILE * 0.95;
+    g.fillStyle(PAL.woodDark, 1);
+    g.fillRoundedRect(dx, dy, dw, TILE * 0.95, 3);
+    g.fillStyle(PAL.emberHot, 0.85);
+    g.fillRect(dx + 4, dy + 4, dw - 8, TILE * 0.4);
+    g.fillStyle(shade(PAL.woodDark, 0.15), 1);
+    g.fillRect(dx + 4, dy + TILE * 0.5, dw - 8, TILE * 0.4);
+    g.fillStyle(PAL.gold, 1);
+    g.fillRect(dx + 4, dy + TILE * 0.85, dw - 8, 3);
+    g.fillStyle(PAL.gold, 1);
+    g.fillCircle(dx + dw - 8, dy + TILE * 0.55, 2);
+    // chalkboard SIGN on the right
+    const sbx = w - 14;
+    const sby = baseY + wallH * 0.45;
+    g.fillStyle(PAL.woodDark, 1);
+    g.fillRect(sbx - 11, sby, 13, 28);
+    g.fillStyle(shade(PAL.grassDeep, -0.5), 1);
+    g.fillRect(sbx - 9, sby + 2, 9, 24);
+    // chalk scribbles
+    g.lineStyle(1, PAL.ink, 0.5);
+    g.lineBetween(sbx - 7, sby + 7, sbx - 2, sby + 7);
+    g.lineBetween(sbx - 7, sby + 12, sbx - 3, sby + 12);
+    g.lineBetween(sbx - 7, sby + 17, sbx - 2, sby + 17);
+    g.lineBetween(sbx - 7, sby + 22, sbx - 4, sby + 22);
+    // STRIPED AWNING — red & cream — runs along the wall above the windows
+    const awY = baseY - 4;
+    const awH = 16;
+    g.fillStyle(shade(PAL.heartDark, -0.05), 1);
+    g.fillRoundedRect(0, awY, w, awH, 3);
+    // candy stripes
+    for (let i = 0; i < tw * 3; i++) {
+      const sx = (i / (tw * 3)) * w;
+      g.fillStyle(i % 2 === 0 ? PAL.heart : PAL.thatchHi, 0.95);
+      g.fillRect(sx, awY + 2, w / (tw * 3), awH - 4);
+    }
+    // awning scallop edge
+    for (let i = 0; i <= tw * 2; i++) {
+      const sx = (i / (tw * 2)) * w;
+      g.fillStyle(i % 2 === 0 ? PAL.heart : PAL.thatchHi, 1);
+      g.fillTriangle(sx, awY + awH - 1, sx + w / (tw * 2), awY + awH - 1, sx + w / (tw * 4), awY + awH + 7);
+    }
+    // hanging sign "CAFÉ" — tiny rectangle that the floating signboard above will read explicitly
+    const sgx = w / 2;
+    const sgy = awY + awH + 12;
+    g.fillStyle(PAL.woodDark, 1);
+    g.fillRoundedRect(sgx - 22, sgy - 8, 44, 16, 3);
+    g.fillStyle(PAL.thatchHi, 1);
+    g.fillRect(sgx - 20, sgy - 6, 40, 12);
+    g.lineStyle(1, PAL.woodDark, 0.7);
+    g.lineBetween(sgx, sgy - 11, sgx, sgy - 8);
+    // simple flat roof above the awning — narrow
+    g.fillStyle(shade(PAL.roofDark, -0.05), 1);
+    g.fillRect(-2, -4, w + 4, baseY + 4);
+    g.fillStyle(PAL.roofDark, 1);
+    g.fillRect(0, -2, w, baseY + 4);
+    // a parapet line + tiny letters baked in
+    g.fillStyle(shade(PAL.roofDark, 0.2), 1);
+    g.fillRect(0, -4, w, 3);
+    g.fillStyle(PAL.gold, 0.95);
+    for (let i = 0; i < 4; i++) g.fillRect(w / 2 - 18 + i * 10, -3, 6, 2);
+  });
+}
+
+function buildHouseClinic(scene: Phaser.Scene) {
+  // Clinic: whitewashed walls, big red plus on the front, slate roof, a
+  // small blue lamp by the door (the universal "doctor in" signal).
+  const tw = 4;
+  const th = 4;
+  const w = tw * TILE;
+  const wallH = th * TILE * 0.62;
+  const roofH = th * TILE * 0.62;
+  const h = wallH + roofH + 14;
+  tex(scene, "house_clinic", w, h, (g) => {
+    const baseY = roofH;
+    g.fillStyle(PAL.shadow, 0.32);
+    g.fillEllipse(w / 2, h - 4, w * 0.94, 18);
+    // whitewashed walls
+    g.fillStyle(shade(PAL.thatchHi, -0.05), 1);
+    g.fillRect(0, baseY, w, wallH + 12);
+    g.fillStyle(PAL.thatchHi, 1);
+    g.fillRect(3, baseY + 2, w - 6, wallH + 8);
+    // brick trim along the bottom
+    g.fillStyle(shade(PAL.heart, -0.3), 1);
+    g.fillRect(0, baseY + wallH + 4, w, 8);
+    // BIG RED PLUS centred on the wall
+    const cx = w / 2;
+    const cy = baseY + wallH * 0.36;
+    g.fillStyle(PAL.heart, 1);
+    g.fillRect(cx - 4, cy - 14, 8, 28);
+    g.fillRect(cx - 14, cy - 4, 28, 8);
+    g.fillStyle(PAL.heartHi, 0.45);
+    g.fillRect(cx - 3, cy - 13, 3, 26);
+    g.fillRect(cx - 13, cy - 3, 26, 3);
+    // a discreet pale-blue informational sign by the door
+    const sgx = w * 0.18;
+    const sgy = baseY + wallH * 0.7;
+    g.fillStyle(PAL.woodDark, 1);
+    g.fillRect(sgx - 8, sgy - 6, 16, 14);
+    g.fillStyle(PAL.gloomGlow, 0.9);
+    g.fillRect(sgx - 6, sgy - 4, 12, 10);
+    g.lineStyle(1, PAL.woodDark, 1);
+    g.lineBetween(sgx - 5, sgy, sgx + 5, sgy);
+    g.lineBetween(sgx, sgy - 4, sgx, sgy + 4);
+    // small windows flanking the door
+    const winY = baseY + wallH * 0.55;
+    for (const wx of [w * 0.78]) {
+      g.fillStyle(PAL.woodDark, 1);
+      g.fillRect(wx - 10, winY - 2, 20, 18);
+      g.fillStyle(PAL.gloomHi, 0.55);
+      g.fillRect(wx - 8, winY, 16, 14);
+      g.lineStyle(1.5, PAL.woodDark, 1);
+      g.lineBetween(wx, winY, wx, winY + 14);
+      g.lineBetween(wx - 8, winY + 7, wx + 8, winY + 7);
+    }
+    // door — pale, simple, metal kick plate
+    const dw = 38;
+    const dx = w / 2 - dw / 2;
+    const dy = baseY + wallH + 12 - TILE * 0.95;
+    g.fillStyle(shade(PAL.gloom, -0.1), 1);
+    g.fillRoundedRect(dx, dy, dw, TILE * 0.95, 3);
+    g.fillStyle(PAL.gloomHi, 1);
+    g.fillRect(dx + 3, dy + 3, dw - 6, TILE * 0.7);
+    g.fillStyle(PAL.stoneHi, 1);
+    g.fillRect(dx + 3, dy + TILE * 0.78, dw - 6, TILE * 0.15);
+    g.fillStyle(PAL.stoneEdge, 1);
+    g.fillCircle(dx + dw - 8, dy + TILE * 0.4, 2);
+    // small porch lamp — a pale-blue cylinder
+    g.fillStyle(PAL.woodDark, 1);
+    g.fillRect(dx - 8, dy - 14, 4, 22);
+    g.fillStyle(PAL.gloomGlow, 0.95);
+    g.fillCircle(dx - 6, dy - 14, 4);
+    // slate hip roof
+    g.fillStyle(shade(PAL.roof, -0.3), 1);
+    g.fillRect(-6, baseY - 6, w + 12, baseY + 10);
+    g.fillStyle(PAL.roof, 1);
+    g.fillRect(-4, baseY - 4, w + 8, baseY + 8);
+    // slate rows
+    g.fillStyle(shade(PAL.roof, -0.18), 0.7);
+    for (let row = 0; row < 4; row++) {
+      const yy = baseY - 4 + row * (baseY + 8) / 4;
+      g.fillRect(-4, yy, w + 8, 2);
+    }
+    g.fillStyle(PAL.roofHi, 0.5);
+    g.fillTriangle(-4, baseY - 4, w + 4, baseY - 4, w / 2, -6);
+  });
+}
+
+function buildHouseCostas(scene: Phaser.Scene) {
+  // Costas's place — half painted. South-facing wall got a fresh blue coat;
+  // the rest is still in the old weathered timber. A ladder leans, paint
+  // cans pile at the base, a sawhorse waits. This is the literal image
+  // Costas keeps describing: "three weeks painting the same door."
+  const tw = 4;
+  const th = 4;
+  const w = tw * TILE;
+  const wallH = th * TILE * 0.62;
+  const roofH = th * TILE * 0.62;
+  const h = wallH + roofH + 14;
+  tex(scene, "house_costas", w, h, (g) => {
+    const baseY = roofH;
+    g.fillStyle(PAL.shadow, 0.32);
+    g.fillEllipse(w / 2, h - 4, w * 0.94, 18);
+    // left half — old weathered wood
+    g.fillStyle(shade(PAL.woodMid, -0.18), 1);
+    g.fillRect(0, baseY, w / 2 + 2, wallH + 12);
+    g.fillStyle(PAL.woodMid, 1);
+    g.fillRect(3, baseY + 2, w / 2 - 1, wallH + 8);
+    g.lineStyle(1, shade(PAL.woodMid, -0.25), 0.6);
+    for (let x = TILE; x < w / 2; x += TILE) g.lineBetween(x, baseY + 2, x, baseY + wallH + 8);
+    // right half — freshly painted soft blue, but not quite finished
+    g.fillStyle(shade(PAL.cloak, -0.18), 1);
+    g.fillRect(w / 2 - 2, baseY, w / 2 + 2, wallH + 12);
+    g.fillStyle(PAL.cloak, 1);
+    g.fillRect(w / 2 + 1, baseY + 2, w / 2 - 4, wallH + 8);
+    g.lineStyle(1, shade(PAL.cloak, -0.3), 0.6);
+    for (let x = w / 2 + TILE; x < w; x += TILE) g.lineBetween(x, baseY + 2, x, baseY + wallH + 8);
+    // the boundary itself: paint hasn't covered evenly — drips and patches
+    g.fillStyle(PAL.cloak, 0.85);
+    for (let i = 0; i < 6; i++) {
+      const dy2 = baseY + 6 + i * 6;
+      const dx2 = w / 2 - 2 - (i % 2 === 0 ? 4 : 0);
+      g.fillRect(dx2, dy2, 4, 4);
+    }
+    // a ladder leans against the right side
+    const lx = w * 0.78;
+    const lyTop = baseY - 4;
+    const lyBot = baseY + wallH + 12;
+    g.lineStyle(2, PAL.woodHi, 1);
+    g.lineBetween(lx - 6, lyTop, lx - 9, lyBot);
+    g.lineBetween(lx + 3, lyTop, lx + 0, lyBot);
+    // rungs
+    g.lineStyle(2, shade(PAL.woodHi, -0.15), 1);
+    for (let i = 0; i < 6; i++) {
+      const t = i / 5;
+      const ay = lyTop + (lyBot - lyTop) * t;
+      const x1 = lx - 6 - 3 * t;
+      const x2 = lx + 3 - 3 * t;
+      g.lineBetween(x1, ay, x2, ay);
+    }
+    // door — same half-paint logic
+    const dw = 40;
+    const dx = w / 2 - dw / 2;
+    const dy = baseY + wallH + 12 - TILE * 0.95;
+    // left half of door — bare wood
+    g.fillStyle(PAL.woodDark, 1);
+    g.fillRoundedRect(dx, dy, dw, TILE * 0.95, 3);
+    g.fillStyle(shade(PAL.woodDark, 0.15), 1);
+    g.fillRect(dx + 3, dy + 3, dw - 6, TILE * 0.95 - 5);
+    // right half — painted blue with brush strokes
+    g.fillStyle(PAL.cloak, 1);
+    g.fillRect(dx + dw / 2, dy + 3, dw / 2 - 3, TILE * 0.95 - 5);
+    g.lineStyle(1, PAL.cloakHi, 0.6);
+    for (let i = 0; i < 4; i++) g.lineBetween(dx + dw / 2 + 2, dy + 8 + i * 6, dx + dw - 5, dy + 9 + i * 6);
+    g.fillStyle(PAL.gold, 1);
+    g.fillCircle(dx + dw - 7, dy + TILE * 0.5, 2);
+    // a paint can at the base
+    const pcx = w * 0.3;
+    const pcy = baseY + wallH + 10;
+    g.fillStyle(PAL.woodDark, 1);
+    g.fillEllipse(pcx, pcy + 4, 14, 4);
+    g.fillStyle(PAL.cloak, 1);
+    g.fillRect(pcx - 7, pcy - 4, 14, 8);
+    g.fillStyle(shade(PAL.cloak, 0.2), 1);
+    g.fillEllipse(pcx, pcy - 4, 14, 4);
+    // a brush sticking out
+    g.fillStyle(PAL.woodHi, 1);
+    g.fillRect(pcx + 3, pcy - 12, 2, 10);
+    g.fillStyle(PAL.cloak, 1);
+    g.fillRect(pcx + 2, pcy - 14, 4, 3);
+    // one window on the left side
+    const winY = baseY + 14;
+    const wx = w * 0.22;
+    g.fillStyle(PAL.woodDark, 1);
+    g.fillRect(wx - 12, winY - 2, 24, 20);
+    g.fillStyle(PAL.emberSoft, 0.9);
+    g.fillRect(wx - 9, winY, 18, 14);
+    g.lineStyle(2, PAL.woodDark, 1);
+    g.lineBetween(wx, winY, wx, winY + 14);
+    g.lineBetween(wx - 9, winY + 7, wx + 9, winY + 7);
+    // simple gable roof, old slate
+    g.fillStyle(shade(PAL.roofDark, -0.1), 1);
+    g.fillTriangle(-6, baseY + 8, w + 6, baseY + 8, w / 2, -6);
+    g.fillStyle(PAL.roofDark, 1);
+    g.fillTriangle(-2, baseY + 6, w + 2, baseY + 6, w / 2, -2);
+    // chimney
+    g.fillStyle(PAL.stone, 1);
+    g.fillRect(w * 0.7, -4, 12, roofH * 0.5);
+    g.fillStyle(PAL.stoneEdge, 1);
+    g.fillRect(w * 0.7 - 2, -7, 16, 4);
+  });
 }
 
 /* ----------------------------------------------------------------------- *

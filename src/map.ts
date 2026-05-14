@@ -250,16 +250,16 @@ function buildProps(): PropDef[] {
 
   // --- LUMIN VILLAGE ----------------------------------------------------
   // houses: anchor = bottom-centre; solids inferred from texture dims below.
-  // The whole town is just SIX buildings — each one labelled to a function so
-  // the world has clear negative space between every roof.
+  // The town is six buildings, each with its own visual identity (built in
+  // textures.ts) so the player can read the layout from a distance.
   type HouseDef = { key: string; tw: number; th: number; bx: number; by: number };
   const houses: HouseDef[] = [
-    { key: "house_a", tw: 5, th: 4, bx: tcx(13), by: tcy(19) }, // (1) your house — west of plaza
-    { key: "house_a", tw: 5, th: 4, bx: tcx(7),  by: tcy(18) }, // (2) Mrs. Despoina's — far west
-    { key: "house_b", tw: 4, th: 4, bx: tcx(22), by: tcy(13) }, // (3) the Café — north of plaza
-    { key: "house_b", tw: 4, th: 4, bx: tcx(29), by: tcy(19) }, // (4) the Clinic — east of plaza
-    { key: "house_b", tw: 4, th: 4, bx: tcx(13), by: tcy(31) }, // (5) Costas & Anna's — south
-    { key: "house_c", tw: 6, th: 5, bx: tcx(24), by: tcy(33) }, // (6) a dim lit house, southeast (decoration)
+    { key: "house_alex",     tw: 5, th: 4, bx: tcx(13), by: tcy(19) }, // (1) your house — west of plaza
+    { key: "house_despoina", tw: 5, th: 4, bx: tcx(7),  by: tcy(18) }, // (2) Mrs. Despoina's — far west
+    { key: "house_cafe",     tw: 4, th: 4, bx: tcx(22), by: tcy(13) }, // (3) the Café — north of plaza
+    { key: "house_clinic",   tw: 4, th: 4, bx: tcx(29), by: tcy(19) }, // (4) the Clinic — east of plaza
+    { key: "house_costas",   tw: 4, th: 4, bx: tcx(13), by: tcy(31) }, // (5) Costas & Anna's — south
+    { key: "house_c",        tw: 6, th: 5, bx: tcx(24), by: tcy(33) }, // (6) a dim-lit house, southeast (decoration)
   ];
   for (const h of houses) {
     const wallH = h.th * TILE * 0.62;
@@ -275,6 +275,31 @@ function buildProps(): PropDef[] {
   props.push({ key: "well", x: tcx(22), y: tcy(19) + 8, solid: [40, 22], solidUp: -10 });
   // campfire in the square
   props.push({ key: "fire0", x: tcx(25), y: tcy(24) + 4 });
+
+  // --- per-building decorative props ------------------------------------
+  // Café outdoor seating — two bistro tables flanking the door, with chairs
+  // around them. Pure dressing, no quest impact, but it sells the place.
+  props.push({ key: "bush",   x: tcx(20.4), y: tcy(15) + 14, solid: [16, 6], solidUp: -2, sway: 1.4 });
+  props.push({ key: "bush",   x: tcx(23.6), y: tcy(15) + 14, solid: [16, 6], solidUp: -2, sway: 1.4 });
+  // Costas's house — a tipped paint can + a sawhorse outside, the kind of
+  // mess Costas keeps describing in his "three weeks" speech.
+  props.push({ key: "rock",   x: tcx(11), y: tcy(31) + 24, solid: [20, 10], solidUp: -2 });
+  props.push({ key: "fence_h", x: tcx(15), y: tcy(32) + 26, solid: [TILE, 6], solidUp: -2 });
+  // Despoina's — a little stone bench by the door and another tree, so the
+  // far-west corner of the town has its own quiet weight.
+  props.push(tree(tcx(5), tcy(17), true));
+  props.push({ key: "rock",   x: tcx(8.5), y: tcy(19) + 20, solid: [22, 8], solidUp: -2 });
+  // Clinic — a small bench for waiting patients.
+  props.push({ key: "fence_h", x: tcx(28), y: tcy(20) + 24, solid: [TILE, 6], solidUp: -2 });
+  props.push({ key: "fence_h", x: tcx(30), y: tcy(20) + 24, solid: [TILE, 6], solidUp: -2 });
+  // Your home — a little flower patch by the door so the place reads as
+  // lived-in rather than vacant.
+  for (const [tx, ty] of [
+    [12.4, 20.6],
+    [13.6, 20.6],
+    [13.0, 20.9],
+  ] as const)
+    props.push(flat("flower", tcx(tx), tcy(ty)));
   // lamp posts along the village path
   for (const [tx, ty] of [
     [8, 23],
