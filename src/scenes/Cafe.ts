@@ -12,7 +12,7 @@ import { SFX } from "../sfx";
 import { TILE } from "../textures";
 import { Audio } from "../audio";
 import { DIALOGUES } from "../dialogues";
-import type { Fx, GameCtx, NpcSpawn } from "../types";
+import type { DialogPage, Fx, GameCtx, NpcSpawn } from "../types";
 import { Player } from "../objects/Player";
 import { Npc } from "../objects/Npc";
 import type { GameScene } from "./Game";
@@ -29,6 +29,7 @@ export class CafeScene extends Phaser.Scene {
   private exit!: { x: number; y: number };
   private counter!: { x: number; y: number };
   private chalkboard!: { x: number; y: number };
+  private shelf!: { x: number; y: number };
   private tables: { x: number; y: number }[] = [];
   private returnAt!: { x: number; y: number };
   private inDialog = false;
@@ -158,6 +159,48 @@ export class CafeScene extends Phaser.Scene {
     counter.fillStyle(shade(PAL.thatchHi, -0.15), 0.7);
     counter.fillRect(cX + 28, cY - 2, 22, 1);
     this.counter = { x: cX + cW / 2, y: cY + cH };
+
+    // ---- a small SHOP SHELF at the right end of the counter ----------
+    // Brass-railed display with three little jars + a tag. Interacting with
+    // this opens DIALOGUES.shopkeeper_shop (the actual trade dialog).
+    const shX = cX + cW + 6;
+    const shY = cY - 4;
+    const shW = TILE * 1.8;
+    const shH = cH + 4;
+    const sh = this.add.graphics();
+    // shadow
+    sh.fillStyle(PAL.shadow, 0.35);
+    sh.fillRoundedRect(shX + 4, shY + shH + 4, shW, 8, 3);
+    // cabinet body
+    sh.fillStyle(PAL.woodDark, 1);
+    sh.fillRoundedRect(shX, shY, shW, shH, 3);
+    sh.fillStyle(PAL.woodMid, 1);
+    sh.fillRoundedRect(shX + 3, shY + 3, shW - 6, shH - 10, 2);
+    // top rail (brass)
+    sh.fillStyle(PAL.gold, 1);
+    sh.fillRect(shX - 2, shY - 4, shW + 4, 4);
+    sh.fillStyle(PAL.goldHi, 0.7);
+    sh.fillRect(shX - 2, shY - 4, shW + 4, 1);
+    // three jars on the shelf
+    for (let i = 0; i < 3; i++) {
+      const jx = shX + 10 + i * 12;
+      const jy = shY + 12;
+      sh.fillStyle(PAL.thatchHi, 0.85);
+      sh.fillRoundedRect(jx - 4, jy, 8, 14, 1);
+      sh.fillStyle(PAL.goldHi, 0.6);
+      sh.fillRect(jx - 3, jy + 1, 6, 2);
+    }
+    // a small handwritten tag dangling below
+    this.add
+      .text(shX + shW / 2, shY + shH + 12, "·  shop  ·", {
+        fontFamily: '"Spectral", serif',
+        fontSize: "9px",
+        color: hex(PAL.goldHi),
+        fontStyle: "italic",
+      })
+      .setOrigin(0.5)
+      .setDepth(1);
+    this.shelf = { x: shX + shW / 2, y: shY + shH };
 
     // ---- three bar stools in front of the counter -------------------
     for (let i = 0; i < 3; i++) {
@@ -348,12 +391,16 @@ export class CafeScene extends Phaser.Scene {
       this.ui.hidePrompt();
       return;
     }
-    type T = "exit" | "counter" | "chalkboard" | "table" | null;
+    type T = "exit" | "counter" | "shelf" | "chalkboard" | "table" | null;
     let target: T = null;
     const px = this.player.x;
     const py = this.player.y;
 
     if (Phaser.Math.Distance.Between(px, py, this.exit.x, this.exit.y - 30) < 48) target = "exit";
+    // Shelf check comes BEFORE counter so the player can browse the shop
+    // without the counter prompt stealing focus when they stand right beside
+    // both.
+    else if (Phaser.Math.Distance.Between(px, py, this.shelf.x, this.shelf.y) < 52) target = "shelf";
     else if (Math.abs(px - this.shopkeeper.x) < 60 && Math.abs(py - this.counter.y) < 80) target = "counter";
     else if (Math.abs(px - this.chalkboard.x) < 56 && Math.abs(py - this.counter.y) < 90) target = "chalkboard";
     else {
@@ -368,6 +415,7 @@ export class CafeScene extends Phaser.Scene {
     const labels: Record<NonNullable<T>, string> = {
       exit: "E  ·  outside",
       counter: "E  ·  Shopkeeper",
+      shelf: "E  ·  browse the shelf  (trade memories)",
       chalkboard: "E  ·  read the menu",
       table: "E  ·  sit at the table",
     };
@@ -376,7 +424,8 @@ export class CafeScene extends Phaser.Scene {
 
     if (target && Phaser.Input.Keyboard.JustDown(this.keyE)) {
       if (target === "exit") this.exitScene();
-      else if (target === "counter") this.startDialog(this.shopkeeper);
+      else if (target === "counter") this.startDialog(this.shopkeeper, DIALOGUES.shopkeeper);
+      else if (target === "shelf") this.startDialog(this.shopkeeper, DIALOGUES.shopkeeper_shop);
       else if (target === "chalkboard") this.readChalkboard();
       else if (target === "table") this.sitAtTable();
     }
@@ -400,14 +449,21 @@ export class CafeScene extends Phaser.Scene {
     this.ui.toast("you sit for a moment. you don't remember the last time you came here.", PAL.gloomGlow);
   }
 
-  private startDialog(npc: Npc) {
+  /**
+   * Start a dialog with the shopkeeper. If a specific dialog function is
+   * passed (e.g. `DIALOGUES.shopkeeper_shop`), it's used instead of the
+   * NPC's default dialog — this lets the same NPC offer different
+   * conversations depending on which surface (counter vs shelf) the player
+   * pressed E on.
+   */
+  private startDialog(npc: Npc, dialog?: (c: GameCtx) => DialogPage[]) {
     if (this.inDialog) return;
     this.inDialog = true;
     this.player.controlsLocked = true;
     npc.setTalking(true);
     SFX.open();
     this.ui.hidePrompt();
-    const pages = npc.spawn.dialog(this.ctx);
+    const pages = (dialog ?? npc.spawn.dialog)(this.ctx);
     this.ui.showDialog(pages, () => {
       this.inDialog = false;
       npc.setTalking(false);

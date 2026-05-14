@@ -2,7 +2,13 @@
  * Phaser-managed audio singleton.
  *
  * Wraps `scene.sound` for the assets in `public/audio/`:
- *   • music_hope.mp3       — the looping ambient piano (Emma_MA, CC0)
+ *   • music_intro.ogg      — Title screen + the prologue in your bedroom
+ *   • music_hope.mp3       — outdoor town theme (Emma_MA, CC0)
+ *   • music_facility.ogg   — the basement under the hill
+ *   • music_park.mp3       — the little park with the bench
+ *   • music_lullaby.mp3    — Mrs. Despoina's house, a soft hum
+ *   • music_cafe.mp3       — the café / shop
+ *   • music_clinic.mp3     — Dr. Erin's clinic
  *   • sfx_footstep_wood_*  — wooden floor footstep variants (CC-BY 3.0)
  *   • sfx_footstep_grass_* — outdoor footstep variants     (CC-BY 3.0)
  *   • sfx_heartbeat_slow / _fast — used during the 11:55 cleaner phase (CC0)
@@ -29,11 +35,16 @@ class AudioBus {
       if (scene.cache.audio.exists(key)) return;
       scene.load.audio(key, files);
     };
-    // background tracks (one per location)
+    // background tracks (one per location). Audio Bus.playMusic() falls back
+    // to music_hope if a track isn't loaded — but we load them all here so
+    // each location gets its own bed instead of every scene sounding like home.
+    audio("music_intro", ["audio/music_intro.ogg", "audio/music_intro.mp3"]);
     audio("music_hope", ["audio/music_hope.mp3"]);
-    audio("music_facility", ["audio/music_facility.mp3", "audio/music_facility.ogg"]);
+    audio("music_facility", ["audio/music_facility.ogg", "audio/music_facility.mp3"]);
     audio("music_park", ["audio/music_park.mp3", "audio/music_park.ogg"]);
     audio("music_lullaby", ["audio/music_lullaby.mp3", "audio/music_lullaby.ogg"]);
+    audio("music_cafe", ["audio/music_cafe.mp3", "audio/music_cafe.ogg"]);
+    audio("music_clinic", ["audio/music_clinic.mp3", "audio/music_clinic.ogg"]);
     // sfx
     audio("fs_wood_a", ["audio/sfx_footstep_wood_a.ogg"]);
     audio("fs_wood_b", ["audio/sfx_footstep_wood_b.ogg"]);

@@ -75,6 +75,10 @@ export class GameScene extends Phaser.Scene {
   // doors / portals — built once in create(), iterated in update()
   private doors: Door[] = [];
 
+  // quest target arrow — chevron floating above the player, rotated towards
+  // the current objective. Built once in create(), updated in update().
+  private questArrow!: Phaser.GameObjects.Image;
+
   constructor() {
     super("Game");
   }
@@ -191,10 +195,34 @@ export class GameScene extends Phaser.Scene {
       this.ui?.toast(m ? "sound off" : "sound on", PAL.inkDim);
     });
     SFX.unlock();
-    Audio.startMusic(this);
+    // Don't start outdoor music here — HomeScene plays the prologue first
+    // with `music_intro` still going from Title. The crossfade to `music_hope`
+    // happens the moment the player walks out the front door (home-exit).
 
     // ---- doors / portals + their visible beacons -----------------------
     this.buildDoors();
+
+    // ---- quest target arrow -------------------------------------------
+    // A bright chevron that floats above the player's head and rotates to
+    // point at the current quest target (NPC or door). It pulses softly so
+    // the player's eye is drawn to it without it feeling intrusive.
+    this.questArrow = this.add
+      .image(this.player.x, this.player.y - 60, "chevron")
+      .setOrigin(0.5, 1.4) // pivot below the chevron so it points outward
+      .setScale(3)
+      .setTint(PAL.emberHot)
+      .setBlendMode(Phaser.BlendModes.ADD)
+      .setDepth(99999)
+      .setAlpha(0);
+    this.tweens.add({
+      targets: this.questArrow,
+      scaleX: { from: 2.8, to: 3.2 },
+      scaleY: { from: 2.8, to: 3.2 },
+      yoyo: true,
+      repeat: -1,
+      duration: 700,
+      ease: "Sine.easeInOut",
+    });
 
     // ---- events --------------------------------------------------------
     this.events.on("gloom-killed", this.onGloomKilled, this);
@@ -372,6 +400,12 @@ export class GameScene extends Phaser.Scene {
       const doorsForMap = this.doors.map((d) => ({ x: d.x, y: d.y, open: d.gated ? d.gated() : true }));
       const npcsForMap = this.npcGroup.getChildren().map((n) => ({ x: (n as Npc).x, y: (n as Npc).y }));
       this.ui.setMinimap(this.player.x, this.player.y, WORLD_W, WORLD_H, doorsForMap, npcsForMap);
+
+      // ---- quest target arrow ----------------------------------------
+      // Point the chevron at whatever the active quest wants from this
+      // outdoor scene. If the target isn't in the outdoor world (e.g. the
+      // player needs to be inside a building), we hide the arrow.
+      this.updateQuestArrow(q?.id);
     }
 
     // ---- automatic quest reward checks ---------------------------------
@@ -474,6 +508,70 @@ export class GameScene extends Phaser.Scene {
       this.tweens.add({ targets: beacon, alpha: { from: 0.85, to: 1 }, yoyo: true, repeat: -1, duration: 700, ease: "Sine.easeInOut" });
       d.beacon = beacon;
     }
+  }
+
+  /**
+   * Map the active quest's id to a world-space target — either an NPC the
+   * player must reach, or a door they must enter. Returns null when the
+   * target isn't here (the player needs to be in another scene), in which
+   * case `updateQuestArrow` just hides the arrow.
+   */
+  private getQuestTarget(questId: string | undefined): { x: number; y: number } | null {
+    if (!questId) return null;
+    const npcAt = (id: string): { x: number; y: number } | null => {
+      for (const n of this.npcGroup.getChildren()) {
+        const npc = n as Npc;
+        if (npc.spawn.id === id) return { x: npc.x, y: npc.y };
+      }
+      return null;
+    };
+    const doorAt = (label: string): { x: number; y: number } | null => {
+      const d = this.doors.find((dd) => dd.label.includes(label));
+      return d ? { x: d.x, y: d.y } : null;
+    };
+    switch (questId) {
+      case "q_wake_up":          return doorAt("home");            // back into the house
+      case "q_step_outside":     return doorAt("home");            // step out the front door
+      case "q_meet_villagers":   return npcAt("eleni")             // Helena first
+                                     || doorAt("Despoina");        // then Despoina's house
+      case "q_survive_night_1":  return doorAt("home");            // get back in bed
+      case "q_read_bench":       return doorAt("park");            // park has the bench
+      case "q_clinic_appointment": return doorAt("clinic");
+      case "q_shopkeeper_errand": return doorAt("café");
+      case "q_despoina_candle":  return doorAt("Despoina");
+      case "q_costas_hill":      return npcAt("kostas");
+      case "q_descend":          return doorAt("descend");
+      case "q_make_choice":      return doorAt("descend");
+      default:                   return null;
+    }
+  }
+
+  /**
+   * Update the chevron above the player's head: rotate it towards the
+   * current objective, fade it in when there's a target, fade it out when
+   * the player is already on top of it (or when the target is in another
+   * scene).
+   */
+  private updateQuestArrow(questId: string | undefined) {
+    const target = this.getQuestTarget(questId);
+    this.questArrow.setPosition(this.player.x, this.player.y - 56);
+    if (!target || this.inDialog || this.inStory || this.player.dead) {
+      this.questArrow.setAlpha(Phaser.Math.Linear(this.questArrow.alpha, 0, 0.1));
+      return;
+    }
+    const dx = target.x - this.player.x;
+    const dy = target.y - this.player.y;
+    const dist = Math.hypot(dx, dy);
+    // close enough: hide so we don't draw an arrow on top of the NPC's head
+    if (dist < 80) {
+      this.questArrow.setAlpha(Phaser.Math.Linear(this.questArrow.alpha, 0, 0.15));
+      return;
+    }
+    // chevron is drawn pointing up (origin offset above), so rotate so that
+    // its tip aligns with the angle from player → target
+    const angle = Math.atan2(dy, dx) + Math.PI / 2;
+    this.questArrow.setRotation(angle);
+    this.questArrow.setAlpha(Phaser.Math.Linear(this.questArrow.alpha, 0.9, 0.1));
   }
 
   private enterPark(at: { x: number; y: number }) {

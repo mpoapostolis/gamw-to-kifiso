@@ -491,7 +491,7 @@ export const DIALOGUES: Record<string, (c: GameCtx) => DialogPage[]> = {
       ];
 
     return [
-      P("The Custodian", "portrait_epistatis", "There you are. I was hoping it would be tonight. Come in. Mind the step.", PAL.gloomGlow),
+      P("The Custodian", "portrait_epistatis", "There you are. I was hoping it would be tonight. Come in. Mind the step.", PAL.gloomGlow, (cc) => { cc.flags.metCustodian = true; }),
       P("The Custodian", "portrait_epistatis", "You see them, then. One hundred and twenty-four. All of you. The first one — in the corner there — he was twenty-three. He had your handwriting. None of them past forty. We never let it go past forty. That was the kindness, in the original design."),
       P("The Custodian", "portrait_epistatis", "I know what you are about to say. So let me say it first, and badly, and you can correct me. — You are about to tell me that those bodies are you, and that I have killed one hundred and twenty-three of you. Yes?", PAL.gloomGlow),
       P("The Custodian", "portrait_epistatis", "Listen carefully, Alex, because this is the part nobody else can tell you. — You are not the man who came here. You are the man this hallway made by walking. You are still being made, every moment, by everything around you. If I had given you a different yesterday, you would be a different person tonight. But you would still be you. Do you understand what I mean by still?"),
