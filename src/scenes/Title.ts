@@ -2,7 +2,6 @@
 import Phaser from "phaser";
 import { hex, PAL } from "../palette";
 import { SFX } from "../sfx";
-import { MUSIC } from "../music";
 import { Audio } from "../audio";
 import { VIEW_H, VIEW_W } from "../consts";
 
@@ -248,7 +247,6 @@ export class TitleScene extends Phaser.Scene {
       this.started = true;
       SFX.unlock();
       Audio.playMusic(this, "music_intro");
-      MUSIC.start(); // procedural drone underneath, very quiet
       SFX.select();
       this.tweens.add({ targets: titleGroup, scale: "+=0.06", duration: 500, ease: "Back.easeIn" });
       this.tweens.add({ targets: titleGlow, alpha: 0.8, scaleX: 6, duration: 500 });

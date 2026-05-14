@@ -7,7 +7,6 @@ import Phaser from "phaser";
 import { DEPTH, VIEW_H, VIEW_W } from "../consts";
 import { hex, mix, PAL } from "../palette";
 import { SFX } from "../sfx";
-import { MUSIC } from "../music";
 import { Audio } from "../audio";
 import { buildWorld, WORLD_H, WORLD_W } from "../map";
 import { EPILOGUE_BURN, EPILOGUE_RETURN } from "../story";
@@ -188,12 +187,10 @@ export class GameScene extends Phaser.Scene {
     this.keyE = this.input.keyboard!.addKey("E");
     this.input.keyboard!.on("keydown-M", () => {
       const m = SFX.toggleMute();
-      MUSIC.setMuted(m);
       Audio.setMuted(m);
       this.ui?.toast(m ? "sound off" : "sound on", PAL.inkDim);
     });
     SFX.unlock();
-    MUSIC.start();
     Audio.startMusic(this);
 
     // ---- doors / portals + their visible beacons -----------------------
