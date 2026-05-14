@@ -23,11 +23,13 @@ import Phaser from "phaser";
 import { VIEW_H, VIEW_W } from "../../consts";
 import { hex, PAL, shade } from "../../palette";
 import { TILE } from "../../textures";
-import { GameState } from "../../state/gameState";
 import { SceneRouter } from "../../state/sceneRouter";
 import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
 import { addDoorBeacon } from "./doorBeacon";
+import { applyPostFX, type CleanersFXPipeline } from "../../fx/postProcess";
+import { surfaceFragment } from "../../cleaners/fragmentSurface";
+import { ensureHud } from "./Hud";
 import { dummyCtx, dummyFx } from "./ctx";
 import type { Fx, GameCtx } from "../../types";
 
@@ -57,6 +59,7 @@ export class StairwellScene extends Phaser.Scene {
   private prompt?: Phaser.GameObjects.Text;
   private spawn?: { x: number; y: number };
   private mrsKMet = false;
+  fxPipeline: CleanersFXPipeline | null = null;
 
   constructor() {
     super("Stairwell");
@@ -366,6 +369,9 @@ export class StairwellScene extends Phaser.Scene {
       .setScrollFactor(0);
 
     this.cameras.main.fadeIn(380, 0, 0, 0);
+
+    this.fxPipeline = applyPostFX(this);
+    ensureHud(this);
   }
 
   /**
@@ -422,11 +428,11 @@ export class StairwellScene extends Phaser.Scene {
         "she looks up, smiles. — \"you look just like your father did yesterday, dear.\" She means it kindly.",
         3200,
       );
-      GameState.addFragment("frag_mrs_k_father", 2);
-      GameState.addJournalEntry(
-        "Mrs. K from down the hall said I look like my father did yesterday. I don't know what she means by yesterday.",
-        { fragmentId: "frag_mrs_k_father" },
-      );
+      surfaceFragment(this, {
+        id: "frag_mrs_k_father",
+        journal: "Mrs. K from down the hall said I look like my father did yesterday. I don't know what she means by yesterday.",
+        awareness: 2,
+      });
       return;
     }
     this.flashLine("she's still by the mailboxes. she smiles vaguely.", 2000);

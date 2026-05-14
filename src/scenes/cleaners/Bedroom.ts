@@ -26,7 +26,9 @@ import type { Fx, GameCtx } from "../../types";
 import { dummyCtx, dummyFx } from "./ctx";
 import { launchSleep } from "./sleepUtil";
 import { addDoorBeacon } from "./doorBeacon";
-import { applyPostFX, pulseGlitch, type CleanersFXPipeline } from "../../fx/postProcess";
+import { applyPostFX, type CleanersFXPipeline } from "../../fx/postProcess";
+import { surfaceFragment } from "../../cleaners/fragmentSurface";
+import { ensureHud } from "./Hud";
 
 /**
  * A tiny in-scene interactable: a hit-box + a label + an `act()` callback.
@@ -65,7 +67,7 @@ export class BedroomScene extends Phaser.Scene {
   private prompt?: Phaser.GameObjects.Text;
   private dayBanner?: Phaser.GameObjects.Text;
   private spawn?: { x: number; y: number };
-  private fxPipeline: CleanersFXPipeline | null = null;
+  fxPipeline: CleanersFXPipeline | null = null;
 
   constructor() {
     super("Bedroom");
@@ -389,6 +391,8 @@ export class BedroomScene extends Phaser.Scene {
     // baseline aberration. A discrete `pulseGlitch()` call below kicks in
     // when a fragment surfaces — see readNote/examineGlass/greetDog.
     this.fxPipeline = applyPostFX(this);
+    // The universal HUD (DAY · TASK · fragment count · J hint). Idempotent.
+    ensureHud(this);
 
     // ---- prompt text (floats over the player) ------------------------
     this.prompt = this.add
@@ -566,14 +570,11 @@ export class BedroomScene extends Phaser.Scene {
     this.flashLine('the note says: "remember to call mom." it is in your handwriting. you do not remember writing it.');
     if (!this.noteRead) {
       this.noteRead = true;
-      const added = GameState.addFragment("frag_note_to_mom", 1);
-      if (added) {
-        GameState.addJournalEntry(
-          'A note in my handwriting on the table: "Remember to call Mom." I don\'t remember writing it.',
-          { fragmentId: "frag_note_to_mom" },
-        );
-        if (this.fxPipeline) pulseGlitch(this.fxPipeline);
-      }
+      surfaceFragment(this, {
+        id: "frag_note_to_mom",
+        journal: 'A note in my handwriting on the table: "Remember to call Mom." I don\'t remember writing it.',
+        awareness: 1,
+      });
     }
   }
 
@@ -581,14 +582,11 @@ export class BedroomScene extends Phaser.Scene {
     this.flashLine("the glass is half empty. you do not remember drinking from it.");
     if (!this.glassExamined) {
       this.glassExamined = true;
-      const added = GameState.addFragment("frag_glass_half_finished", 1);
-      if (added) {
-        GameState.addJournalEntry(
-          "The glass on the nightstand is half empty. I don't remember drinking from it.",
-          { fragmentId: "frag_glass_half_finished" },
-        );
-        if (this.fxPipeline) pulseGlitch(this.fxPipeline);
-      }
+      surfaceFragment(this, {
+        id: "frag_glass_half_finished",
+        journal: "The glass on the nightstand is half empty. I don't remember drinking from it.",
+        awareness: 1,
+      });
     }
   }
 
@@ -602,14 +600,11 @@ export class BedroomScene extends Phaser.Scene {
         this.dogRecognised = true;
         this.inDialog = false;
         this.player.controlsLocked = false;
-        const added = GameState.addFragment("frag_dog_no_recognition", 2);
-        if (added) {
-          GameState.addJournalEntry(
-            "The dog didn't know me for three seconds. Then it did. Or it decided to.",
-            { fragmentId: "frag_dog_no_recognition" },
-          );
-          if (this.fxPipeline) pulseGlitch(this.fxPipeline, 320);
-        }
+        surfaceFragment(this, {
+          id: "frag_dog_no_recognition",
+          journal: "The dog didn't know me for three seconds. Then it did. Or it decided to.",
+          awareness: 2,
+        });
         this.flashLine("the dog's tail starts to wag.", 2200);
       }
     }

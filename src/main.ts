@@ -27,6 +27,7 @@ import { MetroScene } from "./scenes/cleaners/Metro";
 import { SleepScene } from "./scenes/cleaners/Sleep";
 import { CreditsScene } from "./scenes/cleaners/Credits";
 import { JournalScene } from "./scenes/cleaners/Journal";
+import { HudScene } from "./scenes/cleaners/Hud";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -65,6 +66,8 @@ const config: Phaser.Types.Core.GameConfig = {
     SleepScene,
     CreditsScene,
     JournalScene,
+    // Overlay HUD — auto-launched from each room via ensureHud().
+    HudScene,
   ],
 };
 

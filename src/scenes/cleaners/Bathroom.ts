@@ -16,6 +16,9 @@ import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
 import { dummyCtx, dummyFx } from "./ctx";
 import { addDoorBeacon } from "./doorBeacon";
+import { applyPostFX, type CleanersFXPipeline } from "../../fx/postProcess";
+import { surfaceFragment } from "../../cleaners/fragmentSurface";
+import { ensureHud } from "./Hud";
 import type { Fx, GameCtx } from "../../types";
 
 interface Spot { x: number; y: number; r: number; label: string; act: () => void }
@@ -30,6 +33,7 @@ export class BathroomScene extends Phaser.Scene {
   private prompt?: Phaser.GameObjects.Text;
   private spawn?: { x: number; y: number };
   private mirrorLooked = false;
+  fxPipeline: CleanersFXPipeline | null = null;
 
   constructor() { super("Bathroom"); }
   init(data: { spawn?: { x: number; y: number } } = {}) { this.spawn = data.spawn; }
@@ -187,6 +191,9 @@ export class BathroomScene extends Phaser.Scene {
       .setScrollFactor(0);
 
     this.cameras.main.fadeIn(380, 0, 0, 0);
+
+    this.fxPipeline = applyPostFX(this);
+    ensureHud(this);
   }
 
   private flashLine(text: string, ms = 2400) {
@@ -220,11 +227,11 @@ export class BathroomScene extends Phaser.Scene {
     this.flashLine(line);
     if (!this.mirrorLooked && d >= 2) {
       this.mirrorLooked = true;
-      GameState.addFragment("frag_mirror_face", 2);
-      GameState.addJournalEntry(
-        "I looked in the mirror. The face that looked back was mine. Mostly.",
-        { fragmentId: "frag_mirror_face" },
-      );
+      surfaceFragment(this, {
+        id: "frag_mirror_face",
+        journal: "I looked in the mirror. The face that looked back was mine. Mostly.",
+        awareness: 2,
+      });
     }
   }
 

@@ -16,6 +16,9 @@ import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
 import { dummyCtx, dummyFx } from "./ctx";
 import { addDoorBeacon } from "./doorBeacon";
+import { applyPostFX, type CleanersFXPipeline } from "../../fx/postProcess";
+import { surfaceFragment } from "../../cleaners/fragmentSurface";
+import { ensureHud } from "./Hud";
 import type { Fx, GameCtx } from "../../types";
 
 interface Spot { x: number; y: number; r: number; label: string; act: () => void }
@@ -30,6 +33,7 @@ export class LivingRoomScene extends Phaser.Scene {
   private prompt?: Phaser.GameObjects.Text;
   private spawn?: { x: number; y: number };
   private mailRead = false;
+  fxPipeline: CleanersFXPipeline | null = null;
 
   constructor() { super("LivingRoom"); }
   init(data: { spawn?: { x: number; y: number } } = {}) { this.spawn = data.spawn; }
@@ -244,7 +248,12 @@ export class LivingRoomScene extends Phaser.Scene {
       x: fDoorX, y: fDoorY + 32,
       r: 64,
       label: "E  ·  out to the stairwell",
-      act: () => SceneRouter.go(this, "Stairwell"),
+      act: () => {
+        // First-step-out flag drives the HUD's task line ("the morning
+        // routine: cafe · metro · office · home").
+        GameState.setFlag("left_apartment");
+        SceneRouter.go(this, "Stairwell");
+      },
     });
 
     // ---- player ----
@@ -289,6 +298,10 @@ export class LivingRoomScene extends Phaser.Scene {
       .setScrollFactor(0);
 
     this.cameras.main.fadeIn(380, 0, 0, 0);
+
+    // Universal HUD + post-FX (CRT + chromatic aberration + film grain).
+    this.fxPipeline = applyPostFX(this);
+    ensureHud(this);
   }
 
   private flashLine(text: string, ms = 2400) {
@@ -313,11 +326,11 @@ export class LivingRoomScene extends Phaser.Scene {
     this.flashLine("a letter on the table. addressed to ANDREW KORRES, this apartment, this street. that is not your name.");
     if (!this.mailRead) {
       this.mailRead = true;
-      GameState.addFragment("frag_mail_wrong_name", 2);
-      GameState.addJournalEntry(
-        "A letter on the coffee table is addressed to a name that isn't mine. Same street, same apartment.",
-        { fragmentId: "frag_mail_wrong_name" },
-      );
+      surfaceFragment(this, {
+        id: "frag_mail_wrong_name",
+        journal: "A letter on the coffee table is addressed to a name that isn't mine. Same street, same apartment.",
+        awareness: 2,
+      });
     }
   }
 

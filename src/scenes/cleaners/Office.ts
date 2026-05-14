@@ -28,6 +28,9 @@ import { SceneRouter } from "../../state/sceneRouter";
 import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
 import { addDoorBeacon } from "./doorBeacon";
+import { applyPostFX, type CleanersFXPipeline } from "../../fx/postProcess";
+import { surfaceFragment } from "../../cleaners/fragmentSurface";
+import { ensureHud } from "./Hud";
 import { dummyCtx, dummyFx } from "./ctx";
 import type { Fx, GameCtx } from "../../types";
 
@@ -59,6 +62,7 @@ export class OfficeScene extends Phaser.Scene {
   private spots: Spot[] = [];
   private prompt?: Phaser.GameObjects.Text;
   private spawn?: { x: number; y: number };
+  fxPipeline: CleanersFXPipeline | null = null;
   private samToldJoke = false;
   private quietOneLookedUp = false;
 
@@ -356,6 +360,10 @@ export class OfficeScene extends Phaser.Scene {
       .setScrollFactor(0);
 
     this.cameras.main.fadeIn(380, 0, 0, 0);
+
+    this.fxPipeline = applyPostFX(this);
+    ensureHud(this);
+    GameState.setFlag("visited_office");
   }
 
   /** Sam — slumped at his desk, grinning. Cardigan over a shirt. */
@@ -467,11 +475,11 @@ export class OfficeScene extends Phaser.Scene {
         `"did you hear the one about the dog and the —" the same joke. word for word. he laughs the same way.`,
         3400,
       );
-      GameState.addFragment("frag_coworker_joke", 2);
-      GameState.addJournalEntry(
-        "Sam told me the exact same joke he told yesterday. Word for word. He laughed at it the same way.",
-        { fragmentId: "frag_coworker_joke" },
-      );
+      surfaceFragment(this, {
+        id: "frag_coworker_joke",
+        journal: "Sam told me the exact same joke he told yesterday. Word for word. He laughed at it the same way.",
+        awareness: 2,
+      });
       return;
     }
     this.flashLine("he laughs at the joke he just told.", 2200);
@@ -496,11 +504,11 @@ export class OfficeScene extends Phaser.Scene {
         `she looks up. "you're awake today. I can tell."`,
         3000,
       );
-      GameState.addFragment("frag_quiet_one_awake", 3);
-      GameState.addJournalEntry(
-        "The quiet woman at the corner desk looked at me and said: you're awake today. I can tell. She has been keeping a notebook too.",
-        { fragmentId: "frag_quiet_one_awake" },
-      );
+      surfaceFragment(this, {
+        id: "frag_quiet_one_awake",
+        journal: "The quiet woman at the corner desk looked at me and said: you're awake today. I can tell. She has been keeping a notebook too.",
+        awareness: 3,
+      });
       return;
     }
     this.flashLine("she nods once, slowly. then back to the keyboard.", 2400);

@@ -12,12 +12,14 @@ import Phaser from "phaser";
 import { VIEW_H, VIEW_W } from "../../consts";
 import { hex, PAL, shade } from "../../palette";
 import { TILE } from "../../textures";
-import { GameState } from "../../state/gameState";
 import { SceneRouter } from "../../state/sceneRouter";
 import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
 import { dummyCtx, dummyFx } from "./ctx";
 import { addDoorBeacon } from "./doorBeacon";
+import { applyPostFX, type CleanersFXPipeline } from "../../fx/postProcess";
+import { surfaceFragment } from "../../cleaners/fragmentSurface";
+import { ensureHud } from "./Hud";
 import type { Fx, GameCtx } from "../../types";
 
 interface Spot { x: number; y: number; r: number; label: string; act: () => void }
@@ -32,6 +34,7 @@ export class KitchenScene extends Phaser.Scene {
   private prompt?: Phaser.GameObjects.Text;
   private spawn?: { x: number; y: number };
   private coffeeSmelled = false;
+  fxPipeline: CleanersFXPipeline | null = null;
 
   constructor() { super("Kitchen"); }
 
@@ -272,6 +275,10 @@ export class KitchenScene extends Phaser.Scene {
       .setScrollFactor(0);
 
     this.cameras.main.fadeIn(380, 0, 0, 0);
+
+    // Universal HUD + screen-space post-FX (CRT + aberration + grain).
+    this.fxPipeline = applyPostFX(this);
+    ensureHud(this);
   }
 
   private flashLine(text: string, ms = 2400) {
@@ -296,11 +303,11 @@ export class KitchenScene extends Phaser.Scene {
     this.flashLine("the coffee pot is on. the jug is half full. you do not remember setting it up.");
     if (!this.coffeeSmelled) {
       this.coffeeSmelled = true;
-      GameState.addFragment("frag_kitchen_coffee", 1);
-      GameState.addJournalEntry(
-        "The coffee pot was on when I came in. I don't remember setting it up last night.",
-        { fragmentId: "frag_kitchen_coffee" },
-      );
+      surfaceFragment(this, {
+        id: "frag_kitchen_coffee",
+        journal: "The coffee pot was on when I came in. I don't remember setting it up last night.",
+        awareness: 1,
+      });
     }
   }
 

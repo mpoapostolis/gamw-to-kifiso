@@ -29,6 +29,9 @@ import { SceneRouter } from "../../state/sceneRouter";
 import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
 import { addDoorBeacon } from "./doorBeacon";
+import { applyPostFX, type CleanersFXPipeline } from "../../fx/postProcess";
+import { surfaceFragment } from "../../cleaners/fragmentSurface";
+import { ensureHud } from "./Hud";
 import { dummyCtx, dummyFx } from "./ctx";
 import type { Fx, GameCtx } from "../../types";
 
@@ -60,6 +63,7 @@ export class MetroScene extends Phaser.Scene {
   private spots: Spot[] = [];
   private prompt?: Phaser.GameObjects.Text;
   private spawn?: { x: number; y: number };
+  fxPipeline: CleanersFXPipeline | null = null;
   private regularGoneNoted = false;
 
   /** The tunnel band that scrolls behind the window to suggest motion. */
@@ -371,6 +375,9 @@ export class MetroScene extends Phaser.Scene {
       .setScrollFactor(0);
 
     this.cameras.main.fadeIn(380, 0, 0, 0);
+
+    this.fxPipeline = applyPostFX(this);
+    ensureHud(this);
   }
 
   /**
@@ -447,11 +454,11 @@ export class MetroScene extends Phaser.Scene {
         "the seat is warm. nobody else is looking.",
         3000,
       );
-      GameState.addFragment("frag_metro_regular_gone", 3);
-      GameState.addJournalEntry(
-        "The passenger who sat in seat 4B every day for as long as I can remember is gone today. The seat is warm. The other passengers don't seem to notice.",
-        { fragmentId: "frag_metro_regular_gone" },
-      );
+      surfaceFragment(this, {
+        id: "frag_metro_regular_gone",
+        journal: "The passenger who sat in seat 4B every day for as long as I can remember is gone today. The seat is warm. The other passengers don't seem to notice.",
+        awareness: 3,
+      });
       return;
     }
     this.flashLine("the seat is empty. it stays empty.", 2200);

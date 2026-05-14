@@ -25,12 +25,14 @@ import Phaser from "phaser";
 import { VIEW_H, VIEW_W } from "../../consts";
 import { hex, PAL, shade } from "../../palette";
 import { TILE } from "../../textures";
-import { GameState } from "../../state/gameState";
 import { SceneRouter } from "../../state/sceneRouter";
 import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
 import { dummyCtx, dummyFx } from "./ctx";
 import { addDoorBeacon } from "./doorBeacon";
+import { applyPostFX, type CleanersFXPipeline } from "../../fx/postProcess";
+import { surfaceFragment } from "../../cleaners/fragmentSurface";
+import { ensureHud } from "./Hud";
 import type { Fx, GameCtx } from "../../types";
 
 /** A tiny in-scene interactable. */
@@ -57,6 +59,7 @@ export class StreetScene extends Phaser.Scene {
   private spots: Spot[] = [];
   private prompt?: Phaser.GameObjects.Text;
   private spawn?: { x: number; y: number };
+  fxPipeline: CleanersFXPipeline | null = null;
   private streetlightExamined = false;
 
   /** The streetlight's lamp graphic — we modulate its alpha for a flicker. */
@@ -412,6 +415,9 @@ export class StreetScene extends Phaser.Scene {
     }
 
     this.cameras.main.fadeIn(380, 0, 0, 0);
+
+    this.fxPipeline = applyPostFX(this);
+    ensureHud(this);
   }
 
   /**
@@ -475,11 +481,11 @@ export class StreetScene extends Phaser.Scene {
     this.flashLine("it flickers. once. twice. once. a pattern. then it stops.");
     if (!this.streetlightExamined) {
       this.streetlightExamined = true;
-      GameState.addFragment("frag_streetlight_pattern", 1);
-      GameState.addJournalEntry(
-        "The streetlight outside flickered in a pattern: short, short, long. Like a word.",
-        { fragmentId: "frag_streetlight_pattern" },
-      );
+      surfaceFragment(this, {
+        id: "frag_streetlight_pattern",
+        journal: "The streetlight outside flickered in a pattern: short, short, long. Like a word.",
+        awareness: 1,
+      });
     }
     // Trigger a quick "tell me you saw it" flicker on the bulb itself.
     if (this.lamp) {

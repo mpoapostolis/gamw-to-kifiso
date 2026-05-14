@@ -28,6 +28,9 @@ import { SceneRouter } from "../../state/sceneRouter";
 import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
 import { addDoorBeacon } from "./doorBeacon";
+import { applyPostFX, type CleanersFXPipeline } from "../../fx/postProcess";
+import { surfaceFragment } from "../../cleaners/fragmentSurface";
+import { ensureHud } from "./Hud";
 import { dummyCtx, dummyFx } from "./ctx";
 import type { Fx, GameCtx } from "../../types";
 
@@ -55,6 +58,7 @@ export class CafeScene extends Phaser.Scene {
   private spots: Spot[] = [];
   private prompt?: Phaser.GameObjects.Text;
   private spawn?: { x: number; y: number };
+  fxPipeline: CleanersFXPipeline | null = null;
   private baristaSeen = false;
 
   constructor() {
@@ -359,6 +363,12 @@ export class CafeScene extends Phaser.Scene {
       .setScrollFactor(0);
 
     this.cameras.main.fadeIn(380, 0, 0, 0);
+
+    this.fxPipeline = applyPostFX(this);
+    ensureHud(this);
+    // Mark the cafe as visited — the HUD's task line evolves once the
+    // player has done one of the morning stops.
+    GameState.setFlag("visited_cafe");
   }
 
   /**
@@ -460,11 +470,11 @@ export class CafeScene extends Phaser.Scene {
         `he calls you ELIAS. then a beat too quickly: "sorry — ${name}. ${name} of course." he laughs.`,
         3800,
       );
-      GameState.addFragment("frag_barista_wrong_name", 2);
-      GameState.addJournalEntry(
-        "The barista called me by the wrong name today. He corrected himself a beat too quickly. He's been making my coffee for years.",
-        { fragmentId: "frag_barista_wrong_name" },
-      );
+      surfaceFragment(this, {
+        id: "frag_barista_wrong_name",
+        journal: "The barista called me by the wrong name today. He corrected himself a beat too quickly. He's been making my coffee for years.",
+        awareness: 2,
+      });
       return;
     }
     this.flashLine(
