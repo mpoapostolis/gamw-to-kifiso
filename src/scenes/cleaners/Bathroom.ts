@@ -15,6 +15,7 @@ import { SceneRouter } from "../../state/sceneRouter";
 import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
 import { dummyCtx, dummyFx } from "./ctx";
+import { addDoorBeacon } from "./doorBeacon";
 import type { Fx, GameCtx } from "../../types";
 
 interface Spot { x: number; y: number; r: number; label: string; act: () => void }
@@ -138,8 +139,9 @@ export class BathroomScene extends Phaser.Scene {
     dG.fillRoundedRect(dX - 20, dY - 58, 40, 58, 2);
     dG.fillStyle(PAL.gold, 1);
     dG.fillCircle(dX + 13, dY - 32, 2);
+    addDoorBeacon(this, dX, dY - 80);
     this.spots.push({
-      x: dX, y: dY, r: 56,
+      x: dX, y: dY - 32, r: 64,
       label: "E  ·  back to the living room",
       act: () => SceneRouter.go(this, "LivingRoom"),
     });

@@ -30,6 +30,7 @@ import { SceneRouter } from "../../state/sceneRouter";
 import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
 import { dummyCtx, dummyFx } from "./ctx";
+import { addDoorBeacon } from "./doorBeacon";
 import type { Fx, GameCtx } from "../../types";
 
 /** A tiny in-scene interactable. */
@@ -190,11 +191,12 @@ export class StreetScene extends Phaser.Scene {
     dG.fillRoundedRect(doorX - 22, doorY - 58, 44, 58, 2);
     dG.fillStyle(PAL.gold, 1);
     dG.fillCircle(doorX + 14, doorY - 32, 2);
+    addDoorBeacon(this, doorX, doorY - 80);
 
     this.spots.push({
       x: doorX,
-      y: doorY,
-      r: 56,
+      y: doorY + 32,
+      r: 64,
       label: "E  ·  back inside",
       act: () => SceneRouter.go(this, "Stairwell"),
     });
@@ -298,10 +300,11 @@ export class StreetScene extends Phaser.Scene {
     // ---- PATH EAST (to the Cafe) ------------------------------------
     // A subtle arrow-of-pavement leading off-screen to the east. We just
     // mark a hot-zone near the east edge of the sidewalk.
+    addDoorBeacon(this, right - 16, oy + TILE * 3 - 50);
     this.spots.push({
       x: right - 16,
       y: oy + TILE * 3,
-      r: 64,
+      r: 70,
       label: "E  ·  the cafe (east)",
       act: () => SceneRouter.go(this, "Cafe"),
     });
@@ -330,10 +333,11 @@ export class StreetScene extends Phaser.Scene {
       .setAlpha(0.4)
       .setDepth(metroY + 4);
 
+    addDoorBeacon(this, metroX + 24, metroY - 60);
     this.spots.push({
       x: metroX + 24,
       y: metroY + 4,
-      r: 64,
+      r: 70,
       label: "E  ·  down to the metro",
       act: () => SceneRouter.go(this, "Metro"),
     });

@@ -15,6 +15,7 @@ import { SceneRouter } from "../../state/sceneRouter";
 import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
 import { dummyCtx, dummyFx } from "./ctx";
+import { addDoorBeacon } from "./doorBeacon";
 import type { Fx, GameCtx } from "../../types";
 
 interface Spot { x: number; y: number; r: number; label: string; act: () => void }
@@ -192,9 +193,10 @@ export class LivingRoomScene extends Phaser.Scene {
     kd.fillRoundedRect(kDoorX - 20, kDoorY - 58, 40, 58, 2);
     kd.fillStyle(PAL.gold, 1);
     kd.fillCircle(kDoorX + 13, kDoorY - 32, 2);
+    addDoorBeacon(this, kDoorX, kDoorY - 80);
     this.spots.push({
-      x: kDoorX, y: kDoorY,
-      r: 56,
+      x: kDoorX, y: kDoorY - 32,
+      r: 64,
       label: "E  ·  back to the kitchen",
       act: () => SceneRouter.go(this, "Kitchen"),
     });
@@ -208,9 +210,10 @@ export class LivingRoomScene extends Phaser.Scene {
     bd.fillRoundedRect(bDoorX - 20, bDoorY - 58, 40, 58, 2);
     bd.fillStyle(PAL.gold, 1);
     bd.fillCircle(bDoorX + 13, bDoorY - 32, 2);
+    addDoorBeacon(this, bDoorX, bDoorY - 80);
     this.spots.push({
-      x: bDoorX, y: bDoorY,
-      r: 56,
+      x: bDoorX, y: bDoorY - 32,
+      r: 64,
       label: "E  ·  the bathroom",
       act: () => SceneRouter.go(this, "Bathroom"),
     });
@@ -236,9 +239,10 @@ export class LivingRoomScene extends Phaser.Scene {
     fd.fillRect(fDoorX + 12, fDoorY - 42, 6, 2);
     fd.fillStyle(PAL.gold, 1);
     fd.fillCircle(fDoorX + 15, fDoorY - 36, 2);
+    addDoorBeacon(this, fDoorX, fDoorY - 90);
     this.spots.push({
-      x: fDoorX, y: fDoorY,
-      r: 56,
+      x: fDoorX, y: fDoorY + 32,
+      r: 64,
       label: "E  ·  out to the stairwell",
       act: () => SceneRouter.go(this, "Stairwell"),
     });

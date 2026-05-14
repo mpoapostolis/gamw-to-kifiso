@@ -27,6 +27,7 @@ import { GameState } from "../../state/gameState";
 import { SceneRouter } from "../../state/sceneRouter";
 import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
+import { addDoorBeacon } from "./doorBeacon";
 import { dummyCtx, dummyFx } from "./ctx";
 import type { Fx, GameCtx } from "../../types";
 
@@ -296,10 +297,11 @@ export class CafeScene extends Phaser.Scene {
     dG.lineStyle(1, 0x2a1a10, 1);
     dG.lineBetween(doorX - 6, doorY - 46, doorX + 6, doorY - 46);
 
+    addDoorBeacon(this, doorX, doorY - 80);
     this.spots.push({
       x: doorX,
-      y: doorY,
-      r: 56,
+      y: doorY + 32,
+      r: 64,
       label: "E  ·  back to the street",
       act: () => SceneRouter.go(this, "Street"),
     });

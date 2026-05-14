@@ -25,6 +25,7 @@ import { Player } from "../../objects/Player";
 import type { Fx, GameCtx } from "../../types";
 import { dummyCtx, dummyFx } from "./ctx";
 import { launchSleep } from "./sleepUtil";
+import { addDoorBeacon } from "./doorBeacon";
 import { applyPostFX, pulseGlitch, type CleanersFXPipeline } from "../../fx/postProcess";
 
 /**
@@ -187,11 +188,14 @@ export class BedroomScene extends Phaser.Scene {
       winX + winW + 110,   bottom + 10,
     );
 
-    // ---- THE BED (south-west) ----------------------------------------
+    // ---- THE BED (centre, smaller so the player has floor to stand on) -
+    // The bed is depth-sorted to its FOOT (south edge). Player spawn is
+    // south of the foot so the player sprite draws ON TOP of the bed —
+    // otherwise they look like they're trapped under the mattress.
     const bedX = ox + TILE * 2.2;
-    const bedY = oy + TILE * 3.6;
+    const bedY = oy + TILE * 1.6;
     const bedW = TILE * 2.6;
-    const bedH = TILE * 3.2;
+    const bedH = TILE * 2.2;
     const bedG = this.add.graphics().setDepth(bedY + bedH);
     // shadow
     bedG.fillStyle(0x000000, 0.4);
@@ -316,6 +320,9 @@ export class BedroomScene extends Phaser.Scene {
     });
 
     // ---- DOOR OUT (north, leading to the kitchen) --------------------
+    // The door is visually obvious — a wooden frame on the wall plus a
+    // warm chevron beacon bobbing above it, so the player can see at a
+    // glance "here is where you leave the room."
     const doorX = right - TILE * 1.6;
     const doorY = oy - 4;
     const dG = this.add.graphics().setDepth(doorY);
@@ -325,16 +332,23 @@ export class BedroomScene extends Phaser.Scene {
     dG.fillRoundedRect(doorX - 22, doorY - 58, 44, 58, 2);
     dG.fillStyle(PAL.gold, 1);
     dG.fillCircle(doorX + 14, doorY - 32, 2);
+    addDoorBeacon(this, doorX, doorY - 80);
     this.spots.push({
       x: doorX,
-      y: doorY,
-      r: 56,
+      // Reach-target is shifted SOUTH of the wall so the player can stand
+      // in front of the door and trigger the prompt — the wall body
+      // itself sits between the player and the visual door.
+      y: doorY + 32,
+      r: 64,
       label: "E  ·  out to the kitchen",
       act: () => SceneRouter.go(this, "Kitchen"),
     });
 
     // ---- PLAYER ------------------------------------------------------
-    const start = this.spawn ?? { x: bedX + bedW * 0.45, y: bedY + bedH * 0.5 };
+    // Spawn south of the bed's foot — the player has just swung their legs
+    // out and is standing on the floor. This keeps the sprite ON TOP of the
+    // bed graphic and visible to the camera.
+    const start = this.spawn ?? { x: bedX + bedW * 0.5, y: bedY + bedH + 28 };
     this.player = new Player(this, start.x, start.y, this.ctx, this.fx);
     this.player.surface = "wood";
     this.player.setLanternRadius(110); // small warm pool so the room reads

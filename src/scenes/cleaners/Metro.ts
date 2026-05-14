@@ -28,6 +28,7 @@ import { GameState } from "../../state/gameState";
 import { SceneRouter } from "../../state/sceneRouter";
 import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
+import { addDoorBeacon } from "./doorBeacon";
 import { dummyCtx, dummyFx } from "./ctx";
 import type { Fx, GameCtx } from "../../types";
 
@@ -299,17 +300,19 @@ export class MetroScene extends Phaser.Scene {
       }
     }
 
+    addDoorBeacon(this, westDoorX, doorY - 60);
+    addDoorBeacon(this, eastDoorX, doorY - 60);
     this.spots.push({
       x: westDoorX,
-      y: doorY,
-      r: 64,
+      y: doorY + 24,
+      r: 70,
       label: "E  ·  back up to the street",
       act: () => SceneRouter.go(this, "Street"),
     });
     this.spots.push({
       x: eastDoorX,
-      y: doorY,
-      r: 64,
+      y: doorY + 24,
+      r: 70,
       label: "E  ·  to the office",
       act: () => SceneRouter.go(this, "Office"),
     });

@@ -27,6 +27,7 @@ import { GameState } from "../../state/gameState";
 import { SceneRouter } from "../../state/sceneRouter";
 import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
+import { addDoorBeacon } from "./doorBeacon";
 import { dummyCtx, dummyFx } from "./ctx";
 import type { Fx, GameCtx } from "../../types";
 
@@ -262,10 +263,11 @@ export class StairwellScene extends Phaser.Scene {
       .setScale(1.1)
       .setAlpha(0.4);
 
+    addDoorBeacon(this, stX + stW / 2, stY - 24);
     this.spots.push({
       x: stX + stW / 2,
       y: stY + stH + 4,
-      r: 70,
+      r: 80,
       label: "E  ·  up the stairs",
       act: () => SceneRouter.go(this, "Street"),
     });
@@ -300,11 +302,12 @@ export class StairwellScene extends Phaser.Scene {
     dG.fillRect(doorX - 4, doorY - 50, 8, 8);
     // knob
     dG.fillCircle(doorX + 14, doorY - 32, 2);
+    addDoorBeacon(this, doorX, doorY - 80);
 
     this.spots.push({
       x: doorX,
-      y: doorY,
-      r: 56,
+      y: doorY - 32,
+      r: 64,
       label: "E  ·  back inside",
       act: () => SceneRouter.go(this, "LivingRoom"),
     });

@@ -27,6 +27,7 @@ import { GameState } from "../../state/gameState";
 import { SceneRouter } from "../../state/sceneRouter";
 import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
+import { addDoorBeacon } from "./doorBeacon";
 import { dummyCtx, dummyFx } from "./ctx";
 import type { Fx, GameCtx } from "../../types";
 
@@ -294,10 +295,11 @@ export class OfficeScene extends Phaser.Scene {
     dG.fillRoundedRect(doorX - 22, doorY - 58, 44, 58, 2);
     dG.fillStyle(PAL.gold, 1);
     dG.fillCircle(doorX + 14, doorY - 32, 2);
+    addDoorBeacon(this, doorX, doorY - 80);
     this.spots.push({
       x: doorX,
-      y: doorY,
-      r: 56,
+      y: doorY + 32,
+      r: 64,
       label: "E  ·  down to the metro",
       act: () => SceneRouter.go(this, "Metro"),
     });
