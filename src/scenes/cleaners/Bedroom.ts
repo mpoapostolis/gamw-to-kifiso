@@ -26,6 +26,7 @@ import type { Fx, GameCtx } from "../../types";
 import { dummyCtx, dummyFx } from "./ctx";
 import { launchSleep } from "./sleepUtil";
 import { addDoorBeacon } from "./doorBeacon";
+import { openJournal } from "./journalUtil";
 import { applyPostFX, type CleanersFXPipeline } from "../../fx/postProcess";
 import { surfaceFragment } from "../../cleaners/fragmentSurface";
 import { ensureHud } from "./Hud";
@@ -641,8 +642,7 @@ export class BedroomScene extends Phaser.Scene {
 
     // ---- journal toggle ---------------------------------------------
     if (Phaser.Input.Keyboard.JustDown(this.keyJ)) {
-      this.scene.launch("Journal");
-      this.scene.pause();
+      openJournal(this);
     }
   }
 }

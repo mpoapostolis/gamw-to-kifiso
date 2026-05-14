@@ -30,6 +30,7 @@ import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
 import { dummyCtx, dummyFx } from "./ctx";
 import { addDoorBeacon } from "./doorBeacon";
+import { openJournal } from "./journalUtil";
 import { applyPostFX, type CleanersFXPipeline } from "../../fx/postProcess";
 import { surfaceFragment } from "../../cleaners/fragmentSurface";
 import { ensureHud } from "./Hud";
@@ -563,8 +564,7 @@ export class StreetScene extends Phaser.Scene {
 
     // ---- journal toggle ---------------------------------------------
     if (Phaser.Input.Keyboard.JustDown(this.keyJ)) {
-      this.scene.launch("Journal");
-      this.scene.pause();
+      openJournal(this);
     }
   }
 }

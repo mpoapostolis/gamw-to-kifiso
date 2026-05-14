@@ -18,7 +18,7 @@
 import Phaser from "phaser";
 import { GameState } from "../state/gameState";
 import { pulseGlitch, type CleanersFXPipeline } from "../fx/postProcess";
-import { VIEW_H, VIEW_W } from "../consts";
+import { VIEW_W } from "../consts";
 import { hex, PAL } from "../palette";
 
 /**
@@ -73,14 +73,16 @@ export function surfaceFragment(scene: SceneWithFX, def: FragmentSurface): boole
  * factor) so it works in any scene without extra wiring.
  */
 export function floatTip(scene: Phaser.Scene, text: string, ms = 3000): void {
+  // Sit just below the HUD bar (which ends at y≈124). The room's own
+  // flashLine lives at y≈VIEW_H - 90, so we stay well clear of it.
   const t = scene.add
-    .text(VIEW_W / 2, VIEW_H - 130, text, {
+    .text(VIEW_W / 2, 160, text, {
       fontFamily: '"Spectral", Georgia, serif',
       fontSize: "14px",
       color: hex(PAL.emberSoft),
       fontStyle: "italic 400",
-      backgroundColor: "rgba(20, 12, 8, 0.82)",
-      padding: { left: 12, right: 12, top: 6, bottom: 6 },
+      backgroundColor: "rgba(20, 12, 8, 0.85)",
+      padding: { left: 14, right: 14, top: 6, bottom: 6 },
       wordWrap: { width: 720 },
       align: "center",
     })

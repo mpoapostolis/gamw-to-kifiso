@@ -59,10 +59,11 @@ export function dummyCtx(): GameCtx {
     healFull: () => {},
     heal: () => {},
     toast: () => {},
-    addNote: (id) => {
-      // Re-route legacy "addNote" calls into the new journal.
-      GameState.addJournalEntry(`(note) ${id}`);
-    },
+    // Legacy `addNote` / `addItem` are silent no-ops in The Cleaners. Real
+    // notes go through `surfaceFragment()` which writes a clean
+    // first-person sentence. We don't want a raw id like "momHadSon"
+    // leaking into the journal because a legacy code path forgot.
+    addNote: () => {},
     addItem: () => {},
   };
 }

@@ -29,6 +29,7 @@ import { SceneRouter } from "../../state/sceneRouter";
 import { registerManifest } from "../../state/sceneManifest";
 import { Player } from "../../objects/Player";
 import { addDoorBeacon } from "./doorBeacon";
+import { openJournal } from "./journalUtil";
 import { applyPostFX, type CleanersFXPipeline } from "../../fx/postProcess";
 import { surfaceFragment } from "../../cleaners/fragmentSurface";
 import { ensureHud } from "./Hud";
@@ -551,8 +552,7 @@ export class MetroScene extends Phaser.Scene {
       this.prompt?.setVisible(false);
     }
     if (Phaser.Input.Keyboard.JustDown(this.keyJ)) {
-      this.scene.launch("Journal");
-      this.scene.pause();
+      openJournal(this);
     }
     // Bonus: keep rH in scope so TS doesn't complain about unused vars.
     void rH;
