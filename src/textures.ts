@@ -84,22 +84,36 @@ function speckle(
  * GROUND TILES                                                            *
  * ----------------------------------------------------------------------- */
 function buildGround(scene: Phaser.Scene) {
-  // three grass variants so a tiled field doesn't read as a checkerboard
-  for (let v = 0; v < 3; v++) {
+  // Five grass variants so the lawn reads as a real lived-in field instead
+  // of a 3-cell checkerboard. Each tile has its own base hue (deep moss,
+  // mid green, dry yellow, dewy clover, scorched-edge brown) plus mottling
+  // and a few blade lines.
+  const GRASS_BASES: number[] = [
+    PAL.grassDeep,         // 0 — deep moss
+    PAL.grassMid,          // 1 — mid green
+    PAL.grassDry,          // 2 — dry/yellow patches
+    shade(PAL.grassMid, 0.18),  // 3 — dewy clover
+    shade(PAL.grassDeep, -0.15), // 4 — scorched edges
+  ];
+  for (let v = 0; v < GRASS_BASES.length; v++) {
     tex(scene, `grass${v}`, TILE, TILE, (g) => {
       const r = mulberry32(1000 + v);
-      g.fillStyle(v === 2 ? PAL.grassDry : PAL.grassMid, 1);
+      const base = GRASS_BASES[v];
+      g.fillStyle(base, 1);
       g.fillRect(0, 0, TILE, TILE);
       // mottling
       for (let i = 0; i < 26; i++) {
         const t = r();
-        const col = t < 0.4 ? PAL.grassDeep : t < 0.8 ? PAL.grassHi : PAL.grassDry;
+        const col = t < 0.35 ? PAL.grassDeep
+                  : t < 0.7 ? PAL.grassHi
+                  : t < 0.9 ? PAL.grassDry
+                  :          shade(base, 0.15);
         g.fillStyle(col, 0.5 + r() * 0.4);
         const bw = 3 + Math.floor(r() * 7);
         const bh = 2 + Math.floor(r() * 4);
         g.fillRect(Math.floor(r() * (TILE - bw)), Math.floor(r() * (TILE - bh)), bw, bh);
       }
-      // a few blades
+      // a few blades + (for clover-y tiles) tiny white flecks
       g.lineStyle(1, shade(PAL.grassHi, 0.12), 0.6);
       for (let i = 0; i < 7; i++) {
         const x = 3 + Math.floor(r() * (TILE - 6));
@@ -109,20 +123,34 @@ function buildGround(scene: Phaser.Scene) {
         g.lineTo(x + (r() < 0.5 ? -1 : 1) * (2 + r() * 2), y - 4 - r() * 3);
         g.strokePath();
       }
+      if (v === 3) {
+        g.fillStyle(PAL.thatchHi, 0.55);
+        for (let i = 0; i < 4; i++) g.fillCircle(4 + r() * (TILE - 8), 4 + r() * (TILE - 8), 0.8);
+      }
     });
   }
 
-  // worn dirt path — drawn slightly soft-edged so overlapping tiles read as a trail
-  tex(scene, "path", TILE, TILE, (g) => {
-    const r = mulberry32(2024);
-    g.fillStyle(PAL.dirt, 1);
-    g.fillRoundedRect(-2, -2, TILE + 4, TILE + 4, 6);
-    speckle(g, r, 40, 0, 0, TILE, TILE, PAL.dirtHi, 0.5, 1);
-    speckle(g, r, 22, 0, 0, TILE, TILE, shade(PAL.dirt, -0.25), 0.6, 1);
-    // pebbles
-    g.fillStyle(PAL.sand, 0.5);
-    for (let i = 0; i < 5; i++) g.fillCircle(4 + r() * (TILE - 8), 4 + r() * (TILE - 8), 1 + r());
-  });
+  // Three path variants so the worn dirt trail doesn't read as one repeating
+  // sprite. Same colour family, different speckle/pebble seeds.
+  for (let v = 0; v < 3; v++) {
+    tex(scene, v === 0 ? "path" : `path${v}`, TILE, TILE, (g) => {
+      const r = mulberry32(2024 + v);
+      g.fillStyle(PAL.dirt, 1);
+      g.fillRoundedRect(-2, -2, TILE + 4, TILE + 4, 6);
+      speckle(g, r, 40, 0, 0, TILE, TILE, PAL.dirtHi, 0.5, 1);
+      speckle(g, r, 22, 0, 0, TILE, TILE, shade(PAL.dirt, -0.25), 0.6, 1);
+      // pebbles — different counts per variant
+      g.fillStyle(PAL.sand, 0.5);
+      const pebbles = v === 0 ? 5 : v === 1 ? 8 : 3;
+      for (let i = 0; i < pebbles; i++)
+        g.fillCircle(4 + r() * (TILE - 8), 4 + r() * (TILE - 8), 1 + r());
+      // variant 2: a darker centre stripe — feels like a heavy-traffic rut
+      if (v === 2) {
+        g.fillStyle(shade(PAL.dirt, -0.2), 0.45);
+        g.fillRect(TILE * 0.25, 0, TILE * 0.5, TILE);
+      }
+    });
+  }
 
   // packed sand / plaza floor
   tex(scene, "sand", TILE, TILE, (g) => {

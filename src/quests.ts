@@ -142,28 +142,6 @@ const q_clinic_appointment: QuestDef = {
   requires: (_c, done) => done.has("q_read_bench"),
 };
 
-const q_shopkeeper_errand: QuestDef = {
-  id: "q_shopkeeper_errand",
-  act: 2,
-  title: "An errand for the shopkeeper",
-  hint: "The shopkeeper wants three small things. Bring them.",
-  description:
-    "The shopkeeper at the café needs three things and has a back room he never " +
-    "shows to anyone. Bring Helena's book, Despoina's candle, and Costas's map. " +
-    "He'll give you memories in trade — and the key to the back room.",
-  isComplete: (c) => c.notes.q_shopkeeper_done === true,
-  reward: { memories: 10, unlocks: "cafe_backroom" },
-  requires: (_c, done) => done.has("q_clinic_appointment"),
-  dynamicHint: (c) => {
-    const need: string[] = [];
-    if (!c.inventory.helena_book)    need.push("Helena's book");
-    if (!c.inventory.despoina_candle) need.push("Despoina's candle");
-    if (!c.inventory.kostas_map)     need.push("Costas's map");
-    if (need.length === 0) return "All three gathered. Bring them to the shopkeeper at the café.";
-    return "Still need: " + need.join(" · ");
-  },
-};
-
 const q_despoina_candle: QuestDef = {
   id: "q_despoina_candle",
   act: 2,
@@ -176,6 +154,35 @@ const q_despoina_candle: QuestDef = {
   isComplete: (c) => c.inventory.despoina_candle === true,
   reward: { item: "lantern_oil", unlocks: "night_exploration" },
   requires: (_c, done) => done.has("q_read_bench"),
+  dynamicHint: (c) => {
+    if (c.day < 3) return "Mrs. Despoina won't give it to you yet. Come back tomorrow morning.";
+    return "Mrs. Despoina is at home, far west. She has something for you today.";
+  },
+};
+
+const q_shopkeeper_errand: QuestDef = {
+  id: "q_shopkeeper_errand",
+  act: 2,
+  title: "An errand for the shopkeeper",
+  hint: "The shopkeeper wants three small things. Bring them.",
+  description:
+    "The shopkeeper at the café needs three things and has a back room he never " +
+    "shows to anyone. Bring Helena's book, Despoina's candle, and Costas's map. " +
+    "He'll give you memories in trade — and the key to the back room.",
+  isComplete: (c) => c.notes.q_shopkeeper_done === true,
+  reward: { memories: 10, unlocks: "cafe_backroom" },
+  // Gate on Costas's map being in hand — without it the quest is unwinnable
+  // and the player just bounces off the shopkeeper. Costas hands the map
+  // over on Day 4 (kostasReveal), so this naturally activates then.
+  requires: (_c, done) => done.has("q_costas_hill"),
+  dynamicHint: (c) => {
+    const need: string[] = [];
+    if (!c.inventory.helena_book)    need.push("Helena's book");
+    if (!c.inventory.despoina_candle) need.push("Despoina's candle");
+    if (!c.inventory.kostas_map)     need.push("Costas's map");
+    if (need.length === 0) return "All three gathered. Bring them to the shopkeeper at the café.";
+    return "Still need: " + need.join(" · ");
+  },
 };
 
 /* ------------------------------------------------------------------ *
@@ -193,8 +200,11 @@ const q_costas_hill: QuestDef = {
     "park, and beneath it a door. Find him on day four. Listen carefully.",
   isComplete: (c) => c.flags.kostasReveal === true,
   reward: { unlocks: "hatch" },
-  requires: (_c, done) =>
-    done.has("q_shopkeeper_errand") || done.has("q_despoina_candle"),
+  requires: (_c, done) => done.has("q_despoina_candle"),
+  dynamicHint: (c) => {
+    if (c.day < 4) return "Costas won't be ready until day four. Sleep through the night.";
+    return "Costas stands by his half-painted door. Put the brush down. Look at him.";
+  },
 };
 
 const q_descend: QuestDef = {
@@ -228,6 +238,15 @@ const q_make_choice: QuestDef = {
 
 /* ------------------------------------------------------------------ */
 
+// Order matters: activeQuest() returns the first incomplete one whose
+// requires are satisfied. Each entry must be completable when it shows up
+// in the HUD — never list a quest before its dependency, and never list
+// one the player can't finish today. The intended five-day arc:
+//   Day 1  · wake → step outside → meet the three villagers → sleep
+//   Day 2  · survive the first night → read the bench → clinic check-up
+//   Day 3  · Despoina's candle
+//   Day 4  · Costas's reveal → shopkeeper errand → descend
+//   Day 5  · choose the ending
 export const QUESTS: QuestDef[] = [
   q_wake_up,
   q_step_outside,
@@ -235,9 +254,9 @@ export const QUESTS: QuestDef[] = [
   q_survive_night_1,
   q_read_bench,
   q_clinic_appointment,
-  q_shopkeeper_errand,
   q_despoina_candle,
   q_costas_hill,
+  q_shopkeeper_errand,
   q_descend,
   q_make_choice,
 ];

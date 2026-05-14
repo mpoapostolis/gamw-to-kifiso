@@ -410,8 +410,13 @@ const NPCS: NpcSpawn[] = [
     key: "npc_smith",
     altKey: "npc_smith_b",
     name: "Costas",
-    x: tcx(15),
-    y: tcy(29.5),
+    // Costas stands just south of his house, between the front wall and
+    // the path. Previous y was tcy(29.5) which sat INSIDE the house
+    // footprint (the building anchor is bottom-centre at tcy(31), so the
+    // building extends UP to ~tcy(27) — Costas was clipping into the roof).
+    // tcy(32) puts him cleanly in front of the door, painting.
+    x: tcx(15.5),
+    y: tcy(32),
     roam: 0,
     dialog: DIALOGUES.kostas,
   },
@@ -443,8 +448,15 @@ const NPCS: NpcSpawn[] = [
  * BUILD                                                                   *
  * ----------------------------------------------------------------------- */
 const GROUND_TEX: Record<Ground, (tx: number, ty: number) => string> = {
-  grass: (tx, ty) => `grass${Math.floor(hash2(tx, ty) * 3)}`,
-  path: () => "path",
+  // five grass variants now — deep moss / mid / dry / clover / scorched. The
+  // hash2 spread means the field reads as a real patchwork instead of a
+  // three-cell repeat.
+  grass: (tx, ty) => `grass${Math.floor(hash2(tx, ty) * 5)}`,
+  // three path variants, picked off the same hash so neighbouring tiles vary.
+  path: (tx, ty) => {
+    const v = Math.floor(hash2(tx, ty + 71) * 3);
+    return v === 0 ? "path" : `path${v}`;
+  },
   sand: () => "sand",
   stone: () => "stonefloor",
   water: () => "grass1", // unused — water tiles are real animated sprites

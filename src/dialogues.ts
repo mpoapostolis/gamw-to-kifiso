@@ -137,6 +137,7 @@ export const DIALOGUES: Record<string, (c: GameCtx) => DialogPage[]> = {
         P("Costas", "portrait_kostas", "Did you notice last night at eleven fifty-five the clock in the square stopped? I think it did. Or maybe I dreamed it. Hard to say what's a dream around here.", undefined, (cc) => cc.addNote("clockStop")),
         P("Costas", "portrait_kostas", "I was halfway through a thought yesterday morning. Important one. I can feel the shape of it, like a tooth I lost. But the thought is gone.", PAL.gloomGlow),
         P("Costas", "portrait_kostas", "Door's not going to paint itself. Three weeks now. The man before me started it. The man tomorrow will finish a stroke or two more."),
+        P("Costas", "portrait_kostas", "Come back in a day or two, neighbour. I'm — I'm working something out. About the hill. I'll have it down on paper by then.", PAL.gloomGlow),
       ];
 
     if (c.day === 3)
@@ -145,6 +146,7 @@ export const DIALOGUES: Record<string, (c: GameCtx) => DialogPage[]> = {
         P("Costas", "portrait_kostas", "...", PAL.gloomGlow, (cc) => cc.addNote("kostasFreeze")),
         P("Costas", "portrait_kostas", "...what was I telling you. Oh. The door. Yeah. Almost done. Almost done."),
         P("Costas", "portrait_kostas", "You alright, neighbour? You look like a man who just noticed his own hand isn't quite his.", PAL.gloomGlow),
+        P("Costas", "portrait_kostas", "Tomorrow, mate. Come back tomorrow morning. Properly. The map will be ready and so — — so will I. Sorry. I'm sorry."),
       ];
 
     if (c.day === 4 && !c.flags.kostasReveal)
@@ -176,7 +178,7 @@ export const DIALOGUES: Record<string, (c: GameCtx) => DialogPage[]> = {
         P("Mrs. Despoina", "portrait_despoina", "Come closer, child. Let me look at your face. — Yes. A good face. A familiar face. A face I have looked at before, in a different morning, on a different head.", undefined, (cc) => { cc.flags.metDespoina = true; }),
         P("Mrs. Despoina", "portrait_despoina", "Do not be alarmed. I am old in a way that does not show. Sixty years I have not aged. Sixty years and I am still the woman who carried my own husband to his bed for the last time. He is buried. I am here. Both are true.", PAL.gloomGlow, (cc) => cc.addNote("despoinaSmile")),
         P("Mrs. Despoina", "portrait_despoina", "The hardest thing, child — it is not the forgetting. It is knowing that your love is being delivered by a stranger every morning, in your name. And the one who receives it does not know."),
-        P("Mrs. Despoina", "portrait_despoina", "Slowly, child. Slowly. Come back tomorrow. I shall tell you again. I always do."),
+        P("Mrs. Despoina", "portrait_despoina", "Slowly, child. Slowly. Come back tomorrow. I shall tell you again. I always do. And come the morning after — I shall have something for you. A small thing. A heavy thing. Not yet. Not yet."),
       ];
 
     if (c.day === 2)
@@ -185,6 +187,7 @@ export const DIALOGUES: Record<string, (c: GameCtx) => DialogPage[]> = {
         P("Mrs. Despoina", "portrait_despoina", "I shall tell you again, and again, and again — until one morning the telling sticks to whoever happens to be standing where you are standing. That is how we wake those of us who can be woken."),
         P("Mrs. Despoina", "portrait_despoina", "At eleven fifty-five the great clock in the square stands still. Every night. Five minutes long. None see it. Only I. And now perhaps you.", undefined, (cc) => cc.addNote("clockStop")),
         P("Mrs. Despoina", "portrait_despoina", "The man who slept in your bed last night, child — he is buried. You are walking around in his clothes. You wear his ring. You answer to his name. — Do not weep yet. There is more.", PAL.gloomGlow),
+        P("Mrs. Despoina", "portrait_despoina", "Tomorrow morning come again. I shall be ready. The candle I keep — — it will be ready also. Sleep first. Sleep, child."),
       ];
 
     if (c.day === 3)
