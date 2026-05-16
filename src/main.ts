@@ -1,38 +1,23 @@
 /**
- * THE CLEANERS — entry point.
+ * ΑΚΟΜΑ ΕΓΩ (Still Me) — entry point.
  *
- * Wires the Phaser game. Boot → Title → Bedroom. Apartment rooms
- * (Bedroom / Kitchen / LivingRoom / Bathroom) navigate via SceneRouter.
- * Morning loop (Stairwell / Street / Cafe / Office / Metro) hangs off the
- * apartment's front door. Sleep + Credits are special-purpose scenes
- * launched at the right moment in the day cycle. Journal is an overlay
- * any room can launch via J.
+ * A quiet interactive story about identity and consciousness. Boot forges
+ * the procedural textures + audio, Title holds the splash, and StoryScene
+ * plays the whole thing — one chapter at a time, six chapters, then black.
  *
- * The Yesterday Echoes scenes are no longer registered here. They live on
- * en-rewrite for reference.
+ * No HUD, no inventory, no combat. Earlier builds of this repo (Yesterday
+ * Echoes, The Cleaners) live on their own branches.
  */
 import Phaser from "phaser";
 import { VIEW_H, VIEW_W } from "./consts";
 import { BootScene } from "./scenes/Boot";
 import { TitleScene } from "./scenes/Title";
-import { BedroomScene } from "./scenes/cleaners/Bedroom";
-import { KitchenScene } from "./scenes/cleaners/Kitchen";
-import { LivingRoomScene } from "./scenes/cleaners/LivingRoom";
-import { BathroomScene } from "./scenes/cleaners/Bathroom";
-import { StairwellScene } from "./scenes/cleaners/Stairwell";
-import { StreetScene } from "./scenes/cleaners/Street";
-import { CafeScene } from "./scenes/cleaners/Cafe";
-import { OfficeScene } from "./scenes/cleaners/Office";
-import { MetroScene } from "./scenes/cleaners/Metro";
-import { SleepScene } from "./scenes/cleaners/Sleep";
-import { CreditsScene } from "./scenes/cleaners/Credits";
-import { JournalScene } from "./scenes/cleaners/Journal";
-import { HudScene } from "./scenes/cleaners/Hud";
+import { StoryScene } from "./scenes/still/StoryScene";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   parent: "game",
-  backgroundColor: "#07060d",
+  backgroundColor: "#05050a",
   pixelArt: false,
   roundPixels: true,
   antialias: true,
@@ -48,27 +33,7 @@ const config: Phaser.Types.Core.GameConfig = {
   },
   fps: { target: 60, min: 24, smoothStep: true },
   render: { powerPreference: "high-performance" },
-  scene: [
-    BootScene,
-    TitleScene,
-    // The Apartment
-    BedroomScene,
-    KitchenScene,
-    LivingRoomScene,
-    BathroomScene,
-    // The morning loop
-    StairwellScene,
-    StreetScene,
-    CafeScene,
-    OfficeScene,
-    MetroScene,
-    // Special-purpose
-    SleepScene,
-    CreditsScene,
-    JournalScene,
-    // Overlay HUD — auto-launched from each room via ensureHud().
-    HudScene,
-  ],
+  scene: [BootScene, TitleScene, StoryScene],
 };
 
 // eslint-disable-next-line no-new

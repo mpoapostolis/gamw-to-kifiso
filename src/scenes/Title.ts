@@ -96,18 +96,20 @@ export class TitleScene extends Phaser.Scene {
       .setBlendMode(Phaser.BlendModes.ADD)
       .setScale(4.6, 1.7)
       .setAlpha(0);
-    // Title: "5 ΛΕΠΤΑ ΠΡΙΝ" — fits one line at a comfortable size
+    // Title: "ΑΚΟΜΑ ΕΓΩ" — Greek, so we use the Spectral stack (Cinzel has
+    // no Greek glyphs); it carries the same hushed serif weight.
+    const TITLE_FONT = '"Spectral", "Times New Roman", serif';
     const titleTop = this.add
-      .text(cx, 252, "THE CLEANERS", { fontFamily: CINZEL, fontSize: "62px", color: hex(PAL.ink), fontStyle: "800" })
+      .text(cx, 252, "ΑΚΟΜΑ ΕΓΩ", { fontFamily: TITLE_FONT, fontSize: "70px", color: hex(PAL.ink), fontStyle: "600" })
       .setOrigin(0.5)
-      .setLetterSpacing(14)
+      .setLetterSpacing(18)
       .setShadow(0, 4, "rgba(0,0,0,0.55)", 8, true, true)
       .setAlpha(0)
       .setY(238);
     const titleWarm1 = this.add
-      .text(cx, 252, "THE CLEANERS", { fontFamily: CINZEL, fontSize: "62px", color: hex(PAL.emberSoft), fontStyle: "800" })
+      .text(cx, 252, "ΑΚΟΜΑ ΕΓΩ", { fontFamily: TITLE_FONT, fontSize: "70px", color: hex(PAL.emberSoft), fontStyle: "600" })
       .setOrigin(0.5)
-      .setLetterSpacing(14)
+      .setLetterSpacing(18)
       .setAlpha(0)
       .setBlendMode(Phaser.BlendModes.ADD)
       .setScale(1.012)
@@ -131,7 +133,7 @@ export class TitleScene extends Phaser.Scene {
     rule.strokeTriangle(0, -7, -7, 0, 0, 7);
 
     const subtitle = this.add
-      .text(cx, 388, "every night, while you sleep, you are quietly replaced.", {
+      .text(cx, 388, "κάθε πρωί υποθέτεις, χωρίς να το σκεφτείς, πως είσαι ο ίδιος.", {
         fontFamily: SPECTRAL,
         fontSize: "22px",
         color: hex(PAL.inkDim),
@@ -142,7 +144,7 @@ export class TitleScene extends Phaser.Scene {
       .setAlpha(0);
 
     const prompt = this.add
-      .text(cx, 498, "press  ENTER  —  or click  —  to wake up", {
+      .text(cx, 498, "κλικ  —  ή  SPACE  —  για να ξεκινήσεις", {
         fontFamily: SPECTRAL,
         fontSize: "23px",
         color: hex(PAL.ink),
@@ -153,7 +155,7 @@ export class TitleScene extends Phaser.Scene {
       .setAlpha(0);
 
     const controls = this.add
-      .text(cx, 558, "WASD / ↑ ↓ ← →  walk     SPACE  sprint     E  examine     J  journal     ESC  back", {
+      .text(cx, 558, "μια ιστορία σε έξι κεφάλαια  ·  κλικ ή SPACE για να προχωρήσει", {
         fontFamily: SPECTRAL,
         fontSize: "15px",
         color: hex(PAL.inkFaint),
@@ -252,7 +254,7 @@ export class TitleScene extends Phaser.Scene {
       this.tweens.add({ targets: titleGlow, alpha: 0.8, scaleX: 6, duration: 500 });
       this.tweens.add({ targets: prompt, alpha: 0, duration: 200 });
       this.cameras.main.fadeOut(620, PAL.void >> 16, (PAL.void >> 8) & 0xff, PAL.void & 0xff);
-      this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start("Bedroom"));
+      this.cameras.main.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => this.scene.start("Story"));
     };
     this.input.keyboard?.once("keydown-ENTER", begin);
     this.input.keyboard?.once("keydown-SPACE", begin);
